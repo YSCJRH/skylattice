@@ -1,0 +1,23 @@
+﻿freeze_mode: false
+
+auto_approve:
+  - observe
+  - local-safe-write
+
+approval_required:
+  - repo-write
+  - external-write
+  - self-modify
+
+local_safe_roots:
+  - .local/work
+  - .local/logs
+  - .local/state
+
+destructive_keywords:
+  - delete
+  - remove
+  - overwrite
+  - reset
+  - purge
+  - destroy

@@ -1,0 +1,13 @@
+﻿token_budget:
+  interactive_request: 120000
+  daily_total: 800000
+
+retry_budget:
+  default_plan_retries: 2
+  self_improvement_retries: 1
+
+time_budget:
+  background_job_minutes: 10
+
+external_action_budget:
+  default_daily_actions: 5
