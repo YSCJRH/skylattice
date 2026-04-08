@@ -1,0 +1,68 @@
+﻿{
+  "status": "ok",
+  "kernel": {
+    "agent": {
+      "agent_id": "skylattice",
+      "codename": "skylattice",
+      "version": "0.2.0",
+      "owner": "local-user"
+    },
+    "user": {
+      "user_id": "local-user",
+      "display_name": "user",
+      "timezone": "UTC",
+      "interaction_style": "concise, architecture-first"
+    },
+    "runtime": {
+      "mode": "bootstrap",
+      "freeze_mode": false,
+      "memory_home": ".local/memory",
+      "remote_ledger": "",
+      "autonomy_mode": "proactive-low-risk"
+    },
+    "paths": {
+      "repo_root": ".",
+      "local_root": ".local",
+      "state_root": ".local/state",
+      "memory_root": ".local/memory",
+      "work_root": ".local/work",
+      "logs_root": ".local/logs",
+      "overrides_root": ".local/overrides"
+    }
+  },
+  "governance": {
+    "freeze_mode": false,
+    "auto_approve": [
+      "observe",
+      "local-safe-write",
+      "external-read",
+      "radar-experiment-write",
+      "radar-promote-main"
+    ],
+    "approval_required": [
+      "repo-write",
+      "external-write",
+      "self-modify"
+    ]
+  },
+  "runtime": {
+    "db_path": ".local/state/skylattice.sqlite3",
+    "run_count": 0,
+    "radar_run_count": 0,
+    "planner_available": false,
+    "github_available": false,
+    "validation_config": "configs/task/validation.yaml",
+    "validation_commands": [
+      "python -m pytest -q",
+      "python -m compileall src/skylattice",
+      "python -m skylattice.cli doctor",
+      "git status --short"
+    ]
+  },
+  "radar": {
+    "source_available": false,
+    "freeze_mode": false,
+    "consecutive_failures": 0,
+    "latest_run_id": null
+  }
+}

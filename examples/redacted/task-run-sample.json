@@ -1,0 +1,196 @@
+﻿{
+  "run": {
+    "run_id": "run-sample-task",
+    "goal": "Refresh the README with deterministic edit primitives.",
+    "goal_source": "inline",
+    "status": "completed",
+    "plan_summary": "Refresh README with deterministic text edit primitives.",
+    "branch_name": "codex/readme-multimode-sample",
+    "current_step": 7,
+    "error": null,
+    "result": {
+      "branch_name": "codex/readme-multimode-sample",
+      "step_count": 8,
+      "status": "completed",
+      "html_url": "https://github.com/example/skylattice/pull/1"
+    },
+    "approvals": [
+      {
+        "tier": "external-write",
+        "granted": true,
+        "actor": "operator"
+      },
+      {
+        "tier": "repo-write",
+        "granted": true,
+        "actor": "operator"
+      }
+    ],
+    "created_at": "2026-04-08 00:00:00",
+    "updated_at": "2026-04-08 00:00:03"
+  },
+  "steps": [
+    {
+      "step_index": 0,
+      "step_id": "branch",
+      "action_name": "git.create_branch",
+      "status": "verified",
+      "result": {
+        "branch": "codex/readme-multimode-sample",
+        "verified": true
+      }
+    },
+    {
+      "step_index": 1,
+      "step_id": "edit-1",
+      "action_name": "workspace.replace_text",
+      "status": "verified",
+      "result": {
+        "path": "README.md",
+        "materialized_edit": {
+          "mode": "replace_text",
+          "target_text": "Initial content.",
+          "replacement_text": "Initial content with deterministic edits.",
+          "expected_occurrences": 1
+        },
+        "verification_metadata": {
+          "content_length": 55,
+          "expected_occurrences": 1
+        },
+        "verified": true
+      }
+    },
+    {
+      "step_index": 2,
+      "step_id": "edit-2",
+      "action_name": "workspace.insert_after",
+      "status": "verified",
+      "result": {
+        "path": "README.md",
+        "materialized_edit": {
+          "mode": "insert_after",
+          "anchor_text": "Initial content with deterministic edits.",
+          "insert_text": "\n\n## Task Agent MVP\n\nThis repo now supports deterministic text edit primitives.\n",
+          "expected_occurrences": 1
+        },
+        "verification_metadata": {
+          "content_length": 135,
+          "expected_occurrences": 1
+        },
+        "verified": true
+      }
+    },
+    {
+      "step_index": 3,
+      "step_id": "edit-3",
+      "action_name": "workspace.append_text",
+      "status": "verified",
+      "result": {
+        "path": "README.md",
+        "materialized_edit": {
+          "mode": "append_text",
+          "append_text": "\nValidation commands are tracked in repo config.\n"
+        },
+        "verification_metadata": {
+          "content_length": 184,
+          "expected_occurrences": null
+        },
+        "verified": true
+      }
+    },
+    {
+      "step_index": 4,
+      "step_id": "check-4",
+      "action_name": "workspace.run_check",
+      "status": "verified",
+      "result": {
+        "command": "git diff --stat",
+        "returncode": 0,
+        "stdout": " README.md | 9 ++++++++-\n 1 file changed, 8 insertions(+), 1 deletion(-)\n",
+        "stderr": "",
+        "verified": true
+      }
+    },
+    {
+      "step_index": 5,
+      "step_id": "commit",
+      "action_name": "git.commit_all",
+      "status": "verified",
+      "result": {
+        "message": "docs: exercise deterministic task-agent edits",
+        "verified": true
+      }
+    },
+    {
+      "step_index": 6,
+      "step_id": "push",
+      "action_name": "git.push_branch",
+      "status": "verified",
+      "result": {
+        "branch_name": "codex/readme-multimode-sample",
+        "verified": true
+      }
+    },
+    {
+      "step_index": 7,
+      "step_id": "pull-request",
+      "action_name": "github.sync_pull_request",
+      "status": "verified",
+      "result": {
+        "number": 1,
+        "html_url": "https://github.com/example/skylattice/pull/1",
+        "artifact_refs": [
+          "https://github.com/example/skylattice/pull/1"
+        ],
+        "verified": true
+      }
+    }
+  ],
+  "events": [
+    {
+      "kind": "run",
+      "summary": "Task run created"
+    },
+    {
+      "kind": "run",
+      "summary": "Task plan created"
+    },
+    {
+      "kind": "action",
+      "summary": "Apply replace_text to README.md"
+    },
+    {
+      "kind": "action",
+      "summary": "Apply insert_after to README.md"
+    },
+    {
+      "kind": "action",
+      "summary": "Apply append_text to README.md"
+    },
+    {
+      "kind": "action",
+      "summary": "Create or update draft pull request"
+    },
+    {
+      "kind": "memory",
+      "summary": "Procedural memory refreshed from successful run"
+    }
+  ],
+  "memory": [
+    {
+      "layer": "working",
+      "summary": "Active task: Refresh the README with deterministic edit primitives.",
+      "status": "tombstoned"
+    },
+    {
+      "layer": "episodic",
+      "summary": "Run run-sample-task completed: Refresh README with deterministic text edit primitives.",
+      "status": "active"
+    },
+    {
+      "layer": "procedural",
+      "summary": "Branch-edit-validate-commit-push-draft-PR workflow is available for repo ops tasks.",
+      "status": "active"
+    }
+  ]
+}

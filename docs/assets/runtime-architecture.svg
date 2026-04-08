@@ -1,0 +1,35 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Skylattice runtime architecture</title>
+  <desc id="desc">Diagram showing task agent and technology radar sharing governance, memory, ledger, and tracked repository artifacts.</desc>
+  <rect width="1200" height="640" fill="#f7fafc"/>
+  <text x="60" y="64" fill="#10223b" font-size="34" font-family="Segoe UI, Arial, sans-serif">Skylattice Runtime Map</text>
+  <text x="60" y="98" fill="#4e627d" font-size="18" font-family="Segoe UI, Arial, sans-serif">Local-first state and tracked behavior stay separate on purpose.</text>
+  <rect x="60" y="150" width="240" height="120" rx="20" fill="#102a43"/>
+  <text x="90" y="198" fill="#ffffff" font-size="24" font-family="Segoe UI, Arial, sans-serif">Task Agent</text>
+  <text x="90" y="232" fill="#c7d8ee" font-size="18" font-family="Segoe UI, Arial, sans-serif">governed repo tasks</text>
+  <rect x="60" y="330" width="240" height="120" rx="20" fill="#12355b"/>
+  <text x="90" y="378" fill="#ffffff" font-size="24" font-family="Segoe UI, Arial, sans-serif">Technology Radar</text>
+  <text x="90" y="412" fill="#c7d8ee" font-size="18" font-family="Segoe UI, Arial, sans-serif">discovery, experiment, promotion</text>
+  <rect x="390" y="120" width="300" height="110" rx="20" fill="#d9ecff" stroke="#78a9ff" stroke-width="2"/>
+  <text x="420" y="168" fill="#10223b" font-size="24" font-family="Segoe UI, Arial, sans-serif">Governance</text>
+  <text x="420" y="202" fill="#39506b" font-size="18" font-family="Segoe UI, Arial, sans-serif">approval tiers, freeze mode, policy gates</text>
+  <rect x="390" y="260" width="300" height="110" rx="20" fill="#def7ec" stroke="#2f855a" stroke-width="2"/>
+  <text x="420" y="308" fill="#10223b" font-size="24" font-family="Segoe UI, Arial, sans-serif">Ledger And Memory</text>
+  <text x="420" y="342" fill="#39506b" font-size="18" font-family="Segoe UI, Arial, sans-serif">events, runs, layered SQLite-backed memory</text>
+  <rect x="390" y="400" width="300" height="110" rx="20" fill="#fff4db" stroke="#d69e2e" stroke-width="2"/>
+  <text x="420" y="448" fill="#10223b" font-size="24" font-family="Segoe UI, Arial, sans-serif">Tracked Artifacts</text>
+  <text x="420" y="482" fill="#39506b" font-size="18" font-family="Segoe UI, Arial, sans-serif">docs, prompts, configs, ADRs, CI, examples</text>
+  <rect x="800" y="150" width="320" height="120" rx="20" fill="#eef2ff" stroke="#7f9cf5" stroke-width="2"/>
+  <text x="830" y="198" fill="#10223b" font-size="24" font-family="Segoe UI, Arial, sans-serif">Git And GitHub</text>
+  <text x="830" y="232" fill="#39506b" font-size="18" font-family="Segoe UI, Arial, sans-serif">audit, collaboration, CI, radar discovery</text>
+  <rect x="800" y="330" width="320" height="120" rx="20" fill="#fff5f5" stroke="#f56565" stroke-width="2"/>
+  <text x="830" y="378" fill="#10223b" font-size="24" font-family="Segoe UI, Arial, sans-serif">Provider Layer</text>
+  <text x="830" y="412" fill="#39506b" font-size="18" font-family="Segoe UI, Arial, sans-serif">planning and edit materialization when enabled</text>
+  <line x1="300" y1="210" x2="390" y2="175" stroke="#486581" stroke-width="4"/>
+  <line x1="300" y1="390" x2="390" y2="315" stroke="#486581" stroke-width="4"/>
+  <line x1="540" y1="230" x2="540" y2="260" stroke="#486581" stroke-width="4"/>
+  <line x1="540" y1="370" x2="540" y2="400" stroke="#486581" stroke-width="4"/>
+  <line x1="690" y1="175" x2="800" y2="210" stroke="#486581" stroke-width="4"/>
+  <line x1="690" y1="455" x2="800" y2="390" stroke="#486581" stroke-width="4"/>
+  <text x="60" y="592" fill="#4e627d" font-size="18" font-family="Segoe UI, Arial, sans-serif">Private runtime state lives under .local/. Reviewable behavior stays in tracked files. GitHub helps audit and collaborate, but it is not the runtime truth.</text>
+</svg>

@@ -52,6 +52,63 @@ def test_tracked_defaults_are_public_safe() -> None:
     assert payload["runtime"]["remote_ledger"] == ""
 
 
+def test_task_validation_config_defines_windows_baseline() -> None:
+    payload = yaml.safe_load((REPO_ROOT / "configs" / "task" / "validation.yaml").read_text(encoding="utf-8"))
+
+    assert payload["runner"] == "powershell"
+    assert payload["allowed_commands"] == [
+        "python -m pytest -q",
+        "python -m compileall src/skylattice",
+        "python -m skylattice.cli doctor",
+        "git status --short",
+    ]
+
+
+def test_public_engineering_baseline_files_exist() -> None:
+    required = [
+        ".github/workflows/ci.yml",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/ISSUE_TEMPLATE/bug_report.md",
+        ".github/ISSUE_TEMPLATE/feature_request.md",
+        ".github/ISSUE_TEMPLATE/early_feedback.md",
+        ".github/ISSUE_TEMPLATE/config.yml",
+        "tools/run_validation_suite.py",
+        "CHANGELOG.md",
+        "docs/overview.md",
+        "docs/use-cases.md",
+        "docs/comparison.md",
+        "docs/releases/v0.2.0-public-preview.md",
+        "docs/assets/doctor-snapshot.svg",
+        "docs/assets/task-run-snapshot.svg",
+        "docs/assets/runtime-architecture.svg",
+        "examples/redacted/doctor-output.json",
+        "examples/redacted/task-run-sample.md",
+        "examples/redacted/task-run-sample.json",
+        "examples/redacted/radar-sample.md",
+        "examples/redacted/radar-run-sample.json",
+    ]
+
+    assert all((REPO_ROOT / relative_path).exists() for relative_path in required)
+
+
+def test_public_positioning_surfaces_are_present() -> None:
+    readme = _read_text("README.md")
+    pyproject = _read_text("pyproject.toml")
+
+    for phrase in [
+        "Why Star Skylattice",
+        "5-Minute No-Credential Quick Start",
+        "Token-Enabled Workflow",
+        "Sample Outputs",
+        "Use Cases",
+        "How Skylattice Differs",
+        "Feedback Wanted",
+    ]:
+        assert phrase in readme
+
+    assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
+
+
 def test_local_path_summary_is_relative() -> None:
     paths = LocalPaths.from_repo_root(REPO_ROOT).to_dict()
 
