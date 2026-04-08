@@ -1,4 +1,4 @@
-"""Executable task-agent runtime service."""
+﻿"""Executable task-agent runtime service."""
 
 from __future__ import annotations
 
@@ -22,6 +22,7 @@ from skylattice.runtime.models import RunStatus, RunStep, RunStepStatus, TaskRun
 from .db import RuntimeDatabase
 from .models import ApprovalGrant
 from .repositories import RunRepository
+from .task_config import TaskValidationPolicy, load_task_validation_policy
 
 
 class TaskAgentService:
@@ -36,6 +37,7 @@ class TaskAgentService:
         governance: GovernanceGate,
         workspace: RepoWorkspaceAdapter,
         git: GitAdapter,
+        task_validation_policy: TaskValidationPolicy,
         planner: TaskPlanner | None,
         provider: object | None,
         github: GitHubAdapter | None,
@@ -49,6 +51,7 @@ class TaskAgentService:
         self.governance = governance
         self.workspace = workspace
         self.git = git
+        self.task_validation_policy = task_validation_policy
         self.planner = planner
         self.provider = provider
         self.github = github
@@ -83,7 +86,12 @@ class TaskAgentService:
         ledger = LedgerStore(database)
         memory = SQLiteMemoryRepository(database)
         governance = GovernanceGate.from_repo(root)
-        workspace = RepoWorkspaceAdapter(root)
+        task_validation_policy = load_task_validation_policy(root)
+        workspace = RepoWorkspaceAdapter(
+            root,
+            allowed_check_commands=task_validation_policy.allowed_commands,
+            check_shell=task_validation_policy.runner,
+        )
         git = GitAdapter(root)
         radar_repository = RadarRepository(database)
         radar = RadarService.from_repo(
@@ -108,6 +116,7 @@ class TaskAgentService:
             governance=governance,
             workspace=workspace,
             git=git,
+            task_validation_policy=task_validation_policy,
             planner=planner,
             provider=actual_provider,
             github=actual_github,
@@ -128,6 +137,8 @@ class TaskAgentService:
                 "radar_run_count": radar_run_count,
                 "planner_available": self.planner is not None,
                 "github_available": self.github is not None,
+                "validation_config": self._display_path(self.task_validation_policy.config_path),
+                "validation_commands": list(self.task_validation_policy.allowed_commands),
             },
             "radar": self.radar.state_snapshot(),
         }
@@ -167,7 +178,11 @@ class TaskAgentService:
             metadata={"phase": "active"},
         )
         repo_context = self._build_repo_context()
-        plan = self.planner.create_plan(goal=goal_text, repo_context=repo_context)
+        plan = self.planner.create_plan(
+            goal=goal_text,
+            repo_context=repo_context,
+            allowed_validation_commands=self.task_validation_policy.allowed_commands,
+        )
         branch_name = self._build_branch_name(plan.get("branch_name", "task"), run_id)
         steps = self._plan_to_steps(run_id=run_id, plan=plan, branch_name=branch_name)
         self.run_repository.save_plan(
@@ -287,7 +302,11 @@ class TaskAgentService:
                 result = self._execute_step(run, step)
                 verified = self._verify_step(step, result)
             except Exception as exc:  # noqa: BLE001
-                status = RunStatus.HALTED if step.required_tier in {PermissionTier.REPO_WRITE, PermissionTier.EXTERNAL_WRITE} else RunStatus.FAILED
+                status = (
+                    RunStatus.HALTED
+                    if step.required_tier in {PermissionTier.REPO_WRITE, PermissionTier.EXTERNAL_WRITE}
+                    else RunStatus.FAILED
+                )
                 failed_step = RunStep(
                     **{**asdict(step), "status": RunStepStatus.FAILED, "result": {"error": str(exc)}}
                 )
@@ -354,25 +373,11 @@ class TaskAgentService:
         if step.action_name == "git.create_branch":
             return self.git.create_branch(str(step.action_args["branch_name"]))
 
-        if step.action_name == "workspace.edit_file":
-            if self.provider is None:
-                raise RuntimeError("No content provider is available for file edits")
-            path = str(step.action_args["path"])
-            current_content = self.workspace.read_text(path)
-            updated = self.provider.rewrite_file(
-                goal=run.goal,
-                path=path,
-                current_content=current_content,
-                instructions=str(step.action_args["instructions"]),
-                plan_summary=run.plan_summary,
-                repo_context=self._build_repo_context(),
-            )
-            written = self.workspace.write_text(
-                path,
-                updated,
-                create_if_missing=bool(step.action_args.get("create_if_missing", False)),
-            )
-            return {"path": written, "artifact_refs": [written]}
+        if step.action_name in {"workspace.edit_file", "workspace.rewrite_file"}:
+            return self._execute_rewrite_step(run, step)
+
+        if step.action_name in {"workspace.replace_text", "workspace.insert_after", "workspace.append_text"}:
+            return self._execute_materialized_edit_step(run, step)
 
         if step.action_name == "workspace.run_check":
             return self.workspace.run_check(str(step.action_args["command"]))
@@ -416,15 +421,76 @@ class TaskAgentService:
 
         raise RuntimeError(f"Unsupported action: {step.action_name}")
 
+    def _execute_rewrite_step(self, run: TaskRun, step: RunStep) -> dict[str, object]:
+        if self.provider is None:
+            raise RuntimeError("No content provider is available for file edits")
+        path = str(step.action_args["path"])
+        updated = self.provider.rewrite_file(
+            goal=run.goal,
+            path=path,
+            current_content=self.workspace.read_text(path),
+            instructions=str(step.action_args["instructions"]),
+            plan_summary=run.plan_summary,
+            repo_context=self._build_repo_context(),
+        )
+        payload = {"mode": "rewrite", "content": updated}
+        written = self.workspace.apply_materialized_edit(
+            path,
+            payload,
+            create_if_missing=bool(step.action_args.get("create_if_missing", False)),
+        )
+        return {
+            "path": written,
+            "artifact_refs": [written],
+            "materialized_edit": payload,
+            "verification_metadata": {"content_length": len(updated)},
+        }
+
+    def _execute_materialized_edit_step(self, run: TaskRun, step: RunStep) -> dict[str, object]:
+        if self.provider is None:
+            raise RuntimeError("No content provider is available for file edits")
+        path = str(step.action_args["path"])
+        payload = self.provider.materialize_edit(
+            goal=run.goal,
+            path=path,
+            mode=str(step.action_args["mode"]),
+            current_content=self.workspace.read_text(path),
+            instructions=str(step.action_args["instructions"]),
+            plan_summary=run.plan_summary,
+            repo_context=self._build_repo_context(),
+        )
+        written = self.workspace.apply_materialized_edit(
+            path,
+            payload,
+            create_if_missing=bool(step.action_args.get("create_if_missing", False)),
+        )
+        return {
+            "path": written,
+            "artifact_refs": [written],
+            "materialized_edit": payload,
+            "verification_metadata": {
+                "content_length": len(self.workspace.read_text(path)),
+                "expected_occurrences": payload.get("expected_occurrences"),
+            },
+        }
+
     def _verify_step(self, step: RunStep, result: dict[str, object]) -> bool:
         if step.action_name == "workspace.run_check":
             if int(result.get("returncode", 1)) != 0:
                 raise RuntimeError(f"Check failed: {result.get('command')}")
             return True
-        if step.action_name == "workspace.edit_file":
+        if step.action_name in {
+            "workspace.edit_file",
+            "workspace.rewrite_file",
+            "workspace.replace_text",
+            "workspace.insert_after",
+            "workspace.append_text",
+        }:
             path = step.action_args["path"]
             if not self.workspace.read_text(str(path)).strip():
                 raise RuntimeError(f"Edited file is empty: {path}")
+            if "materialized_edit" not in result:
+                raise RuntimeError(f"Edit step did not record a materialized payload: {path}")
             return True
         if step.action_name == "git.commit_all":
             if self.git.status_porcelain().strip():
@@ -447,6 +513,8 @@ class TaskAgentService:
             "current_branch": self._safe_call(self.git.current_branch, default="main"),
             "remote_url": self._safe_call(self.git.remote_url, default=""),
             "files": files,
+            "allowed_validation_commands": list(self.task_validation_policy.allowed_commands),
+            "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text"],
         }
         for candidate in ("README.md", "docs/roadmap.md", "docs/architecture.md"):
             if candidate in files:
@@ -476,20 +544,28 @@ class TaskAgentService:
         step_index = 1
         for operation in plan.get("file_operations", []):
             path = str(operation["path"])
+            mode = str(operation.get("mode", "rewrite"))
+            action_name = {
+                "rewrite": "workspace.rewrite_file",
+                "replace_text": "workspace.replace_text",
+                "insert_after": "workspace.insert_after",
+                "append_text": "workspace.append_text",
+            }[mode]
             steps.append(
                 RunStep(
                     run_id=run_id,
                     step_index=step_index,
                     step_id=f"edit-{step_index}",
-                    summary=f"Edit {path}",
+                    summary=f"Apply {mode} to {path}",
                     required_tier=PermissionTier.REPO_WRITE,
-                    action_name="workspace.edit_file",
+                    action_name=action_name,
                     action_args={
                         "path": path,
+                        "mode": mode,
                         "create_if_missing": bool(operation.get("create_if_missing", False)),
                         "instructions": str(operation["instructions"]),
                     },
-                    verification={"path": path},
+                    verification={"path": path, "mode": mode},
                 )
             )
             step_index += 1
@@ -517,7 +593,7 @@ class TaskAgentService:
                 summary="Commit planned repository changes",
                 required_tier=PermissionTier.REPO_WRITE,
                 action_name="git.commit_all",
-                action_args={"message": str(plan["commit_message"])} ,
+                action_args={"message": str(plan["commit_message"])},
                 verification={"worktree_clean": True},
             )
         )

@@ -23,7 +23,14 @@ class OpenAIProvider:
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY is required for OpenAIProvider")
 
-    def generate_plan(self, *, goal: str, repo_context: dict[str, Any]) -> dict[str, Any]:
+    def generate_plan(
+        self,
+        *,
+        goal: str,
+        repo_context: dict[str, Any],
+        allowed_validation_commands: tuple[str, ...],
+    ) -> dict[str, Any]:
+        command_list = ", ".join(allowed_validation_commands)
         prompt = (
             "Create a constrained task plan for a single-user local-first repo agent.\n"
             "Goal:\n"
@@ -31,7 +38,9 @@ class OpenAIProvider:
             "Repository context:\n"
             f"{json.dumps(repo_context, indent=2)}\n\n"
             "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
-            "Allowed validation commands: python -m pytest -q, python -m compileall src tests, git status --short.\n"
+            "Supported edit modes: rewrite, replace_text, insert_after, append_text.\n"
+            "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
+            f"Allowed validation commands: {command_list}.\n"
             "Return one branch name, one or more file operations, zero or more validation commands,\n"
             "one commit message, one draft pull request payload, and an optional issue comment payload."
         )
@@ -50,10 +59,14 @@ class OpenAIProvider:
                             "type": "object",
                             "properties": {
                                 "path": {"type": "string"},
+                                "mode": {
+                                    "type": "string",
+                                    "enum": ["rewrite", "replace_text", "insert_after", "append_text"],
+                                },
                                 "create_if_missing": {"type": "boolean"},
                                 "instructions": {"type": "string"},
                             },
-                            "required": ["path", "create_if_missing", "instructions"],
+                            "required": ["path", "mode", "create_if_missing", "instructions"],
                             "additionalProperties": False,
                         },
                     },
@@ -88,7 +101,7 @@ class OpenAIProvider:
                     "file_operations",
                     "validation_commands",
                     "commit_message",
-                    "pull_request"
+                    "pull_request",
                 ],
                 "additionalProperties": False,
             },
@@ -129,6 +142,31 @@ class OpenAIProvider:
         }
         return str(self._request_json(prompt=prompt, schema=schema)["content"])
 
+    def materialize_edit(
+        self,
+        *,
+        goal: str,
+        path: str,
+        mode: str,
+        current_content: str,
+        instructions: str,
+        plan_summary: str,
+        repo_context: dict[str, Any],
+    ) -> dict[str, Any]:
+        prompt = (
+            "Convert high-level edit instructions into a deterministic text-edit payload.\n"
+            f"Goal:\n{goal}\n\n"
+            f"Plan summary:\n{plan_summary}\n\n"
+            f"Target path: {path}\n"
+            f"Edit mode: {mode}\n"
+            f"Instructions: {instructions}\n\n"
+            "Repository context:\n"
+            f"{json.dumps(repo_context, indent=2)}\n\n"
+            "Current content follows. Return only the structured payload for this edit mode.\n\n"
+            f"{current_content}"
+        )
+        return self._request_json(prompt=prompt, schema=self._edit_schema(mode))
+
     def _request_json(self, *, prompt: str, schema: dict[str, Any]) -> dict[str, Any]:
         payload = {
             "model": self.model,
@@ -162,3 +200,56 @@ class OpenAIProvider:
         if not isinstance(data, dict):
             raise RuntimeError("OpenAI structured output was not an object")
         return data
+
+    @staticmethod
+    def _edit_schema(mode: str) -> dict[str, Any]:
+        if mode == "replace_text":
+            return {
+                "type": "json_schema",
+                "name": "replace_text_edit",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {"type": "string", "enum": ["replace_text"]},
+                        "target_text": {"type": "string"},
+                        "replacement_text": {"type": "string"},
+                        "expected_occurrences": {"type": "integer", "minimum": 1},
+                    },
+                    "required": ["mode", "target_text", "replacement_text", "expected_occurrences"],
+                    "additionalProperties": False,
+                },
+            }
+        if mode == "insert_after":
+            return {
+                "type": "json_schema",
+                "name": "insert_after_edit",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {"type": "string", "enum": ["insert_after"]},
+                        "anchor_text": {"type": "string"},
+                        "insert_text": {"type": "string"},
+                        "expected_occurrences": {"type": "integer", "minimum": 1},
+                    },
+                    "required": ["mode", "anchor_text", "insert_text", "expected_occurrences"],
+                    "additionalProperties": False,
+                },
+            }
+        if mode == "append_text":
+            return {
+                "type": "json_schema",
+                "name": "append_text_edit",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {"type": "string", "enum": ["append_text"]},
+                        "append_text": {"type": "string"},
+                    },
+                    "required": ["mode", "append_text"],
+                    "additionalProperties": False,
+                },
+            }
+        raise ValueError(f"Unsupported edit mode for materialization: {mode}")

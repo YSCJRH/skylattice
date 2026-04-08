@@ -29,6 +29,15 @@ Explicit approval required:
 - `external-write`
 - `self-modify`
 
+## Task-Agent Validation Guard
+
+Task validation is intentionally narrow.
+
+- task-agent validation commands are limited to exact entries in `configs/task/validation.yaml`
+- the tracked validation config is shared by the runtime and GitHub Actions CI
+- planning a validation step does not grant arbitrary shell access or widen operator approvals
+- deterministic text-edit primitives still require `repo-write`; validation commands stay in the `observe` tier
+
 ## Radar-Specific Guards
 
 Auto-approved does not mean unbounded. Radar writes still pass extra gates in code:
