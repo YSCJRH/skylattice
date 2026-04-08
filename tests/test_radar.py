@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import subprocess
 from dataclasses import replace
@@ -44,11 +44,11 @@ agent:
   id: skylattice
   codename: skylattice
   version: 0.2.0
-  owner: primary-user
+  owner: local-user
 user_model:
-  user_id: primary-user
-  display_name: owner
-  timezone: Asia/Shanghai
+  user_id: local-user
+  display_name: user
+  timezone: UTC
   interaction_style: concise
 relationship:
   role: personal evolvable agent
@@ -64,7 +64,7 @@ runtime:
   freeze_mode: false
   active_plan: null
   memory_home: .local/memory
-  remote_ledger: github.com/example/skylattice
+  remote_ledger: ""
   autonomy_mode: proactive-low-risk
 adapters:
   shell: planned

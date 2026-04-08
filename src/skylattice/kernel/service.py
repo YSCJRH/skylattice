@@ -1,4 +1,4 @@
-﻿"""Kernel loading and summary helpers."""
+"""Kernel loading and summary helpers."""
 
 from __future__ import annotations
 
@@ -88,11 +88,11 @@ def load_kernel_config(repo_root: Path | None = None) -> KernelConfig:
             agent_id=str(agent_raw.get("id", "skylattice")),
             codename=str(agent_raw.get("codename", "skylattice")),
             version=str(agent_raw.get("version", "0.1.0")),
-            owner=str(agent_raw.get("owner", "primary-user")),
+            owner=str(agent_raw.get("owner", "local-user")),
         ),
         user=UserIdentityModel(
-            user_id=str(user_raw.get("user_id", "primary-user")),
-            display_name=str(user_raw.get("display_name", "owner")),
+            user_id=str(user_raw.get("user_id", "local-user")),
+            display_name=str(user_raw.get("display_name", "user")),
             timezone=str(user_raw.get("timezone", "UTC")),
             interaction_style=str(user_raw.get("interaction_style", "concise")),
         ),
@@ -113,7 +113,7 @@ def load_kernel_config(repo_root: Path | None = None) -> KernelConfig:
             freeze_mode=bool(runtime_raw.get("freeze_mode", False)),
             active_plan=runtime_raw.get("active_plan"),
             memory_home=str(runtime_raw.get("memory_home", str(paths.memory_root))),
-            remote_ledger=str(runtime_raw.get("remote_ledger", "github.com/YSCJRH/skylattice")),
+            remote_ledger=str(runtime_raw.get("remote_ledger", "")),
             autonomy_mode=str(runtime_raw.get("autonomy_mode", "proactive-low-risk")),
         ),
         adapters={str(key): str(value) for key, value in adapters_raw.items()},

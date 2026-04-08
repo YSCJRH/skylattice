@@ -87,11 +87,11 @@ agent:
   id: skylattice
   codename: skylattice
   version: 0.1.0
-  owner: primary-user
+  owner: local-user
 user_model:
-  user_id: primary-user
-  display_name: owner
-  timezone: Asia/Shanghai
+  user_id: local-user
+  display_name: user
+  timezone: UTC
   interaction_style: concise
 relationship:
   role: personal evolvable agent
@@ -107,7 +107,7 @@ runtime:
   freeze_mode: false
   active_plan: null
   memory_home: .local/memory
-  remote_ledger: github.com/example/skylattice
+  remote_ledger: ""
   autonomy_mode: proactive-low-risk
 adapters:
   shell: planned
@@ -175,6 +175,7 @@ def test_health_and_doctor_reports() -> None:
     assert health.status_code == 200
     assert kernel.status_code == 200
     assert kernel.json()["agent"]["agent_id"] == "skylattice"
+    assert report["kernel"]["paths"]["repo_root"] == "."
 
 
 def test_doctor_command_outputs_runtime_json() -> None:
@@ -184,7 +185,8 @@ def test_doctor_command_outputs_runtime_json() -> None:
 
     payload = json.loads(buffer.getvalue())
     assert exit_code == 0
-    assert payload["runtime"]["db_path"].endswith("skylattice.sqlite3")
+    assert payload["runtime"]["db_path"] == ".local/state/skylattice.sqlite3"
+    assert payload["kernel"]["paths"]["repo_root"] == "."
 
 
 def test_kernel_config_reads_env_override(monkeypatch: pytest.MonkeyPatch) -> None:

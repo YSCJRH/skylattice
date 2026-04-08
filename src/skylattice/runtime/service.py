@@ -1,4 +1,4 @@
-﻿"""Executable task-agent runtime service."""
+"""Executable task-agent runtime service."""
 
 from __future__ import annotations
 
@@ -123,7 +123,7 @@ class TaskAgentService:
             "kernel": build_kernel_summary(self.repo_root),
             "governance": self.governance.policy_snapshot(),
             "runtime": {
-                "db_path": str(self.database.db_path),
+                "db_path": self._display_path(self.database.db_path),
                 "run_count": run_count,
                 "radar_run_count": radar_run_count,
                 "planner_available": self.planner is not None,
@@ -443,7 +443,7 @@ class TaskAgentService:
     def _build_repo_context(self) -> dict[str, object]:
         files = self.workspace.list_files(limit=120)
         context = {
-            "repo_root": str(self.repo_root),
+            "repo_root": ".",
             "current_branch": self._safe_call(self.git.current_branch, default="main"),
             "remote_url": self._safe_call(self.git.remote_url, default=""),
             "files": files,
@@ -452,6 +452,13 @@ class TaskAgentService:
             if candidate in files:
                 context[candidate] = self.workspace.read_text(candidate)[:4000]
         return context
+
+    def _display_path(self, path: Path) -> str:
+        try:
+            relative = path.relative_to(self.repo_root)
+        except ValueError:
+            return str(path)
+        return relative.as_posix() if relative.parts else "."
 
     def _plan_to_steps(self, *, run_id: str, plan: dict[str, Any], branch_name: str) -> list[RunStep]:
         steps: list[RunStep] = [

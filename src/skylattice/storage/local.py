@@ -1,4 +1,4 @@
-﻿"""Local path helpers for the dual-layer runtime layout."""
+"""Local path helpers for the dual-layer runtime layout."""
 
 from __future__ import annotations
 
@@ -42,13 +42,22 @@ class LocalPaths:
             path.mkdir(parents=True, exist_ok=True)
         return self
 
+    def _display(self, path: Path) -> str:
+        if path == self.repo_root:
+            return "."
+        try:
+            relative = path.relative_to(self.repo_root)
+        except ValueError:
+            return str(path)
+        return relative.as_posix()
+
     def to_dict(self) -> dict[str, str]:
         return {
-            "repo_root": str(self.repo_root),
-            "local_root": str(self.local_root),
-            "state_root": str(self.state_root),
-            "memory_root": str(self.memory_root),
-            "work_root": str(self.work_root),
-            "logs_root": str(self.logs_root),
-            "overrides_root": str(self.overrides_root),
+            "repo_root": self._display(self.repo_root),
+            "local_root": self._display(self.local_root),
+            "state_root": self._display(self.state_root),
+            "memory_root": self._display(self.memory_root),
+            "work_root": self._display(self.work_root),
+            "logs_root": self._display(self.logs_root),
+            "overrides_root": self._display(self.overrides_root),
         }
