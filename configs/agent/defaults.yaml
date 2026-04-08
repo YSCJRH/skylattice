@@ -1,7 +1,7 @@
 ﻿agent:
   id: skylattice
   codename: skylattice
-  version: 0.1.0
+  version: 0.2.0
   owner: primary-user
 
 user_model:
@@ -48,3 +48,4 @@ adapters:
   git: planned
   github: planned
   browser: planned
+

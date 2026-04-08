@@ -1,101 +1,59 @@
 ﻿# Governance
 
-## Purpose
-
-Governance defines the maximum autonomy of the system. It exists to keep the agent helpful, proactive, and bounded.
-
-In the current MVP, governance is enforced per run and per step, not only as a static policy document.
+Skylattice stays proactive by making permission and promotion boundaries explicit.
 
 ## Permission Tiers
 
-| Tier | Meaning | Default in current MVP |
-| --- | --- | --- |
-| `observe` | read-only inspection, retrieval, summarization | auto-allowed |
-| `local-safe-write` | reversible local writes in approved `.local/` paths | auto-allowed |
-| `repo-write` | changes to tracked repository artifacts | explicit approval required |
-| `external-write` | git push, GitHub writes, browser form submissions, external APIs | explicit approval required |
-| `self-modify` | prompt, policy, skill, or routing updates affecting future behavior | explicit approval required |
+- `observe`: local read-only activity
+- `local-safe-write`: reversible writes under approved `.local/` roots
+- `repo-write`: tracked repository writes initiated by task runs
+- `external-read`: GitHub discovery for the technology radar
+- `external-write`: remote GitHub writes for task runs
+- `radar-experiment-write`: internal gate for radar spike artifacts on whitelisted paths
+- `radar-promote-main`: internal gate for radar promotion writes on whitelisted paths
+- `self-modify`: direct policy or autonomy widening
 
-## Run-Scoped Approval Model
+## Current Policy
 
-Approvals are attached to a specific task run.
+Auto-approved from tracked policy:
 
-Current CLI behavior:
+- `observe`
+- `local-safe-write`
+- `external-read`
+- `radar-experiment-write`
+- `radar-promote-main`
 
-- `skylattice task run --allow repo-write`
-- `skylattice task run --allow external-write`
-- `skylattice task resume <run-id> --allow ...`
+Explicit approval required:
 
-Important rules:
+- `repo-write`
+- `external-write`
+- `self-modify`
 
-- approvals do not silently carry over to other runs
-- approvals only unlock the explicit tier granted
-- missing approval pauses the run at the first blocked step with status `waiting_approval`
-- the ledger records both the pause and the later approval update
+## Radar-Specific Guards
 
-## Approval Rules
+Auto-approved does not mean unbounded. Radar writes still pass extra gates in code:
 
-- destructive intent blocks automatic approval even inside `local-safe-write`
-- repo writes need human review because they alter the durable tracked ledger
-- external writes need human review because they create outside effects
-- self-modification needs human review because it changes future behavior
+- the worktree must be clean before scan, promotion, or rollback
+- the base branch must be `main`
+- changed paths must remain inside `configs/radar/promotion.yaml`
+- promotions must satisfy score, validation, weekly-cap, and freeze checks
+- repeated promotion failures trigger freeze mode in local radar state
 
-## Budgets
+## Destructive Action Handling
 
-Skylattice tracks budgets as policy artifacts rather than hidden runtime constants.
+Destructive intent keywords still force denial unless the operator explicitly intervenes. Automatic radar behavior does not include reset, delete, purge, force-push, merge, or rebase paths.
 
-Current v0.1 budget categories:
+## Memory Rules
 
-- model token budget
-- retry budget per plan
-- wall-clock budget per background job
-- external action budget
-
-## Runtime Enforcement
-
-The current runtime checks governance before each step.
-
-Typical effects:
-
-- file edits and commits require `repo-write`
-- git push and GitHub sync require `external-write`
-- read-only validation commands remain in `observe`
-
-A blocked run is not discarded. It is resumable.
-
-## Memory Editing Rules
-
-- profile edits require provenance and should prefer superseding over overwriting
-- episodic records are append-first and should preserve raw event order
-- semantic compaction requires source links
-- procedural edits require either tracked Git history or local snapshot history
-- working memory is expected to be tombstoned or summarized at run end
-
-## Self-Modification Restrictions
-
-- no direct writes to tracked prompts or policies without a candidate, evidence, and approval
-- no widening of allowed permission tiers from runtime code alone
-- no silent changes to adapter routing precedence
-
-## Destructive Guards
-
-The system should escalate rather than proceed when it detects operations such as:
-
-- delete or overwrite of durable records
-- Git resets or history rewrites
-- unreviewed memory compaction with data loss risk
-- high-cost repeated retries without new evidence
+- profile memory is never updated by the radar automatically
+- episodic, semantic, and procedural memory can be written by radar runs, but each write must carry run provenance
+- working memory is tombstoned at run close
 
 ## Freeze Mode
 
-Freeze mode is an emergency brake.
+There are now two freeze concepts:
 
-When enabled:
+- tracked governance freeze mode from `configs/policies/governance.yaml`
+- local radar freeze mode stored in SQLite after repeated promotion failures
 
-- only `observe` actions are allowed by default
-- pending maintenance or evolution work must stop
-- manual operator review is required before resuming mutable actions
-
-## Operator Posture
-
-The system may be proactive in surfacing recurring needs or proposing plans, but it must not become self-authorizing.
+Either one blocks automatic promotion. The tracked mode is an operator policy switch; the radar-local mode is an automatic safety response.

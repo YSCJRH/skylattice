@@ -1,0 +1,22 @@
+﻿base_branch: main
+
+allowed_paths:
+  - docs/radar/experiments
+  - docs/radar/promotions
+  - configs/radar
+  - prompts
+  - skills
+  - tests
+  - src/skylattice/radar
+  - src/skylattice/providers
+  - src/skylattice/actions
+
+weekly_promotion_cap: 1
+freeze_after_failures: 2
+
+validation_commands:
+  - python -m pytest -q
+
+experiment_dir: docs/radar/experiments
+promotion_log_dir: docs/radar/promotions
+adoption_registry: configs/radar/adoptions.yaml

@@ -13,7 +13,10 @@ class PermissionTier(StrEnum):
     OBSERVE = "observe"
     LOCAL_SAFE_WRITE = "local-safe-write"
     REPO_WRITE = "repo-write"
+    EXTERNAL_READ = "external-read"
     EXTERNAL_WRITE = "external-write"
+    RADAR_EXPERIMENT_WRITE = "radar-experiment-write"
+    RADAR_PROMOTE_MAIN = "radar-promote-main"
     SELF_MODIFY = "self-modify"
 
 
@@ -108,7 +111,24 @@ class GovernanceGate:
             "local_safe_roots": list(self.policy.local_safe_roots),
         }
 
+    @property
+    def freeze_mode_enabled(self) -> bool:
+        return self.policy.freeze_mode
+
+    def paths_within_roots(
+        self,
+        target_paths: tuple[str, ...] | list[str],
+        allowed_roots: tuple[str, ...] | list[str],
+    ) -> bool:
+        return all(self._is_within_roots(path, allowed_roots) for path in target_paths)
+
     def _is_allowed_local_target(self, target_path: str | None) -> bool:
+        if not target_path:
+            return False
+
+        return self._is_within_roots(target_path, self.policy.local_safe_roots)
+
+    def _is_within_roots(self, target_path: str | None, allowed_roots: tuple[str, ...] | list[str]) -> bool:
         if not target_path:
             return False
 
@@ -118,7 +138,7 @@ class GovernanceGate:
         else:
             target = target.resolve()
 
-        for root in self.policy.local_safe_roots:
+        for root in allowed_roots:
             allowed_root = (self.repo_root / root).resolve()
             try:
                 target.relative_to(allowed_root)

@@ -1,0 +1,24 @@
+﻿weights:
+  stars: 0.35
+  activity: 0.20
+  novelty: 0.15
+  topicality: 0.15
+  release: 0.05
+  gap: 0.10
+
+normalization:
+  star_reference: 5000
+  release_days: 45
+
+thresholds:
+  shortlist: 0.45
+  experiment: 0.60
+  promote: 0.72
+
+capability_gaps:
+  - agent
+  - memory
+  - evals
+  - developer-tools
+  - coding-agent
+  - github

@@ -16,6 +16,7 @@ from skylattice.ledger import EventKind, LedgerStore
 from skylattice.memory import MemoryLayer, SQLiteMemoryRepository
 from skylattice.planning import TaskPlanner
 from skylattice.providers import OpenAIProvider
+from skylattice.radar import GitHubRadarSource, RadarRepository, RadarService
 from skylattice.runtime.models import RunStatus, RunStep, RunStepStatus, TaskRun
 
 from .db import RuntimeDatabase
@@ -38,6 +39,7 @@ class TaskAgentService:
         planner: TaskPlanner | None,
         provider: object | None,
         github: GitHubAdapter | None,
+        radar_service: RadarService,
     ) -> None:
         self.repo_root = repo_root.resolve()
         self.database = database
@@ -50,6 +52,7 @@ class TaskAgentService:
         self.planner = planner
         self.provider = provider
         self.github = github
+        self.radar = radar_service
 
     @classmethod
     def from_repo(
@@ -58,6 +61,7 @@ class TaskAgentService:
         repo_root: Path | None = None,
         provider: object | None = None,
         github_adapter: GitHubAdapter | None = None,
+        radar_source: GitHubRadarSource | None = None,
         db_path: Path | None = None,
     ) -> "TaskAgentService":
         root = (repo_root or Path(__file__).resolve().parents[3]).resolve()
@@ -75,23 +79,45 @@ class TaskAgentService:
         if actual_github is None and os.environ.get("GITHUB_TOKEN") and repo_hint:
             actual_github = GitHubAdapter(repository=repo_hint)
 
+        run_repository = RunRepository(database)
+        ledger = LedgerStore(database)
+        memory = SQLiteMemoryRepository(database)
+        governance = GovernanceGate.from_repo(root)
+        workspace = RepoWorkspaceAdapter(root)
+        git = GitAdapter(root)
+        radar_repository = RadarRepository(database)
+        radar = RadarService.from_repo(
+            repo_root=root,
+            radar_repository=radar_repository,
+            run_repository=run_repository,
+            ledger=ledger,
+            memory=memory,
+            governance=governance,
+            workspace=workspace,
+            git=git,
+            github=actual_github,
+            source=radar_source,
+        )
+
         return cls(
             repo_root=root,
             database=database,
-            run_repository=RunRepository(database),
-            ledger=LedgerStore(database),
-            memory=SQLiteMemoryRepository(database),
-            governance=GovernanceGate.from_repo(root),
-            workspace=RepoWorkspaceAdapter(root),
-            git=GitAdapter(root),
+            run_repository=run_repository,
+            ledger=ledger,
+            memory=memory,
+            governance=governance,
+            workspace=workspace,
+            git=git,
             planner=planner,
             provider=actual_provider,
             github=actual_github,
+            radar_service=radar,
         )
 
     def doctor_report(self) -> dict[str, object]:
         with self.database.connect() as connection:
             run_count = int(connection.execute("SELECT COUNT(*) FROM runs").fetchone()[0])
+            radar_run_count = int(connection.execute("SELECT COUNT(*) FROM radar_runs").fetchone()[0])
         return {
             "status": "ok",
             "kernel": build_kernel_summary(self.repo_root),
@@ -99,9 +125,11 @@ class TaskAgentService:
             "runtime": {
                 "db_path": str(self.database.db_path),
                 "run_count": run_count,
+                "radar_run_count": radar_run_count,
                 "planner_available": self.planner is not None,
                 "github_available": self.github is not None,
             },
+            "radar": self.radar.state_snapshot(),
         }
 
     def run_task(
@@ -196,6 +224,27 @@ class TaskAgentService:
             "events": [self._serialize_event(event) for event in self.ledger.list_for_run(run_id)],
             "memory": [self._serialize_memory(record) for record in self.memory.list_for_run(run_id)],
         }
+
+    def scan_radar(self, *, window: str = "manual", limit: int | None = None):
+        return self.radar.scan(window=window, limit=limit)
+
+    def get_radar_run(self, run_id: str):
+        return self.radar.get_run(run_id)
+
+    def inspect_radar_run(self, run_id: str) -> dict[str, object]:
+        return self.radar.inspect_run(run_id)
+
+    def inspect_radar_target(self, identifier: str) -> dict[str, object]:
+        return self.radar.inspect_target(identifier)
+
+    def replay_radar_candidate(self, candidate_id: str):
+        return self.radar.replay_candidate(candidate_id)
+
+    def rollback_radar_promotion(self, promotion_id: str):
+        return self.radar.rollback_promotion(promotion_id)
+
+    def latest_radar_digest(self) -> dict[str, object]:
+        return self.radar.latest_digest()
 
     def _execute_until_blocked(self, run_id: str) -> TaskRun:
         run = self.run_repository.get_run(run_id)
@@ -461,7 +510,7 @@ class TaskAgentService:
                 summary="Commit planned repository changes",
                 required_tier=PermissionTier.REPO_WRITE,
                 action_name="git.commit_all",
-                action_args={"message": str(plan["commit_message"])},
+                action_args={"message": str(plan["commit_message"])} ,
                 verification={"worktree_clean": True},
             )
         )

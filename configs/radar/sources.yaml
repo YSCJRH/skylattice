@@ -1,0 +1,25 @@
+﻿default_window: weekly
+
+topics:
+  - agent
+  - llm
+  - memory
+  - evals
+  - developer-tools
+  - coding-agent
+  - openai
+  - github
+
+deep_analysis_limit: 12
+experiment_limit: 3
+promotion_limit: 1
+
+weekly:
+  candidate_limit: 50
+  created_days: 30
+  active_days: 14
+
+manual:
+  candidate_limit: 20
+  created_days: 180
+  active_days: 45

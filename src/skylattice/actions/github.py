@@ -42,6 +42,42 @@ class GitHubAdapter:
     def get_repo(self) -> dict[str, Any]:
         return self._request_json("GET", f"/repos/{self.repo.slug}")
 
+    def get_repository(self, repo_slug: str) -> dict[str, Any]:
+        return self._request_json("GET", f"/repos/{self._parse_repo(repo_slug).slug}")
+
+    def search_repositories(
+        self,
+        *,
+        query: str,
+        sort: str = "stars",
+        order: str = "desc",
+        per_page: int = 30,
+        page: int = 1,
+    ) -> list[dict[str, Any]]:
+        encoded = urlencode(
+            {
+                "q": query,
+                "sort": sort,
+                "order": order,
+                "per_page": per_page,
+                "page": page,
+            }
+        )
+        payload = self._request_json("GET", f"/search/repositories?{encoded}")
+        if isinstance(payload, dict):
+            items = payload.get("items", [])
+            return items if isinstance(items, list) else []
+        return []
+
+    def get_latest_release(self, repo_slug: str) -> dict[str, Any] | None:
+        try:
+            payload = self._request_json("GET", f"/repos/{self._parse_repo(repo_slug).slug}/releases/latest")
+        except RuntimeError as exc:
+            if "404" in str(exc):
+                return None
+            raise
+        return payload if isinstance(payload, dict) else None
+
     def create_issue(self, *, title: str, body: str) -> dict[str, Any]:
         return self._request_json(
             "POST",

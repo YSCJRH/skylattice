@@ -94,5 +94,104 @@ class RuntimeDatabase:
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (run_id) REFERENCES runs(run_id) ON DELETE CASCADE
                 );
+
+                CREATE TABLE IF NOT EXISTS radar_runs (
+                    run_id TEXT PRIMARY KEY,
+                    window TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    run_limit INTEGER NOT NULL,
+                    summary TEXT,
+                    digest_json TEXT,
+                    result_json TEXT,
+                    error TEXT,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (run_id) REFERENCES runs(run_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS radar_candidates (
+                    candidate_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    repo_slug TEXT NOT NULL,
+                    repo_name TEXT NOT NULL,
+                    html_url TEXT NOT NULL,
+                    description TEXT,
+                    topics_json TEXT NOT NULL,
+                    stars INTEGER NOT NULL,
+                    forks INTEGER NOT NULL,
+                    watchers INTEGER NOT NULL,
+                    created_at_remote TEXT,
+                    pushed_at_remote TEXT,
+                    latest_release_at TEXT,
+                    score REAL NOT NULL DEFAULT 0,
+                    score_breakdown_json TEXT NOT NULL,
+                    decision TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    reason TEXT,
+                    metadata_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (run_id) REFERENCES radar_runs(run_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS radar_evidence (
+                    evidence_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    candidate_id TEXT NOT NULL,
+                    evidence_kind TEXT NOT NULL,
+                    source TEXT NOT NULL,
+                    summary TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (run_id) REFERENCES radar_runs(run_id) ON DELETE CASCADE,
+                    FOREIGN KEY (candidate_id) REFERENCES radar_candidates(candidate_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS radar_experiments (
+                    experiment_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    candidate_id TEXT NOT NULL,
+                    branch_name TEXT NOT NULL,
+                    hypothesis TEXT NOT NULL,
+                    artifact_path TEXT NOT NULL,
+                    validation_command TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    recommended INTEGER NOT NULL,
+                    source_commit TEXT,
+                    experiment_commit TEXT,
+                    notes_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (run_id) REFERENCES radar_runs(run_id) ON DELETE CASCADE,
+                    FOREIGN KEY (candidate_id) REFERENCES radar_candidates(candidate_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS radar_promotions (
+                    promotion_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    candidate_id TEXT NOT NULL,
+                    experiment_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    source_branch TEXT NOT NULL,
+                    base_commit TEXT NOT NULL,
+                    experiment_commit TEXT NOT NULL,
+                    main_commit TEXT,
+                    rollback_target TEXT,
+                    pushed INTEGER NOT NULL,
+                    metadata_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (run_id) REFERENCES radar_runs(run_id) ON DELETE CASCADE,
+                    FOREIGN KEY (candidate_id) REFERENCES radar_candidates(candidate_id) ON DELETE CASCADE,
+                    FOREIGN KEY (experiment_id) REFERENCES radar_experiments(experiment_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS radar_state (
+                    scope TEXT PRIMARY KEY,
+                    freeze_mode INTEGER NOT NULL DEFAULT 0,
+                    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+                    last_failure_at TEXT,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
                 """
             )

@@ -4,12 +4,6 @@
 
 Status: complete
 
-Delivered:
-
-- repository structure
-- architecture and governance docs
-- FastAPI and CLI smoke stubs
-
 ## Phase 1: Executable Task-Agent MVP
 
 Status: complete
@@ -24,38 +18,43 @@ Delivered:
 - local repo, git, and GitHub adapters
 - CLI-first execution path and read-only run inspection API
 
-## Phase 2: Memory Deepening
+## Phase 2: Technology Radar MVP
+
+Status: complete
+
+Delivered:
+
+- GitHub-backed repository discovery and release enrichment
+- radar run, candidate, evidence, experiment, promotion, and local freeze state tables
+- semantic and procedural memory writes for radar outcomes
+- repo-contained radar spikes on `codex/radar-*` branches
+- guarded direct-to-main promotion path with rollback metadata
+- tracked adoption registry that feeds future scoring
+- CLI and API read surfaces for radar inspection
+
+## Phase 3: Memory And Retrieval Deepening
 
 Next goals:
 
 - explicit profile memory editing and confirmation flow
-- semantic memory CRUD plus safe compaction paths
-- retrieval ranking beyond simple substring matching
+- stronger semantic compaction and retrieval ranking
+- procedural playbook deduplication and review tooling
 - export and rollback tooling for local memory artifacts
 
-## Phase 3: Action Expansion
+## Phase 4: Action Expansion And Recovery Hardening
 
 Next goals:
 
 - richer repo operations beyond full-file rewrites
 - safer command execution envelopes and richer verification steps
 - better GitHub issue and PR synchronization behavior
-- optional browser or app adapters behind the same governance layer
+- stronger halted-run recovery and diagnostics
 
-## Phase 4: Planner And Recovery Hardening
-
-Next goals:
-
-- stronger repository context gathering before planning
-- richer failure recovery and step retry policies
-- resumable halted runs with better diagnostics
-- more robust branch and PR reconciliation behavior
-
-## Phase 5: Bounded Evolution
+## Phase 5: Scheduler And Broader Radar Sources
 
 Later goals:
 
-- evolution candidates logged as first-class runtime objects
-- sandboxed prompt, skill, and playbook evaluation
-- promotion and rollback workflows with explicit evidence thresholds
+- weekly local automation for radar scans
+- optional additional external sources beyond GitHub
+- richer experiment templates beyond docs/config artifacts
 - no silent widening of autonomy

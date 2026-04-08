@@ -1,99 +1,52 @@
 ﻿# GitHub Workflow
 
-## Role Of GitHub
+GitHub is an important external ledger and discovery surface, but not the runtime substrate.
 
-GitHub is the external audit and collaboration layer for Skylattice. It is not the runtime dependency and not the sole memory store.
+## Roles
 
-Remote repository:
+GitHub serves three roles in the current system:
 
-- [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
+- remote audit and synchronization target for this repository
+- task-agent collaboration surface for draft PRs and issue comments
+- technology-radar discovery surface for scanning open-source repositories and releases
 
-## Current Runtime Integration
+## What Stays Local
 
-The current MVP uses direct GitHub REST API calls behind `GitHubAdapter`.
+- private runtime state in `.local/`
+- raw memory records
+- radar evidence payloads stored in SQLite
+- local overrides and credentials
 
-Current write operations supported:
+## What Becomes Tracked
 
-- create issue
-- add issue comment
-- create draft pull request
-- update an existing open pull request for the same head branch
+- docs and ADRs
+- prompts and skills
+- governance and radar configs
+- radar experiment artifacts under `docs/radar/experiments/`
+- radar promotion logs under `docs/radar/promotions/`
+- radar adoption registry updates under `configs/radar/adoptions.yaml`
 
-Current read operations supported:
+## Task-Agent Use Of GitHub
 
-- repository metadata lookup
-- open pull request lookup by head branch
+- push working branches
+- create or update draft PRs
+- add issue comments when the task plan calls for them
 
-GitHub writes happen only after governance approval for `external-write`.
+## Technology Radar Use Of GitHub
 
-## Required Environment
+- search repositories via the GitHub API
+- read repository metadata and latest release metadata
+- optionally push promotion artifacts to `origin/main`
 
-For direct API mode:
+The radar does not scrape webpages and does not treat GitHub as its only memory store.
 
-- `GITHUB_TOKEN`
-- `SKYLATTICE_GITHUB_REPOSITORY` optional override, if you want to override the repo slug from tracked config
+## Direct-To-Main Policy
 
-The runtime defaults to the tracked repository hint in `configs/agent/defaults.yaml` when the environment override is absent.
+For the current radar MVP, successful promotions may push directly to `main`, but only when:
 
-## What Belongs In GitHub
+- promotion gates pass
+- changed paths are whitelisted
+- rollback metadata is recorded
+- the change is represented by tracked artifacts instead of hidden runtime mutation
 
-- repository docs and ADRs
-- tracked prompts and skills
-- code interfaces and runtime logic
-- redacted eval scenarios and reports
-- draft PRs and optional issue updates produced by approved task runs
-
-## What Must Stay Local By Default
-
-- personal memory records
-- raw interaction logs
-- local overrides and secrets
-- sandbox outputs with private content
-- runtime SQLite state and indexes
-
-## Source Of Truth
-
-- local repository is the working source of truth
-- Git history is the durable tracked change log
-- GitHub mirrors the tracked surface and enables review, sync, and remote audit
-
-## Current Task-Agent Path
-
-The supported GitHub path is:
-
-1. local plan generation
-2. local repo edit and validation
-3. local commit
-4. approved push
-5. approved GitHub draft PR sync
-6. optional approved issue comment
-
-This keeps the runtime local-first while still making GitHub a meaningful external ledger.
-
-## First Push Sequence
-
-```bash
-git init -b main
-git remote add origin git@github.com:YSCJRH/skylattice.git
-git add .
-git commit -m "docs: bootstrap skylattice v0.1 foundation"
-git push -u origin main
-```
-
-## Explicit Non-Goals Right Now
-
-- no merge automation
-- no force push
-- no branch deletion
-- no repo settings mutation
-- no GitHub Actions dependence for runtime execution
-
-## Future GitHub Automation
-
-Possible later additions:
-
-- nightly redacted eval runs in GitHub Actions
-- PR checks that enforce repo hygiene
-- issue templates for architecture and evolution proposals
-
-Those additions must never require exporting private memory by default.
+This is intentionally narrow and does not authorize broader automatic codebase rewriting.

@@ -3,6 +3,9 @@
 auto_approve:
   - observe
   - local-safe-write
+  - external-read
+  - radar-experiment-write
+  - radar-promote-main
 
 approval_required:
   - repo-write

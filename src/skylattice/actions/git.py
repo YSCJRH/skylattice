@@ -24,6 +24,10 @@ class GitAdapter:
         self._run(["git", "checkout", "-b", branch_name])
         return {"branch": branch_name}
 
+    def checkout(self, branch_name: str) -> str:
+        self._run(["git", "checkout", branch_name])
+        return branch_name
+
     def add_all(self) -> None:
         self._run(["git", "add", "--all"])
 
@@ -34,6 +38,27 @@ class GitAdapter:
     def push(self, branch_name: str, remote: str = "origin") -> str:
         self._run(["git", "-c", "protocol.file.allow=always", "push", "-u", remote, branch_name])
         return branch_name
+
+    def current_commit(self) -> str:
+        return self._run(["git", "rev-parse", "HEAD"]).strip()
+
+    def cherry_pick(self, commit: str) -> str:
+        self._run(["git", "cherry-pick", commit])
+        return commit
+
+    def revert(self, commit: str) -> str:
+        self._run(["git", "revert", "--no-edit", commit])
+        return commit
+
+    def has_branch(self, branch_name: str) -> bool:
+        completed = subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
+            cwd=self.repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return completed.returncode == 0
 
     def remote_url(self, remote: str = "origin") -> str:
         return self._run(["git", "remote", "get-url", remote]).strip()

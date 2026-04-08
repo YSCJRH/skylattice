@@ -1,54 +1,55 @@
 ﻿# Evolution Loop
 
-## Goal
-
-Skylattice should improve itself without becoming an unbounded autonomous system. Evolution is therefore artifact-driven, reviewable, and reversible.
-
-## Allowed Evolution Targets
-
-- memory abstractions and summaries
-- strategy notes
-- skill definitions
-- tool routing preferences
-- reusable task playbooks
-- prompt and policy changes with controls
+Skylattice evolves through explicit, reviewable artifacts. The technology radar is now the primary bounded evolution engine for external technical change.
 
 ## Loop
 
-1. **Observe**: collect signals from task outcomes, failures, operator feedback, and eval runs.
-2. **Reflect**: generate candidate explanations for what should improve.
-3. **Propose**: encode the change as a concrete candidate artifact or local state delta.
-4. **Sandbox**: test the candidate in isolated runs, shadow mode, or redacted eval scenarios.
-5. **Evaluate**: compare against explicit acceptance criteria, budgets, and safety checks.
-6. **Promote or rollback**: merge the candidate into tracked or local durable state only if the evidence is sufficient.
+1. `observe`
+   - scan GitHub open-source repositories through the radar source
+   - collect repository and release evidence into local SQLite
+2. `reflect`
+   - score candidates against tracked topics, freshness, activity, release recency, and current capability gaps
+   - write semantic memory for shortlisted candidates
+3. `propose`
+   - generate a repo-contained spike plan for the strongest candidates
+   - limit experiments to whitelisted tracked paths
+4. `sandbox`
+   - create a `codex/radar-*` branch
+   - write an experiment artifact under `docs/radar/experiments/`
+   - run tracked validation commands
+5. `evaluate`
+   - check validation success, candidate score threshold, weekly promotion cap, freeze state, and path allowlist
+6. `promote or rollback`
+   - promote at most one candidate per run to `main`
+   - record promotion metadata and update `configs/radar/adoptions.yaml`
+   - support explicit rollback through stored promotion commits
 
-## Promotion Gates
+## What May Change
 
-A change is promotable only when it is:
+Allowed evolution targets in the current implementation:
 
-- logged in the ledger
-- versioned in Git or local snapshots
-- reviewable by a human operator
-- reversible without manual archaeology
-- linked to evidence or eval output
+- semantic memory summaries
+- procedural memory notes about adopted patterns
+- tracked radar experiment artifacts
+- tracked promotion logs
+- tracked adoption registry entries that influence future scoring
 
-## Rollback Rules
+Not in automatic scope:
 
-- tracked artifacts roll back through Git history
-- local runtime changes roll back through `.local/state/` or `.local/memory/` snapshots
-- failed experiments remain visible in the ledger even when reverted
+- core runtime orchestration
+- governance core logic
+- database schema migration logic
+- destructive git operations
+- browser or arbitrary shell autonomy
 
-## What v0.1 Does Not Do
+## Gates
 
-- no free-form prompt rewriting in production flows
-- no automatic widening of permissions
-- no unsupervised adaptation of user profile facts
-- no hidden model fine-tuning
+A promotion only proceeds when all of these hold:
 
-## Early Evaluation Signals
+- freeze mode is off
+- candidate score meets the promotion threshold
+- experiment validation passed
+- weekly promotion cap has not been exceeded
+- every changed path is inside `configs/radar/promotion.yaml`
 
-- fewer repeated user corrections
-- better task decomposition quality
-- fewer unnecessary approvals
-- more reuse of approved playbooks
-- stable or reduced cost for the same outcome quality
+If promotion failures accumulate past the tracked threshold, the radar enters freeze mode and stops promoting until explicitly recovered.

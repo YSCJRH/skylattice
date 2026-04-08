@@ -2,7 +2,10 @@
 
 Skylattice is a private, evolvable personal agent foundation for a single user.
 
-Version `0.1` now includes an executable task-agent MVP for repository operations and GitHub triage. The runtime is still intentionally narrow: it plans and executes one constrained task lane end to end instead of trying to be a general autonomous agent.
+The repository now has two executable workflows:
+
+- a `task-agent` path for constrained repo work and GitHub triage
+- a `technology radar` path for scanning GitHub open-source projects, validating adoption spikes, and promoting bounded behavior changes back into the repo
 
 ## Product Shape
 
@@ -16,40 +19,48 @@ Skylattice is not a generic chatbot. It is designed to be:
 
 ## Current Capability
 
-The current vertical slice is `CLI -> planner -> governance -> repo actions -> git push -> GitHub sync -> memory + ledger`.
+The runtime now supports two vertical slices.
+
+Task agent:
+
+- `CLI -> planner -> governance -> repo actions -> git push -> GitHub sync -> memory + ledger`
+
+Technology radar:
+
+- `GitHub discovery -> scoring -> semantic memory -> repo-contained spike -> guarded promotion -> rollback`
 
 Implemented now:
 
-- persistent task runs in `.local/state/skylattice.sqlite3`
-- CLI commands for `doctor`, `task run`, `task status`, `task resume`, `task inspect`
-- read-only API endpoints for run, event, and memory inspection
-- SQLite-backed run, ledger, and memory storage
-- run-scoped approvals for `repo-write` and `external-write`
-- OpenAI-backed planner and file rewrite provider via the Responses API
-- local repo actions for controlled file edits and whitelisted checks
-- Git actions for branch, commit, and push
-- direct GitHub API integration for draft PR sync and issue comments
+- persistent task runs and radar runs in `.local/state/skylattice.sqlite3`
+- CLI commands for `doctor`, `task ...`, and `radar ...`
+- read-only API endpoints for run, memory, event, radar candidate, promotion, and digest inspection
+- append-only ledger events for task and radar workflows
+- SQLite-backed memory storage across working, episodic, semantic, and procedural layers
+- run-scoped approvals for task execution and internal gates for radar experiment/promotion writes
+- OpenAI-backed planner and file rewrite provider for task runs
+- GitHub API discovery for the radar workflow when `GITHUB_TOKEN` is present
+- adoption registry updates under `configs/radar/adoptions.yaml` that feed future radar scoring
 
 ## Current Limits
 
 Skylattice is still intentionally constrained.
 
-- it is optimized for repo maintenance, docs, ADRs, and small text-heavy changes
-- it does not support browser automation yet
-- it does not merge PRs, rebase branches, or widen permissions automatically
-- it does not perform uncontrolled background autonomy
+- radar discovery only looks at GitHub repositories and release metadata
+- automatic promotion is limited to whitelisted tracked paths such as `docs/radar/**` and `configs/radar/**`
+- task runs still focus on docs, ADRs, and small text-heavy repo changes
+- the system does not merge PRs, rebase branches, browse the web, or widen permissions on its own
 
 ## Repository Map
 
 Tracked surface:
 
-- `docs/`: architecture, governance, memory model, roadmap, ADRs
-- `configs/`: tracked defaults and policy baselines
+- `docs/`: architecture, governance, memory model, roadmap, radar design, ADRs
+- `configs/`: tracked defaults, governance baselines, and radar scoring/promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions
 - `evals/`: scenario specs and redacted reports
-- `src/`: runtime code, adapters, providers, repositories
-- `tests/`: smoke and integration coverage for the task-agent slice
+- `src/`: runtime code, adapters, providers, radar services, repositories
+- `tests/`: smoke and radar coverage
 
 Local-only surface:
 
@@ -61,8 +72,8 @@ Local-only surface:
 
 Publishable root:
 
-- The publishable root is this repository root: `D:\skylattice`
-- Do not commit `.local/**`, exported personal memory, or transient logs
+- the publishable root is this repository root: `D:\skylattice`
+- do not commit `.local/**`, exported personal memory, or transient logs
 
 ## Quick Start
 
@@ -88,29 +99,27 @@ skylattice task resume <run-id> --allow repo-write --allow external-write
 skylattice task inspect <run-id>
 ```
 
-## Required Environment
-
-For the full task-agent path:
-
-- `OPENAI_API_KEY`: required for planning and file rewrite generation
-- `GITHUB_TOKEN`: required for GitHub read/write actions
-- `SKYLATTICE_GITHUB_REPOSITORY`: optional override for repo slug; defaults to the tracked runtime config
-
-If `OPENAI_API_KEY` is absent, `task run` will fail fast with a clear error and `doctor` will report `planner_available: false`.
-
-## Bootstrap Git Flow
-
-Skylattice is local-first and push-later:
+Run the technology radar:
 
 ```bash
-git init -b main
-git remote add origin git@github.com:YSCJRH/skylattice.git
-git add .
-git commit -m "docs: bootstrap skylattice v0.1 foundation"
-git push -u origin main
+skylattice radar scan --window weekly --limit 20
+skylattice radar inspect <radar-run-id-or-candidate-id>
+skylattice radar rollback <promotion-id>
 ```
 
-HTTPS is acceptable in place of SSH if that is your local preference.
+## Required Environment
+
+Task agent path:
+
+- `OPENAI_API_KEY`: required for planning and file rewrite generation
+- `GITHUB_TOKEN`: required for GitHub draft PR and issue comment writes
+
+Technology radar path:
+
+- `GITHUB_TOKEN`: required for GitHub repository discovery
+- `SKYLATTICE_GITHUB_REPOSITORY`: optional for task GitHub writes; radar discovery does not depend on it semantically, but the current adapter still uses the tracked repo slug as its local hint
+
+## GitHub Remote
 
 GitHub remote:
 
@@ -121,7 +130,7 @@ GitHub remote:
 ## Development Conventions
 
 - prefer branch names like `codex/<topic>`
-- prefer commit prefixes like `docs:`, `arch:`, `kernel:`, `memory:`, `gov:`, `eval:`
+- prefer commit prefixes like `docs:`, `arch:`, `kernel:`, `memory:`, `gov:`, `radar:`, `eval:`
 - any architecture boundary change must update docs and, when durable, add an ADR
 - keep public examples redacted and sanitized
 
@@ -134,6 +143,11 @@ CLI write surface:
 - `skylattice task status <run-id>`
 - `skylattice task resume <run-id> [--allow repo-write] [--allow external-write]`
 - `skylattice task inspect <run-id>`
+- `skylattice radar scan [--window weekly|manual] [--limit N]`
+- `skylattice radar status <radar-run-id>`
+- `skylattice radar inspect <radar-run-id|candidate-id>`
+- `skylattice radar replay <candidate-id>`
+- `skylattice radar rollback <promotion-id>`
 
 Read-only API surface:
 
@@ -142,3 +156,7 @@ Read-only API surface:
 - `GET /runs/{run_id}`
 - `GET /runs/{run_id}/events`
 - `GET /runs/{run_id}/memory`
+- `GET /radar/runs/{run_id}`
+- `GET /radar/candidates/{candidate_id}`
+- `GET /radar/promotions/{promotion_id}`
+- `GET /radar/digest/latest`

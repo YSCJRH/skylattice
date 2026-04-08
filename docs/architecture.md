@@ -1,146 +1,94 @@
 ﻿# Architecture
 
-## Design Stance
+## Current Shape
 
-Skylattice is a single-user, single-process, local-first agent system with explicit boundaries between tracked design artifacts and local runtime state.
+Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface:
 
-The current MVP is a CLI-first task agent for one narrow lane: repository operations plus GitHub triage. It is intentionally built as a vertical slice instead of a broad platform.
+- `task-agent`: constrained repo work and GitHub triage
+- `technology-radar`: GitHub open-source discovery, bounded experimentation, guarded promotion, and rollback
 
-## Execution Flow
+Both workflows share:
 
-```mermaid
-flowchart TD
-    User["CLI goal"] --> Runtime["TaskAgentService"]
-    Runtime --> Planner["TaskPlanner + LLMProvider"]
-    Planner --> Governance["Governance Gate"]
-    Governance --> Workspace["RepoWorkspaceAdapter"]
-    Governance --> Git["GitAdapter"]
-    Governance --> GitHub["GitHubAdapter"]
-    Workspace --> Verifier["Verifier"]
-    Git --> Verifier
-    GitHub --> Verifier
-    Verifier --> Ledger["LedgerStore"]
-    Verifier --> Memory["SQLiteMemoryRepository"]
-    Runtime --> API["Read-only FastAPI endpoints"]
-```
-
-## Runtime Core
-
-### TaskAgentService
-
-`TaskAgentService` is the primary runtime boundary.
-
-It owns:
-
-- task run lifecycle
-- approval pause and resume
-- planner execution
-- adapter dispatch
-- result verification
-- ledger and memory writes
-
-Run states are:
-
-- `created`
-- `planned`
-- `waiting_approval`
-- `running`
-- `verifying`
-- `completed`
-- `failed`
-- `halted`
-
-### Persistent State
-
-The runtime persists into `.local/state/skylattice.sqlite3`.
-
-Tracked in SQLite now:
-
-- runs
-- run steps
-- approval grants
-- ledger events
-- memory records
-
-This keeps execution replayable and inspectable without pushing runtime state into Git.
+- local SQLite state in `.local/state/skylattice.sqlite3`
+- append-only ledger events
+- layered memory storage
+- governance policy and approval logic
+- repo workspace and git adapters
 
 ## Main Components
 
 ### Kernel
 
-- loads tracked defaults from `configs/agent/defaults.yaml`
-- merges `.local/overrides/agent.yaml` when present
-- applies selected environment overrides
-- snapshots runtime identity and mission into each run
+`src/skylattice/kernel/`
 
-### Planner + Provider
+- loads tracked defaults, local overrides, and env overlays
+- defines stable agent identity, user model, relationship model, mission, and runtime snapshot
+- provides a durable summary surface for CLI and API inspection
 
-- `TaskPlanner` converts a repo task goal into a constrained plan payload
-- `OpenAIProvider` uses the Responses API with structured outputs for plan generation and file rewrites
-- fake providers can be injected for tests and local development without external calls
+### Runtime Layer
 
-### Governance Gate
+`src/skylattice/runtime/`
 
-- remains the central permission decider
-- is now enforced step-by-step by the runtime service
-- approvals are scoped to a specific run and explicit permission tier
+- `TaskAgentService` is the top-level facade used by CLI and API
+- task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
+- `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 
-### Action Adapters
+### Task Agent Path
 
-Current concrete adapters are:
+`src/skylattice/planning/`, `src/skylattice/actions/`, `src/skylattice/providers/`
 
-- `RepoWorkspaceAdapter`: list files, read text, write text, replace text, run whitelisted checks
-- `GitAdapter`: create branch, add, commit, push, inspect status
-- `GitHubAdapter`: read repo metadata, create issue, add issue comment, create or update draft PR
+Flow:
 
-### Ledger And Memory
+1. interpret goal
+2. generate constrained plan
+3. gate repo and external writes
+4. execute file/git/GitHub actions
+5. verify results
+6. write episodic and procedural memory
 
-- `LedgerStore` is append-only and records run, approval, action, evaluation, and memory events
-- `SQLiteMemoryRepository` stores working, episodic, semantic, procedural, and profile records
-- automation is active only for working, episodic, and procedural layers in the MVP path
+### Technology Radar Path
 
-## Current Public Interfaces
+`src/skylattice/radar/`
 
-CLI is the only write entrypoint.
+Flow:
 
-- `skylattice doctor`
-- `skylattice task run --goal <text-or-file> [--allow repo-write] [--allow external-write]`
-- `skylattice task status <run-id>`
-- `skylattice task resume <run-id> [--allow repo-write] [--allow external-write]`
-- `skylattice task inspect <run-id>`
+1. discover GitHub repositories via API
+2. score candidates against tracked topics, freshness, activity, releases, and capability gaps
+3. record semantic memory for shortlisted candidates
+4. create repo-contained spike branches under `codex/radar-*`
+5. validate spikes with tracked checks
+6. promote at most one candidate per run to `main` through a guarded allowlist
+7. update `configs/radar/adoptions.yaml` and promotion logs
+8. support rollback through explicit promotion records
 
-FastAPI remains read-only.
+## Data Stores
 
-- `GET /health`
-- `GET /kernel/summary`
-- `GET /runs/{run_id}`
-- `GET /runs/{run_id}/events`
-- `GET /runs/{run_id}/memory`
+### Tracked
 
-## State Boundary
+- `configs/agent/defaults.yaml`
+- `configs/policies/governance.yaml`
+- `configs/radar/*.yaml`
+- prompts, skills, docs, ADRs, eval specs
+- `configs/radar/adoptions.yaml` as a reviewable behavior-change registry
 
-Tracked repository state:
+### Local Only
 
-- architecture docs
-- ADRs
-- policies and budgets
-- prompt files
-- skills
-- redacted eval reports
-- code interfaces and runtime logic
+- `.local/state/skylattice.sqlite3`
+- `.local/memory/`
+- `.local/work/`
+- `.local/logs/`
+- `.local/overrides/`
 
-Local runtime state:
+## Key Boundaries
 
-- `.local/state/`: SQLite runtime DB and future snapshots
-- `.local/memory/`: future richer memory artifacts and indexes
-- `.local/work/`: sandbox outputs
-- `.local/logs/`: runtime logs
-- `.local/overrides/`: machine or user-specific overrides
+- GitHub is a source and audit surface, not runtime truth.
+- Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
+- `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
+- The runtime does not depend on GitHub to exist, but the radar workflow depends on `GITHUB_TOKEN` for discovery.
 
-## Deliberate Constraints
+## Observability
 
-- no browser or app automation yet
-- no multi-agent orchestration yet
-- no automatic merge or history rewrite
-- no silent self-modification of prompts or policies
-- no GitHub dependence for local runtime reads, planning, or inspection
+- every task and radar run has ledger events
+- memory writes are attached to run ids when applicable
+- radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`
+- `skylattice doctor` and the read-only FastAPI surface expose the current local state without enabling mutation
