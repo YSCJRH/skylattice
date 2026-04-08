@@ -11,7 +11,7 @@ from skylattice.storage import LocalPaths
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 BANNED_TEXT_PATTERNS = {
-    "windows_d_drive": re.compile(r"D:\\"),
+    "windows_d_drive": re.compile("D:" + re.escape("\\")),
     "windows_user_home": re.compile(r"C:\\Users\\"),
     "mac_user_home": re.compile("/" + "Users" + "/"),
     "linux_user_home": re.compile("/" + "home" + "/"),
