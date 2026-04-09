@@ -1,33 +1,63 @@
 ---
-title: 证据与验证
-description: Skylattice 的公开证据层，包括零凭证验证、样例输出、发布说明、CI 信号和动态 demo。
+title: ?????
+description: Skylattice ?????????????????????????CI ????? demo?
 robots: index, follow
 alternates:
   - lang: en
     href: https://yscjrh.github.io/skylattice/proof/
   - lang: zh-CN
     href: https://yscjrh.github.io/skylattice/zh/proof/
+jsonld: |
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Skylattice",
+    "description": "Skylattice ?????????????????????????CI ????? demo?",
+    "codeRepository": "https://github.com/YSCJRH/skylattice",
+    "softwareVersion": "0.2.1",
+    "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
+    "inLanguage": "zh-CN"
+  }
 ---
 
-# 证据与验证
+# ?????
 
-如果你想判断 Skylattice 是否可信，先看证据层，而不是先啃完整架构文档。
+??????? Skylattice ????????????????????????????
 
-## 最快的证据
+?????????????????????? release ?????????????????
 
-- [快速开始](quickstart.md)
-- [Doctor JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/doctor-output.json)
-- [Task inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.json)
-- [Radar inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json)
+## ??????
 
-## 动态 Demo
+- ??????????????
+- ??????????? task / radar ??????
+- ?????????? release?CHANGELOG?CI ????????
+
+## ?? Demo
 
 ![Animated terminal demo](../assets/terminal-demo.svg)
 
-## 维护信号
+## ?? API Key ?????
 
-- [GitHub repository](https://github.com/YSCJRH/skylattice)
-- [v0.2.0 发布说明](releases/v0-2-0.md)
+- [????](quickstart.md)
+- [Doctor JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/doctor-output.json)
+- [Task walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.md)
+- [Task inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.json)
+- [Radar walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-sample.md)
+- [Radar inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json)
+
+## ???????
+
+- [v0.2.1 Stable](releases/v0-2-1.md)
+- [v0.2.0 Public Preview](releases/v0-2-0.md)
 - [CHANGELOG](https://github.com/YSCJRH/skylattice/blob/main/CHANGELOG.md)
+- [GitHub repository](https://github.com/YSCJRH/skylattice)
 - [Contributing guide](https://github.com/YSCJRH/skylattice/blob/main/CONTRIBUTING.md)
+- [Early feedback template](https://github.com/YSCJRH/skylattice/issues/new?template=early_feedback.md)
 
+## ??????????????
+
+- [??? Skylattice](what-is-skylattice.md)
+- [????](comparison.md)
+- [Architecture](../architecture.md)
+- [Governance](../governance.md)
+- [Memory model](../memory-model.md)

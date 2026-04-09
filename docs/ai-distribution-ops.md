@@ -1,6 +1,6 @@
 ---
 title: AI Distribution Ops
-description: Operational checklist for keeping the Skylattice GitHub Pages site, repository metadata, and AI-search distribution surfaces aligned.
+description: Operational checklist for keeping Skylattice public pages, metadata, stable releases, and weekly discoverability reviews aligned.
 robots: noindex, follow
 ---
 
@@ -8,18 +8,49 @@ robots: noindex, follow
 
 Use this checklist whenever the public positioning, site structure, or release posture changes.
 
+## Source Of Truth Surfaces
+
+Keep these public pages aligned before changing outreach copy or remote metadata:
+
+- homepage: `https://yscjrh.github.io/skylattice/`
+- what-is page: `https://yscjrh.github.io/skylattice/what-is-skylattice/`
+- quick start: `https://yscjrh.github.io/skylattice/quickstart/`
+- proof page: `https://yscjrh.github.io/skylattice/proof/`
+- stable release page: `https://yscjrh.github.io/skylattice/releases/v0-2-1/`
+
+## Weekly Four-Agent Review Loop
+
+Run the discoverability review with four isolated perspectives so the same search context does not judge itself.
+
+- Agent A: English discovery review for non-brand queries and official-source citations
+- Agent B: Chinese discovery review for `/zh/` visibility, readability, and snippet quality
+- Agent C: technical indexing review for Pages, `robots.txt`, `sitemap.xml`, `llms.txt`, JSON-LD, release status, homepage, and social preview
+- Agent D: external authority scout for directories, comparison posts, and community surfaces that could truthfully mention Skylattice
+
+Store raw local evidence under `.local/discoverability/`. Store public-safe summaries under `evals/ai-search/`.
+
+## Cadence
+
+- Day 0 baseline
+- Day 7 follow-up
+- Day 14 follow-up
+- Day 30 follow-up
+- weekly after Day 30
+
 ## Remote Settings
 
-- set GitHub `homepageUrl` to `https://yscjrh.github.io/skylattice/`
+- keep GitHub `homepageUrl` set to `https://yscjrh.github.io/skylattice/`
 - upload `docs/assets/social-preview.png` as the repository social preview image
 - keep the repository description aligned with `README.md`, `pyproject.toml`, and the Pages homepage
 - keep topics aligned with the current positioning surface
+- keep the latest GitHub release non-pre-release unless there is a deliberate preview posture again
 
 ## Pages Deployment
 
-- keep the Pages workflow green on `main`\r\n- set `NO_MKDOCS_2_WARNING=true` for local strict builds while the current Material release emits a policy warning unrelated to site correctness
+- keep the Pages workflow green on `main`
+- set `NO_MKDOCS_2_WARNING=true` for local strict builds while the current Material release emits a policy warning unrelated to site correctness
 - confirm the deployed site serves `robots.txt`, `sitemap.xml`, `llms.txt`, and `llms-full.txt`
-- manually open the English root page and one Chinese mirror after each structural update
+- manually open the English root page and the Chinese mirror after each structural update
 
 ## Search Console And Bing
 
@@ -28,15 +59,20 @@ Use this checklist whenever the public positioning, site structure, or release p
 - submit `https://yscjrh.github.io/skylattice/sitemap.xml`
 - re-submit the sitemap after major public-page additions or slug changes
 
-## AI-Search Benchmarking
+## Minimal External Authority Program
 
-- record Day 0 results immediately after launch
-- re-run the benchmark at Day 14 and Day 30
-- track whether AI tools cite the Pages site, GitHub README, or no official source at all
-- capture recommendation quality, not only appearance rate
+Keep these assets ready and keep their backlinks aimed at the canonical Pages surfaces:
 
-## Release Follow-Up
+- one stable non-pre-release release page
+- one English launch post
+- one Chinese launch post
+- one category / comparison post
+- one directory and community target tracker
+- two to four short community-post drafts for different audiences
 
-- keep `v0.2.0` as pre-release
-- plan the next non-pre-release tag so GitHub can expose a non-null latest release signal
-- keep the canonical Pages release page synced with the tracked GitHub release notes source
+## Stable Release Follow-Up
+
+- keep `v0.2.1` as the canonical stable release page and GitHub release target
+- keep `v0.2.0` only as historical preview context
+- keep the Pages release page synced with the tracked GitHub release notes source
+- refresh the weekly discoverability summary after any meaningful release, landing-page, or metadata change

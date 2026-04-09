@@ -1,6 +1,6 @@
 ---
 title: Comparison
-description: How Skylattice differs from broad agent frameworks, chat wrappers, repo automation bots, and local knowledge tools.
+description: Why Skylattice is not a generic agent framework, chat wrapper, or hosted bot, and where it is a better fit instead.
 robots: index, follow
 alternates:
   - lang: en
@@ -11,13 +11,19 @@ alternates:
 
 # Comparison
 
-Skylattice is intentionally narrow. The point is not to out-feature every agent tool, but to make a specific design space legible: local-first memory, governed repo tasks, and bounded self-improvement.
+If you are searching for a local-first AI agent runtime or an auditable agent framework, the main difference is simple: Skylattice optimizes for reviewability and governance boundaries before it optimizes for breadth.
 
 ## Key Takeaways
 
-- Skylattice gives up breadth in exchange for clearer operator boundaries.
-- It behaves more like a governed runtime than a workflow bot or prompt wrapper.
-- It is strongest when you care about rollbackability, auditability, and tracked system behavior.
+- Skylattice gives up integration breadth in exchange for clearer operator boundaries.
+- It behaves more like a governed runtime than a workflow bot, prompt wrapper, or hosted assistant.
+- It is strongest when rollbackability, auditability, and Git-backed review matter more than tool count.
+
+## Why It Is Not A Generic Agent Framework
+
+Generic agent frameworks usually optimize for flexible orchestration, many tools, and rapid experimentation. Skylattice starts from a different constraint: meaningful behavior should remain legible after the run, and meaningful writes should stay inside explicit governance boundaries.
+
+That means Skylattice intentionally favors deterministic text edits, tracked validation, local-first state, and Git-native review surfaces over integration breadth.
 
 ## Category Comparison
 
@@ -26,31 +32,21 @@ Skylattice is intentionally narrow. The point is not to out-feature every agent 
 | Chat wrappers | fast conversation UX | durable runtime state plus operator-visible system boundaries | Skylattice is slower to explain, but easier to audit |
 | Broad agent frameworks | flexible orchestration and tool breadth | a small, inspectable runtime with explicit approval tiers | Skylattice gives up breadth for clearer operational boundaries |
 | Repo automation bots | pull requests, CI hooks, issue workflows | reviewable repo edits with materialized payloads, local memory, and ledger traces | Skylattice behaves more like a governed runtime than a workflow bot |
+| Hosted assistants | convenience and cloud defaults | local-first memory posture and operator-owned state | Skylattice is for people who want the system legible on disk |
 | Local knowledge tools | storage and retrieval | storage, action, governance, and Git-backed change review | Skylattice is about acting and evolving, not only remembering |
 
-## Where Skylattice Is Stronger
+## Choose Skylattice When
 
-- explicit approval boundaries for repo and external writes
-- tracked validation policy shared by runtime and CI
-- local-first memory posture with private state outside tracked Git history
-- bounded radar promotion path with rollback metadata
-- small enough codebase to inspect end to end
+- you want persistent memory plus governed repo tasks in the same system
+- you need approval boundaries, tracked validation, and rollbackable Git changes
+- you care about understanding what happened after a run, not only whether it succeeded
 
-## Where Skylattice Is Intentionally Weaker
+## Choose Something Else When
 
-- fewer integrations than general-purpose agent frameworks
-- no hosted control plane
-- no AST refactor engine
-- no arbitrary shell execution path in the task agent
-- no promise of autonomous operation without review
+- you need a hosted product or zero-config onboarding
+- you want the widest possible integration surface first
+- you need AST-aware refactors or unrestricted tool execution now
 
 ## One-Line Positioning
 
 > Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement.
-
-## What Skylattice Is Not
-
-- not a hosted assistant product
-- not a drop-in replacement for every agent framework
-- not a promise of autonomous code generation without operator review
-- not a private memory export format meant for public commits
