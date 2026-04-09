@@ -1,0 +1,35 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Skylattice task and radar snapshot</title>
+  <desc id="desc">Two terminal-style panels showing successful task inspect and radar inspect highlights.</desc>
+  <defs>
+    <linearGradient id="panelbg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#101923"/>
+      <stop offset="100%" stop-color="#162433"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" rx="28" fill="#f3f7fb"/>
+  <rect x="28" y="28" width="904" height="484" rx="24" fill="#dbe7f4"/>
+  <rect x="56" y="60" width="392" height="420" rx="20" fill="url(#panelbg)" stroke="#24324b"/>
+  <rect x="512" y="60" width="392" height="420" rx="20" fill="url(#panelbg)" stroke="#24324b"/>
+  <text x="84" y="98" fill="#d5e3ff" font-size="22" font-family="Consolas, 'Courier New', monospace">task inspect</text>
+  <text x="84" y="138" fill="#6fe3c1" font-size="18" font-family="Consolas, 'Courier New', monospace">status: completed</text>
+  <text x="84" y="172" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">steps:</text>
+  <text x="108" y="206" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">git.create_branch</text>
+  <text x="108" y="240" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">workspace.replace_text</text>
+  <text x="108" y="274" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">workspace.insert_after</text>
+  <text x="108" y="308" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">workspace.append_text</text>
+  <text x="108" y="342" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">workspace.run_check</text>
+  <text x="108" y="376" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">git.commit_all</text>
+  <text x="108" y="410" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">github.sync_pull_request</text>
+  <text x="84" y="448" fill="#8cb4ff" font-size="18" font-family="Consolas, 'Courier New', monospace">memory: working -&gt; episodic + procedural</text>
+  <text x="540" y="98" fill="#d5e3ff" font-size="22" font-family="Consolas, 'Courier New', monospace">radar inspect</text>
+  <text x="540" y="138" fill="#6fe3c1" font-size="18" font-family="Consolas, 'Courier New', monospace">status: completed</text>
+  <text x="540" y="172" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">candidate: example/radar-kit</text>
+  <text x="540" y="206" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">score: 0.9496</text>
+  <text x="540" y="240" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">decision: promote</text>
+  <text x="540" y="274" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">experiment: docs/radar/experiments/...</text>
+  <text x="540" y="308" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">promotion: rollback_target recorded</text>
+  <text x="540" y="342" fill="#dce7ff" font-size="18" font-family="Consolas, 'Courier New', monospace">evidence: search-result + repository</text>
+  <text x="540" y="376" fill="#8cb4ff" font-size="18" font-family="Consolas, 'Courier New', monospace">memory: semantic + procedural + episodic</text>
+  <text x="56" y="522" fill="#51657f" font-size="16" font-family="Segoe UI, Arial, sans-serif">Skylattice records both the execution path and the proof trail, not just a final success bit.</text>
+</svg>

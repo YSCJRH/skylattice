@@ -1,0 +1,123 @@
+﻿{
+  "run": {
+    "run_id": "radar-sample-run",
+    "window": "weekly",
+    "status": "completed",
+    "limit": 5,
+    "summary": "Radar run completed",
+    "digest": {
+      "run_id": "radar-sample-run",
+      "candidate_count": 1,
+      "top_candidates": [
+        {
+          "candidate_id": "cand-sample",
+          "repo_slug": "example/radar-kit",
+          "score": 0.9496,
+          "decision": "promote"
+        }
+      ],
+      "promotions": [
+        "promo-sample"
+      ]
+    },
+    "result": {
+      "promoted": 1,
+      "candidate_count": 1
+    },
+    "error": null,
+    "created_at": "2026-04-08 00:00:00",
+    "updated_at": "2026-04-08 00:00:10"
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand-sample",
+      "repo_slug": "example/radar-kit",
+      "html_url": "https://github.com/example/radar-kit",
+      "description": "A reusable open-source pattern library for memory, evals, and GitHub-aware agents.",
+      "topics": [
+        "agent",
+        "memory",
+        "evals",
+        "developer-tools",
+        "github"
+      ],
+      "score": 0.9496,
+      "decision": "promote",
+      "status": "promoted",
+      "reason": "candidate clears automatic promotion threshold"
+    }
+  ],
+  "experiments": [
+    {
+      "experiment_id": "exp-sample",
+      "candidate_id": "cand-sample",
+      "branch_name": "codex/radar-radar-kit-sample",
+      "artifact_path": "docs/radar/experiments/radar-kit-sample.md",
+      "validation_command": "python -m pytest -q",
+      "status": "verified",
+      "recommended": true
+    }
+  ],
+  "promotions": [
+    {
+      "promotion_id": "promo-sample",
+      "candidate_id": "cand-sample",
+      "status": "promoted",
+      "source_branch": "codex/radar-radar-kit-sample",
+      "main_commit": "main-commit-sample",
+      "rollback_target": "base-commit-sample",
+      "pushed": true
+    }
+  ],
+  "events": [
+    {
+      "kind": "run",
+      "summary": "Radar run created"
+    },
+    {
+      "kind": "action",
+      "summary": "GitHub discovery completed"
+    },
+    {
+      "kind": "evaluation",
+      "summary": "Scored radar candidate example/radar-kit"
+    },
+    {
+      "kind": "action",
+      "summary": "Radar experiment executed for example/radar-kit"
+    },
+    {
+      "kind": "evolution",
+      "summary": "Radar candidate promoted: example/radar-kit"
+    }
+  ],
+  "memory": [
+    {
+      "layer": "semantic",
+      "summary": "Radar candidate example/radar-kit suggests reusable patterns in agent, memory, evals, developer-tools.",
+      "status": "active"
+    },
+    {
+      "layer": "procedural",
+      "summary": "Adopted radar pattern from example/radar-kit into tracked behavior registry.",
+      "status": "active"
+    },
+    {
+      "layer": "episodic",
+      "summary": "Radar run completed with 1 candidates and 1 promotions.",
+      "status": "active"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_kind": "search-result",
+      "source": "fake-radar-source",
+      "summary": "Seeded candidate for radar testing."
+    },
+    {
+      "evidence_kind": "repository",
+      "source": "fake-radar-source/enrich",
+      "summary": "Enriched repository metadata for radar testing."
+    }
+  ]
+}

@@ -1,22 +1,32 @@
-﻿"""Repository workspace adapter."""
+"""Repository workspace adapter."""
 
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Mapping
 from pathlib import Path
 
 
 class RepoWorkspaceAdapter:
     SAFE_EXTENSIONS = {".md", ".txt", ".py", ".yaml", ".yml", ".json", ".toml"}
-    CHECK_PREFIXES = (
-        "python -m pytest",
-        "python -m compileall",
+    DEFAULT_ALLOWED_CHECK_COMMANDS = (
+        "python -m pytest -q",
+        "python -m compileall src/skylattice",
+        "python -m skylattice.cli doctor",
         "git status --short",
     )
     IGNORE_PARTS = {".git", ".local", "__pycache__", ".pytest_cache", "build", "dist"}
 
-    def __init__(self, repo_root: Path) -> None:
+    def __init__(
+        self,
+        repo_root: Path,
+        *,
+        allowed_check_commands: tuple[str, ...] | None = None,
+        check_shell: str = "powershell",
+    ) -> None:
         self.repo_root = repo_root.resolve()
+        self.allowed_check_commands = allowed_check_commands or self.DEFAULT_ALLOWED_CHECK_COMMANDS
+        self.check_shell = check_shell
 
     def list_files(self, *, limit: int = 200) -> list[str]:
         files: list[str] = []
@@ -50,22 +60,108 @@ class RepoWorkspaceAdapter:
             raise FileNotFoundError(path)
         if path.suffix and path.suffix not in self.SAFE_EXTENSIONS:
             raise ValueError(f"Writes to {path.suffix} files are not allowed in the MVP")
+        if not content.strip():
+            raise ValueError(f"Writes that leave {relative_path} empty are not allowed")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         return str(path.relative_to(self.repo_root).as_posix())
 
-    def replace_text(self, relative_path: str, old: str, new: str) -> str:
+    def replace_text(
+        self,
+        relative_path: str,
+        target_text: str,
+        replacement_text: str,
+        *,
+        expected_occurrences: int = 1,
+        create_if_missing: bool = False,
+    ) -> str:
         content = self.read_text(relative_path)
-        if old not in content:
-            raise ValueError(f"Pattern not found in {relative_path}")
-        updated = content.replace(old, new)
-        return self.write_text(relative_path, updated)
+        if not target_text:
+            raise ValueError("replace_text requires a non-empty target_text")
+        count = content.count(target_text)
+        if count == 0:
+            raise ValueError(f"Target text not found in {relative_path}")
+        if count != expected_occurrences:
+            raise ValueError(
+                f"Target text matched {count} times in {relative_path}; expected {expected_occurrences}"
+            )
+        updated = content.replace(target_text, replacement_text)
+        return self.write_text(relative_path, updated, create_if_missing=create_if_missing)
+
+    def insert_after(
+        self,
+        relative_path: str,
+        anchor_text: str,
+        insert_text: str,
+        *,
+        expected_occurrences: int = 1,
+        create_if_missing: bool = False,
+    ) -> str:
+        content = self.read_text(relative_path)
+        if not anchor_text:
+            raise ValueError("insert_after requires a non-empty anchor_text")
+        if not insert_text:
+            raise ValueError("insert_after requires non-empty insert_text")
+        count = content.count(anchor_text)
+        if count == 0:
+            raise ValueError(f"Anchor text not found in {relative_path}")
+        if count != expected_occurrences:
+            raise ValueError(
+                f"Anchor text matched {count} times in {relative_path}; expected {expected_occurrences}"
+            )
+        updated = content.replace(anchor_text, anchor_text + insert_text)
+        return self.write_text(relative_path, updated, create_if_missing=create_if_missing)
+
+    def append_text(self, relative_path: str, append_text: str, *, create_if_missing: bool = False) -> str:
+        if not append_text:
+            raise ValueError("append_text requires non-empty append_text")
+        content = self.read_text(relative_path)
+        updated = content + append_text
+        return self.write_text(relative_path, updated, create_if_missing=create_if_missing)
+
+    def apply_materialized_edit(
+        self,
+        relative_path: str,
+        payload: Mapping[str, object],
+        *,
+        create_if_missing: bool = False,
+    ) -> str:
+        mode = str(payload.get("mode", ""))
+        if mode == "rewrite":
+            return self.write_text(
+                relative_path,
+                str(payload.get("content", "")),
+                create_if_missing=create_if_missing,
+            )
+        if mode == "replace_text":
+            return self.replace_text(
+                relative_path,
+                str(payload.get("target_text", "")),
+                str(payload.get("replacement_text", "")),
+                expected_occurrences=int(payload.get("expected_occurrences", 1)),
+                create_if_missing=create_if_missing,
+            )
+        if mode == "insert_after":
+            return self.insert_after(
+                relative_path,
+                str(payload.get("anchor_text", "")),
+                str(payload.get("insert_text", "")),
+                expected_occurrences=int(payload.get("expected_occurrences", 1)),
+                create_if_missing=create_if_missing,
+            )
+        if mode == "append_text":
+            return self.append_text(
+                relative_path,
+                str(payload.get("append_text", "")),
+                create_if_missing=create_if_missing,
+            )
+        raise ValueError(f"Unsupported materialized edit mode: {mode}")
 
     def run_check(self, command: str) -> dict[str, object]:
-        if not command.startswith(self.CHECK_PREFIXES):
+        if command not in self.allowed_check_commands:
             raise ValueError(f"Command not allowed: {command}")
         completed = subprocess.run(
-            ["powershell", "-Command", command],
+            [self.check_shell, "-Command", command],
             cwd=self.repo_root,
             capture_output=True,
             text=True,

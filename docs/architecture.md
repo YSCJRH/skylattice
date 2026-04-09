@@ -1,5 +1,9 @@
 ﻿# Architecture
 
+![Skylattice runtime architecture](assets/runtime-architecture.svg)
+
+Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface. If you want the operator-facing quick start and public-safe sample outputs first, start from [README.md](../README.md) and `examples/redacted/`.
+
 ## Current Shape
 
 Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface:
@@ -32,6 +36,7 @@ Both workflows share:
 - `TaskAgentService` is the top-level facade used by CLI and API
 - task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
+- `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
 
 ### Task Agent Path
 
@@ -40,11 +45,18 @@ Both workflows share:
 Flow:
 
 1. interpret goal
-2. generate constrained plan
+2. generate a constrained plan with declared edit modes and tracked validation commands
 3. gate repo and external writes
-4. execute file/git/GitHub actions
-5. verify results
+4. execute deterministic text edits or full rewrites through the repo workspace adapter
+5. verify results with tracked validation commands and local edit invariants
 6. write episodic and procedural memory
+
+Current task edit modes:
+
+- `rewrite`
+- `replace_text`
+- `insert_after`
+- `append_text`
 
 ### Technology Radar Path
 
@@ -67,9 +79,11 @@ Flow:
 
 - `configs/agent/defaults.yaml`
 - `configs/policies/governance.yaml`
+- `configs/task/validation.yaml`
 - `configs/radar/*.yaml`
 - prompts, skills, docs, ADRs, eval specs
 - `configs/radar/adoptions.yaml` as a reviewable behavior-change registry
+- `.github/workflows/ci.yml` and GitHub templates as public collaboration behavior
 
 ### Local Only
 
@@ -82,6 +96,7 @@ Flow:
 ## Key Boundaries
 
 - GitHub is a source and audit surface, not runtime truth.
+- Task-agent validation commands are constrained to tracked config and do not grant arbitrary shell execution.
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
 - The runtime does not depend on GitHub to exist, but the radar workflow depends on `GITHUB_TOKEN` for discovery.
@@ -89,6 +104,7 @@ Flow:
 ## Observability
 
 - every task and radar run has ledger events
+- task edit steps record their materialized payloads for inspection
 - memory writes are attached to run ids when applicable
 - radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`
 - `skylattice doctor` and the read-only FastAPI surface expose the current local state without enabling mutation

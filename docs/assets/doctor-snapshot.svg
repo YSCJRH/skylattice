@@ -1,0 +1,29 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Skylattice doctor snapshot</title>
+  <desc id="desc">Terminal-style snapshot of the zero-credential doctor command output.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#121f36"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" rx="28" fill="url(#bg)"/>
+  <rect x="32" y="32" width="896" height="476" rx="20" fill="#0a0f1a" stroke="#24324b"/>
+  <circle cx="76" cy="67" r="8" fill="#ff5f56"/>
+  <circle cx="102" cy="67" r="8" fill="#ffbd2e"/>
+  <circle cx="128" cy="67" r="8" fill="#27c93f"/>
+  <text x="160" y="72" fill="#d5e3ff" font-size="22" font-family="Consolas, 'Courier New', monospace">python -m skylattice.cli doctor</text>
+  <text x="64" y="120" fill="#8cb4ff" font-size="20" font-family="Consolas, 'Courier New', monospace">{</text>
+  <text x="88" y="154" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">"status": "ok",</text>
+  <text x="88" y="188" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">"runtime": {</text>
+  <text x="120" y="222" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">"planner_available": false,</text>
+  <text x="120" y="256" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">"github_available": false,</text>
+  <text x="120" y="290" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">"validation_config": "configs/task/validation.yaml",</text>
+  <text x="120" y="324" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">"validation_commands": [</text>
+  <text x="152" y="358" fill="#6fe3c1" font-size="20" font-family="Consolas, 'Courier New', monospace">"python -m pytest -q",</text>
+  <text x="152" y="392" fill="#6fe3c1" font-size="20" font-family="Consolas, 'Courier New', monospace">"python -m compileall src/skylattice",</text>
+  <text x="152" y="426" fill="#6fe3c1" font-size="20" font-family="Consolas, 'Courier New', monospace">"python -m skylattice.cli doctor"</text>
+  <text x="120" y="460" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">]</text>
+  <text x="88" y="494" fill="#dce7ff" font-size="20" font-family="Consolas, 'Courier New', monospace">}</text>
+  <text x="64" y="522" fill="#7f91b3" font-size="16" font-family="Segoe UI, Arial, sans-serif">Zero-credential proof that the local runtime, governance snapshot, and tracked validation baseline are wired up.</text>
+</svg>

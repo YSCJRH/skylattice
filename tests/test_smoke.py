@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import subprocess
@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from skylattice.actions import GitAdapter
+from skylattice.actions import GitAdapter, RepoWorkspaceAdapter
 from skylattice.api import app, get_task_agent_service
 from skylattice.cli import build_doctor_report, main
 from skylattice.governance import GovernanceDecision, GovernanceGate, GovernanceRequest, PermissionTier
@@ -76,9 +76,10 @@ def _run(command: list[str], cwd: Path) -> str:
     return completed.stdout
 
 
-def create_temp_repo(tmp_path: Path) -> Path:
+def create_temp_repo(tmp_path: Path, validation_commands: tuple[str, ...] | None = None) -> Path:
     repo = tmp_path / "repo"
     repo.mkdir()
+    commands = validation_commands or ("python -m pytest -q", "python -m compileall src/skylattice", "python -m skylattice.cli doctor", "git status --short")
 
     _write(
         repo / "configs" / "agent" / "defaults.yaml",
@@ -133,6 +134,11 @@ destructive_keywords:
   - reset
 """.strip(),
     )
+    _write(
+        repo / "configs" / "task" / "validation.yaml",
+        "runner: powershell\n\nallowed_commands:\n"
+        + "".join(f"  - {command}\n" for command in commands),
+    )
     _write(repo / "README.md", "# Temp Repo\n\nInitial content.\n")
 
     _run(["git", "init", "-b", "main"], repo)
@@ -150,6 +156,7 @@ def build_fake_plan() -> dict[str, object]:
         "file_operations": [
             {
                 "path": "README.md",
+                "mode": "rewrite",
                 "create_if_missing": False,
                 "instructions": "Add one section describing the task agent MVP.",
             }
@@ -159,6 +166,40 @@ def build_fake_plan() -> dict[str, object]:
         "pull_request": {
             "title": "docs: refresh README for task agent MVP",
             "body": "This updates README.md to describe the executable task-agent MVP.",
+            "base_branch": "main",
+        },
+    }
+
+
+def build_multimode_plan() -> dict[str, object]:
+    return {
+        "summary": "Refresh README with deterministic text edit primitives.",
+        "branch_name": "readme-multimode",
+        "file_operations": [
+            {
+                "path": "README.md",
+                "mode": "replace_text",
+                "create_if_missing": False,
+                "instructions": "Replace the intro sentence with deterministic edit wording.",
+            },
+            {
+                "path": "README.md",
+                "mode": "insert_after",
+                "create_if_missing": False,
+                "instructions": "Insert a Task Agent MVP section after the intro paragraph.",
+            },
+            {
+                "path": "README.md",
+                "mode": "append_text",
+                "create_if_missing": False,
+                "instructions": "Append a note about tracked validation commands.",
+            },
+        ],
+        "validation_commands": ["git diff --stat"],
+        "commit_message": "docs: exercise deterministic task-agent edits",
+        "pull_request": {
+            "title": "docs: exercise deterministic task-agent edits",
+            "body": "This uses replace_text, insert_after, and append_text in one task run.",
             "base_branch": "main",
         },
     }
@@ -186,6 +227,7 @@ def test_doctor_command_outputs_runtime_json() -> None:
     payload = json.loads(buffer.getvalue())
     assert exit_code == 0
     assert payload["runtime"]["db_path"] == ".local/state/skylattice.sqlite3"
+    assert payload["runtime"]["validation_config"] == "configs/task/validation.yaml"
     assert payload["kernel"]["paths"]["repo_root"] == "."
 
 
@@ -224,6 +266,31 @@ def test_memory_policy_covers_all_layers() -> None:
     assert policies[MemoryLayer.WORKING].rollback_mechanism.startswith("Clear")
 
 
+def test_repo_workspace_supports_deterministic_edit_primitives(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    workspace = RepoWorkspaceAdapter(repo, allowed_check_commands=("git status --short",))
+
+    workspace.replace_text("README.md", "Initial content.", "Initial content with deterministic edits.")
+    workspace.insert_after(
+        "README.md",
+        "Initial content with deterministic edits.",
+        "\n\n## Task Agent MVP\n\nDeterministic text edits are available.\n",
+    )
+    workspace.append_text("README.md", "\nValidation commands are tracked.\n")
+
+    updated = (repo / "README.md").read_text(encoding="utf-8")
+    assert "Task Agent MVP" in updated
+    assert "Validation commands are tracked." in updated
+
+    _write(repo / "notes.md", "alpha\nbeta\nalpha\n")
+    with pytest.raises(ValueError, match="matched 2 times"):
+        workspace.replace_text("notes.md", "alpha", "ALPHA")
+    with pytest.raises(ValueError, match="Target text not found"):
+        workspace.replace_text("notes.md", "gamma", "GAMMA")
+    with pytest.raises(ValueError, match="Anchor text not found"):
+        workspace.insert_after("notes.md", "missing", "\nextra")
+
+
 def test_task_run_waits_for_approval(tmp_path: Path) -> None:
     repo = create_temp_repo(tmp_path)
     provider = FakeProvider(plan=build_fake_plan(), file_outputs={"README.md": "# Temp Repo\n\nTask agent MVP.\n"})
@@ -241,7 +308,10 @@ def test_task_run_waits_for_approval(tmp_path: Path) -> None:
 
 def test_task_resume_executes_branch_push_and_pr(tmp_path: Path) -> None:
     repo = create_temp_repo(tmp_path)
-    provider = FakeProvider(plan=build_fake_plan(), file_outputs={"README.md": "# Temp Repo\n\nInitial content.\n\n## Task Agent MVP\n\nThis repo now has an executable task-agent MVP.\n"})
+    provider = FakeProvider(
+        plan=build_fake_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nInitial content.\n\n## Task Agent MVP\n\nThis repo now has an executable task-agent MVP.\n"},
+    )
     github = FakeGitHubAdapter()
     service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
     fake_git = LocalPushGitAdapter(repo)
@@ -260,9 +330,71 @@ def test_task_resume_executes_branch_push_and_pr(tmp_path: Path) -> None:
     assert _run(["git", "branch", "--show-current"], repo).strip().startswith("codex/readme-refresh")
     assert fake_git.push_calls[0]["branch_name"].startswith("codex/readme-refresh")
     assert github.pull_requests[0]["html_url"].endswith("/pull/1")
+    assert details["steps"][1]["action_name"] == "workspace.rewrite_file"
+    assert details["steps"][1]["result"]["materialized_edit"]["mode"] == "rewrite"
     assert any(record["layer"] == "episodic" for record in details["memory"])
     assert any(record["layer"] == "procedural" for record in details["memory"])
     assert any(record["layer"] == "working" and record["status"] == "tombstoned" for record in details["memory"])
+
+
+def test_task_run_supports_mixed_edit_modes_and_records_materialized_payloads(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path, validation_commands=("git diff --stat",))
+    provider = FakeProvider(
+        plan=build_multimode_plan(),
+        edit_outputs={
+            "README.md::replace_text": {
+                "mode": "replace_text",
+                "target_text": "Initial content.",
+                "replacement_text": "Initial content with deterministic edits.",
+                "expected_occurrences": 1,
+            },
+            "README.md::insert_after": {
+                "mode": "insert_after",
+                "anchor_text": "Initial content with deterministic edits.",
+                "insert_text": "\n\n## Task Agent MVP\n\nThis repo now supports deterministic text edit primitives.\n",
+                "expected_occurrences": 1,
+            },
+            "README.md::append_text": {
+                "mode": "append_text",
+                "append_text": "\nValidation commands are tracked in repo config.\n",
+            },
+        },
+    )
+    github = FakeGitHubAdapter()
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+
+    completed = service.run_task(
+        goal_input="Refresh the README with deterministic edit primitives.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    details = service.inspect_run(completed.run_id)
+    readme = (repo / "README.md").read_text(encoding="utf-8")
+
+    assert completed.status.value == "completed"
+    assert "deterministic text edit primitives" in readme
+    assert "Validation commands are tracked in repo config." in readme
+    assert [step["action_name"] for step in details["steps"][1:4]] == [
+        "workspace.replace_text",
+        "workspace.insert_after",
+        "workspace.append_text",
+    ]
+    assert details["steps"][4]["action_name"] == "workspace.run_check"
+    assert details["steps"][4]["action_args"]["command"] == "git diff --stat"
+    assert all("materialized_edit" in step["result"] for step in details["steps"][1:4])
+    assert details["steps"][1]["result"]["materialized_edit"]["target_text"] == "Initial content."
+    assert github.pull_requests[0]["title"] == "docs: exercise deterministic task-agent edits"
+
+
+def test_task_validation_commands_come_from_tracked_config(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path, validation_commands=("git diff --stat",))
+    service = TaskAgentService.from_repo(repo_root=repo)
+
+    assert service.workspace.run_check("git diff --stat")["returncode"] == 0
+    with pytest.raises(ValueError, match="Command not allowed"):
+        service.workspace.run_check("git status --short")
 
 
 def test_api_returns_run_events_and_memory(tmp_path: Path) -> None:

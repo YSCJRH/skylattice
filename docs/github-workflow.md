@@ -4,10 +4,11 @@ GitHub is an important external ledger and discovery surface, but not the runtim
 
 ## Roles
 
-GitHub serves three roles in the current system:
+GitHub serves four roles in the current system:
 
 - remote audit and synchronization target for this repository
 - task-agent collaboration surface for draft PRs and issue comments
+- Windows-first CI surface for the tracked task validation baseline
 - technology-radar discovery surface for scanning open-source repositories and releases
 
 ## What Stays Local
@@ -21,7 +22,8 @@ GitHub serves three roles in the current system:
 
 - docs and ADRs
 - prompts and skills
-- governance and radar configs
+- governance, task, and radar configs
+- GitHub workflow and template files under `.github/`
 - radar experiment artifacts under `docs/radar/experiments/`
 - radar promotion logs under `docs/radar/promotions/`
 - radar adoption registry updates under `configs/radar/adoptions.yaml`
@@ -31,6 +33,18 @@ GitHub serves three roles in the current system:
 - push working branches
 - create or update draft PRs
 - add issue comments when the task plan calls for them
+- present PR and Issue templates that reinforce task briefs, verification, and privacy-safe reporting
+
+## CI Baseline
+
+The current public CI lane is intentionally narrow.
+
+- runner: `windows-latest`
+- Python: `3.11`
+- command source of truth: `configs/task/validation.yaml`
+- execution helper: `tools/run_validation_suite.py`
+
+This keeps the public automation aligned with the runtime boundary instead of creating a second hidden validation policy in workflow YAML.
 
 ## Technology Radar Use Of GitHub
 

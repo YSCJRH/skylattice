@@ -6,7 +6,13 @@ from typing import Any, Protocol
 
 
 class LLMProvider(Protocol):
-    def generate_plan(self, *, goal: str, repo_context: dict[str, Any]) -> dict[str, Any]:
+    def generate_plan(
+        self,
+        *,
+        goal: str,
+        repo_context: dict[str, Any],
+        allowed_validation_commands: tuple[str, ...],
+    ) -> dict[str, Any]:
         ...
 
     def rewrite_file(
@@ -19,4 +25,17 @@ class LLMProvider(Protocol):
         plan_summary: str,
         repo_context: dict[str, Any],
     ) -> str:
+        ...
+
+    def materialize_edit(
+        self,
+        *,
+        goal: str,
+        path: str,
+        mode: str,
+        current_content: str,
+        instructions: str,
+        plan_summary: str,
+        repo_context: dict[str, Any],
+    ) -> dict[str, Any]:
         ...

@@ -1,0 +1,7 @@
+runner: powershell
+
+allowed_commands:
+  - python -m pytest -q
+  - python -m compileall src/skylattice
+  - python -m skylattice.cli doctor
+  - git status --short
