@@ -1,8 +1,8 @@
-﻿# Changelog
+# Changelog
 
-## v0.2.0 - Public Preview Draft
+## v0.2.0 - Public Preview
 
-Date: 2026-04-08
+Date: 2026-04-09
 
 ### Added
 
@@ -19,5 +19,5 @@ Date: 2026-04-08
 
 ### Notes
 
-- this is a tracked release draft, not a published GitHub release yet
-- GitHub repository description, topics, and release publication still need to be applied on the remote repository surface
+- `v0.2.0 Public Preview` has been published as a GitHub pre-release
+- GitHub repository description and topics have been aligned with the public positioning

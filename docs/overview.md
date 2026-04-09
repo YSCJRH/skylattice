@@ -74,4 +74,4 @@ It is not yet a strong fit for:
 - read [docs/use-cases.md](use-cases.md) for concrete user-facing scenarios
 - read [docs/comparison.md](comparison.md) to understand what Skylattice is and is not competing with
 - read [docs/architecture.md](architecture.md) if you want the runtime map
-- open a GitHub issue with early feedback once the repo changes are published to the remote
+- open a GitHub issue with early feedback on the public repository

@@ -140,7 +140,7 @@ Comparison details: [docs/comparison.md](docs/comparison.md)
 
 ## Feedback Wanted
 
-If you read the repo and hit a confusing point before or after cloning, that is valuable signal. Once these changes are published to GitHub, the fastest routes will be:
+If you read the repo and hit a confusing point before or after cloning, that is valuable signal. The fastest routes are:
 
 - open an early-feedback issue using `.github/ISSUE_TEMPLATE/early_feedback.md`
 - open a feature request for a bounded improvement
@@ -162,7 +162,7 @@ Not a fit yet:
 - users who want zero-config autonomous agents
 - workflows that require AST refactors, arbitrary shell automation, or hands-off production GitHub operations
 
-Release notes draft: [docs/releases/v0.2.0-public-preview.md](docs/releases/v0.2.0-public-preview.md)  
+Release notes: [docs/releases/v0.2.0-public-preview.md](docs/releases/v0.2.0-public-preview.md)  
 Changelog: [CHANGELOG.md](CHANGELOG.md)  
 Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
@@ -177,7 +177,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - `docs/memory-model.md`: memory layers, write triggers, and rollback rules
 - `docs/technology-radar.md`: radar workflow, scoring, promotion gates, and rollback
 - `docs/github-workflow.md`: GitHub audit, CI, and collaboration behavior
-- `docs/releases/v0.2.0-public-preview.md`: first public preview release draft
+- `docs/releases/v0.2.0-public-preview.md`: first public preview release notes
 - `docs/roadmap.md`: staged delivery plan
 - `docs/adrs/`: architecture decision records
 
@@ -212,7 +212,7 @@ Local-only surface:
 - `python tools/run_validation_suite.py`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`
-- set the GitHub repository description and topics to match the wording in `docs/releases/v0.2.0-public-preview.md`
+- confirm the GitHub repository description and topics still match the current public positioning
 - keep Issues enabled
 - keep Discussions disabled initially
 - keep Wiki disabled initially

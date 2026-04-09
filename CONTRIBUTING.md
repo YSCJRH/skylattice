@@ -36,7 +36,7 @@ Skylattice is currently optimized for clarity, documentation quality, and safe i
 
 - report first-run friction, unclear positioning, and missing proof surfaces
 - prefer issues that describe what blocked understanding or trust, not only code defects
-- use the early-feedback issue template for visitor or onboarding feedback after it is published on GitHub
+- use the early-feedback issue template for visitor or onboarding feedback
 
 ## Review Expectations
 
@@ -45,13 +45,13 @@ Skylattice is currently optimized for clarity, documentation quality, and safe i
 - tests should cover new gates, persistence changes, and public-surface behavior when practical
 - PRs should call out the task brief, validation commands, and any ADR/doc boundary changes
 
-## Maintainer Checklist Before Public Visibility
+## Maintainer Checklist For Public Updates
 
 - confirm `README.md`, `SECURITY.md`, this file, and `.github/` templates still reflect the current public posture
 - run `python tools/run_validation_suite.py`
 - run `python -m pytest -q`
 - run `skylattice doctor`
 - confirm `git ls-files .local` is empty
-- set repository description and topics
+- confirm repository description and topics still match the intended positioning
 - keep Issues enabled and keep Discussions and Wiki disabled initially
-- switch visibility only after the publishability checks pass on `main`
+- keep the latest release notes and README proof surfaces in sync

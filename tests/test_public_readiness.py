@@ -109,6 +109,24 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
 
 
+def test_post_release_docs_do_not_keep_pre_release_todo_text() -> None:
+    readme = _read_text("README.md")
+    release_notes = _read_text("docs/releases/v0.2.0-public-preview.md")
+    overview = _read_text("docs/overview.md")
+    changelog = _read_text("CHANGELOG.md")
+
+    stale_phrases = [
+        "once these changes are published to GitHub",
+        "once the repo changes are published to the remote",
+        "apply the repository description and topics above in GitHub settings",
+        "publish this release text as the first GitHub release body",
+        "not a published GitHub release yet",
+    ]
+
+    combined = "\n".join([readme, release_notes, overview, changelog])
+    assert not any(phrase in combined for phrase in stale_phrases)
+
+
 def test_local_path_summary_is_relative() -> None:
     paths = LocalPaths.from_repo_root(REPO_ROOT).to_dict()
 
