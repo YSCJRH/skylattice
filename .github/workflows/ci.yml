@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   pull_request:
@@ -24,3 +24,8 @@ jobs:
 
       - name: Run tracked validation suite
         run: python tools/run_validation_suite.py
+
+      - name: Build Pages site
+        env:
+          NO_MKDOCS_2_WARNING: 'true'
+        run: python -m mkdocs build --strict

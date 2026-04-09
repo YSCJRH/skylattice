@@ -67,20 +67,46 @@ def test_task_validation_config_defines_windows_baseline() -> None:
 def test_public_engineering_baseline_files_exist() -> None:
     required = [
         ".github/workflows/ci.yml",
+        ".github/workflows/pages.yml",
         ".github/PULL_REQUEST_TEMPLATE.md",
         ".github/ISSUE_TEMPLATE/bug_report.md",
         ".github/ISSUE_TEMPLATE/feature_request.md",
         ".github/ISSUE_TEMPLATE/early_feedback.md",
         ".github/ISSUE_TEMPLATE/config.yml",
         "tools/run_validation_suite.py",
+        "mkdocs.yml",
+        "CITATION.cff",
         "CHANGELOG.md",
+        "docs/index.md",
+        "docs/what-is-skylattice.md",
+        "docs/quickstart.md",
         "docs/overview.md",
         "docs/use-cases.md",
         "docs/comparison.md",
+        "docs/faq.md",
+        "docs/proof.md",
+        "docs/ai-distribution-ops.md",
+        "docs/ai-search-benchmark.md",
         "docs/releases/v0.2.0-public-preview.md",
+        "docs/releases/v0-2-0.md",
+        "docs/robots.txt",
+        "docs/sitemap.xml",
+        "docs/llms.txt",
+        "docs/llms-full.txt",
         "docs/assets/doctor-snapshot.svg",
         "docs/assets/task-run-snapshot.svg",
         "docs/assets/runtime-architecture.svg",
+        "docs/assets/social-preview.svg",
+        "docs/assets/social-preview.png",
+        "docs/assets/terminal-demo.svg",
+        "docs/zh/index.md",
+        "docs/zh/what-is-skylattice.md",
+        "docs/zh/quickstart.md",
+        "docs/zh/use-cases.md",
+        "docs/zh/comparison.md",
+        "docs/zh/faq.md",
+        "docs/zh/proof.md",
+        "docs/zh/releases/v0-2-0.md",
         "examples/redacted/doctor-output.json",
         "examples/redacted/task-run-sample.md",
         "examples/redacted/task-run-sample.json",
@@ -100,13 +126,81 @@ def test_public_positioning_surfaces_are_present() -> None:
         "5-Minute No-Credential Quick Start",
         "Token-Enabled Workflow",
         "Sample Outputs",
-        "Use Cases",
-        "How Skylattice Differs",
-        "Feedback Wanted",
+        "Public Site",
+        "docs and AI-friendly landing pages",
+        "python -m mkdocs build --strict",
+        "homepageUrl",
     ]:
         assert phrase in readme
 
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
+    assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject
+    assert 'Documentation = "https://yscjrh.github.io/skylattice/"' in pyproject
+
+
+def test_public_site_metadata_is_tracked() -> None:
+    mkdocs_config = yaml.safe_load(_read_text("mkdocs.yml"))
+    citation = yaml.safe_load(_read_text("CITATION.cff"))
+    pyproject = _read_text("pyproject.toml")
+
+    assert mkdocs_config["site_url"] == "https://yscjrh.github.io/skylattice/"
+    assert mkdocs_config["repo_url"] == "https://github.com/YSCJRH/skylattice"
+    assert mkdocs_config["extra"]["social_image"] == "assets/social-preview.png"
+    assert citation["title"] == "Skylattice"
+    assert citation["version"] == "0.2.0"
+    assert citation["url"] == "https://yscjrh.github.io/skylattice/"
+    assert "mkdocs>=1.6,<2.0" in pyproject
+    assert "mkdocs-material>=9.6,<10.0" in pyproject
+
+
+def test_ai_discovery_files_allow_public_crawlers() -> None:
+    robots = _read_text("docs/robots.txt")
+    llms = _read_text("docs/llms.txt")
+    llms_full = _read_text("docs/llms-full.txt")
+
+    assert "User-agent: *" in robots
+    assert "User-agent: OAI-SearchBot" in robots
+    assert "User-agent: GPTBot" in robots
+    assert "Allow: /" in robots
+    assert "Sitemap: https://yscjrh.github.io/skylattice/sitemap.xml" in robots
+    assert "https://yscjrh.github.io/skylattice/faq/" in llms
+    assert "https://yscjrh.github.io/skylattice/zh/faq/" in llms_full
+    assert "https://github.com/YSCJRH/skylattice" in llms
+
+
+def test_sitemap_declares_core_pages_and_language_alternates() -> None:
+    sitemap = _read_text("docs/sitemap.xml")
+
+    for loc in [
+        "https://yscjrh.github.io/skylattice/",
+        "https://yscjrh.github.io/skylattice/what-is-skylattice/",
+        "https://yscjrh.github.io/skylattice/quickstart/",
+        "https://yscjrh.github.io/skylattice/use-cases/",
+        "https://yscjrh.github.io/skylattice/comparison/",
+        "https://yscjrh.github.io/skylattice/faq/",
+        "https://yscjrh.github.io/skylattice/proof/",
+        "https://yscjrh.github.io/skylattice/releases/v0-2-0/",
+    ]:
+        assert f"<loc>{loc}</loc>" in sitemap
+
+    assert 'hreflang="zh-CN"' in sitemap
+    assert 'https://yscjrh.github.io/skylattice/zh/' in sitemap
+    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-2-0/' in sitemap
+
+
+def test_ai_distribution_docs_cover_benchmark_and_manual_ops() -> None:
+    ops = _read_text("docs/ai-distribution-ops.md")
+    benchmark = _read_text("docs/ai-search-benchmark.md")
+
+    assert "homepageUrl" in ops
+    assert "social preview" in ops
+    assert "Google Search Console" in ops
+    assert "Bing Webmaster Tools" in ops
+    assert "ChatGPT Search" in benchmark
+    assert "Perplexity" in benchmark
+    assert "Gemini" in benchmark
+    assert "Claude Web" in benchmark
+    assert "Day 0" in benchmark and "Day 14" in benchmark and "Day 30" in benchmark
 
 
 def test_post_release_docs_do_not_keep_pre_release_todo_text() -> None:

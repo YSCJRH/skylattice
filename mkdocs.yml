@@ -1,0 +1,74 @@
+site_name: Skylattice
+site_description: Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement.
+site_url: https://yscjrh.github.io/skylattice/
+repo_url: https://github.com/YSCJRH/skylattice
+repo_name: YSCJRH/skylattice
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  custom_dir: overrides
+  favicon: assets/social-preview.png
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: black
+      accent: teal
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - What Is Skylattice?: what-is-skylattice.md
+  - Quick Start: quickstart.md
+  - Use Cases: use-cases.md
+  - Comparison: comparison.md
+  - FAQ: faq.md
+  - Proof: proof.md
+  - Release:
+      - v0.2.0 Public Preview: releases/v0-2-0.md
+  - System Docs:
+      - Overview: overview.md
+      - Architecture: architecture.md
+      - Governance: governance.md
+      - Memory Model: memory-model.md
+      - Technology Radar: technology-radar.md
+      - GitHub Workflow: github-workflow.md
+      - Roadmap: roadmap.md
+  - Public Ops:
+      - AI Distribution Ops: ai-distribution-ops.md
+      - AI Search Benchmark: ai-search-benchmark.md
+  - Chinese:
+      - Home (ZH): zh/index.md
+      - What Is Skylattice? (ZH): zh/what-is-skylattice.md
+      - Quick Start (ZH): zh/quickstart.md
+      - Use Cases (ZH): zh/use-cases.md
+      - Comparison (ZH): zh/comparison.md
+      - FAQ (ZH): zh/faq.md
+      - Proof (ZH): zh/proof.md
+      - Release (ZH): zh/releases/v0-2-0.md
+
+extra:
+  social_image: assets/social-preview.png
+
+validation:
+  nav:
+    omitted_files: ignore

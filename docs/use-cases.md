@@ -1,6 +1,25 @@
-﻿# Use Cases
+---
+title: Use Cases
+description: The best-fit scenarios for Skylattice, including local-first personal agents, governed repo tasks, and bounded open-source learning loops.
+robots: index, follow
+alternates:
+  - lang: en
+    href: https://yscjrh.github.io/skylattice/use-cases/
+  - lang: zh-CN
+    href: https://yscjrh.github.io/skylattice/zh/use-cases/
+---
+
+# Use Cases
 
 Skylattice is most useful for people who care about agent systems as infrastructure, not just as prompts.
+
+If you want a local-first runtime that is legible to operators, reviewable in Git, and explicit about governance boundaries, these are the current best-fit scenarios.
+
+## Key Takeaways
+
+- Skylattice is a strong fit when you want memory, action, and review boundaries in the same system.
+- It is better as a governance-heavy reference runtime than as a broad automation platform.
+- It is especially useful when you want to inspect what happened after a run, not only whether it passed.
 
 ## 1. Keep A Personal Agent Local, Durable, And Reviewable
 

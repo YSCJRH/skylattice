@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use Skylattice as a reference or research artifact, please cite it with the metadata below."
+title: "Skylattice"
+version: "0.2.0"
+date-released: "2026-04-09"
+type: software
+license: MIT
+repository-code: "https://github.com/YSCJRH/skylattice"
+url: "https://yscjrh.github.io/skylattice/"
+authors:
+  - family-names: "HJR"
+    alias: "YSCJRH"

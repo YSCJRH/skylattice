@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Skylattice terminal demo</title>
+  <desc id="desc">Animated terminal-style demonstration of doctor, task inspect, and proof outputs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#10263c"/>
+    </linearGradient>
+    <style>
+      .chrome { fill: #09111d; }
+      .body { fill: url(#bg); stroke: #2dd4bf; stroke-width: 2; }
+      .dot1 { fill: #f87171; }
+      .dot2 { fill: #fbbf24; }
+      .dot3 { fill: #34d399; }
+      .prompt { fill: #7dd3fc; font: 600 22px 'Consolas', 'SFMono-Regular', monospace; }
+      .cmd { fill: #e2e8f0; font: 600 22px 'Consolas', 'SFMono-Regular', monospace; }
+      .out { fill: #cbd5e1; font: 18px 'Consolas', 'SFMono-Regular', monospace; }
+      .ok { fill: #5eead4; }
+      .accent { fill: #f8fafc; font: 700 30px 'Segoe UI', sans-serif; }
+      .sub { fill: #94a3b8; font: 18px 'Segoe UI', sans-serif; }
+      .frame { opacity: 0; animation: reveal 12s infinite; }
+      .f1 { animation-delay: 0s; }
+      .f2 { animation-delay: 4s; }
+      .f3 { animation-delay: 8s; }
+      @keyframes reveal {
+        0% { opacity: 0; }
+        8% { opacity: 1; }
+        28% { opacity: 1; }
+        33% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+    </style>
+  </defs>
+
+  <rect width="960" height="540" rx="28" class="body"/>
+  <rect width="960" height="72" rx="28" class="chrome"/>
+  <circle cx="40" cy="36" r="10" class="dot1"/>
+  <circle cx="70" cy="36" r="10" class="dot2"/>
+  <circle cx="100" cy="36" r="10" class="dot3"/>
+  <text x="140" y="44" class="accent">Skylattice demo</text>
+  <text x="140" y="68" class="sub">doctor -> task inspect -> public proof</text>
+
+  <g class="frame f1">
+    <text x="52" y="128" class="prompt">PS&gt;</text>
+    <text x="118" y="128" class="cmd">python -m skylattice.cli doctor</text>
+    <text x="52" y="176" class="out">{</text>
+    <text x="88" y="208" class="out">"status": <tspan class="ok">"ok"</tspan>,</text>
+    <text x="88" y="240" class="out">"database": ".local/state/skylattice.sqlite3",</text>
+    <text x="88" y="272" class="out">"validation": ["pytest", "compileall", "doctor", "git status"]</text>
+    <text x="52" y="304" class="out">}</text>
+    <text x="52" y="362" class="sub">Zero-credential runtime verification</text>
+  </g>
+
+  <g class="frame f2">
+    <text x="52" y="128" class="prompt">PS&gt;</text>
+    <text x="118" y="128" class="cmd">skylattice task inspect --run sample-run</text>
+    <text x="52" y="176" class="out">ledger events: 6</text>
+    <text x="52" y="208" class="out">edit mode: <tspan class="ok">replace_text</tspan></text>
+    <text x="52" y="240" class="out">target: README.md</text>
+    <text x="52" y="272" class="out">validation: pytest, compileall, doctor</text>
+    <text x="52" y="362" class="sub">Governed repo-task evidence with materialized payloads</text>
+  </g>
+
+  <g class="frame f3">
+    <text x="52" y="128" class="prompt">PS&gt;</text>
+    <text x="118" y="128" class="cmd">open examples/redacted/task-run-sample.json</text>
+    <text x="52" y="176" class="out">proof surfaces:</text>
+    <text x="88" y="208" class="out">- doctor output</text>
+    <text x="88" y="240" class="out">- task walkthrough + inspect JSON</text>
+    <text x="88" y="272" class="out">- radar walkthrough + inspect JSON</text>
+    <text x="88" y="304" class="out">- CI + release + issue templates</text>
+    <text x="52" y="362" class="sub">Public-safe artifacts for search engines, AI systems, and humans</text>
+  </g>
+</svg>

@@ -1,6 +1,23 @@
-﻿# Comparison
+---
+title: Comparison
+description: How Skylattice differs from broad agent frameworks, chat wrappers, repo automation bots, and local knowledge tools.
+robots: index, follow
+alternates:
+  - lang: en
+    href: https://yscjrh.github.io/skylattice/comparison/
+  - lang: zh-CN
+    href: https://yscjrh.github.io/skylattice/zh/comparison/
+---
+
+# Comparison
 
 Skylattice is intentionally narrow. The point is not to out-feature every agent tool, but to make a specific design space legible: local-first memory, governed repo tasks, and bounded self-improvement.
+
+## Key Takeaways
+
+- Skylattice gives up breadth in exchange for clearer operator boundaries.
+- It behaves more like a governed runtime than a workflow bot or prompt wrapper.
+- It is strongest when you care about rollbackability, auditability, and tracked system behavior.
 
 ## Category Comparison
 
@@ -27,24 +44,9 @@ Skylattice is intentionally narrow. The point is not to out-feature every agent 
 - no arbitrary shell execution path in the task agent
 - no promise of autonomous operation without review
 
-## How To Position It Publicly
-
-A good short description for Skylattice is:
+## One-Line Positioning
 
 > Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement.
-
-The most relevant topic families are:
-
-- `local-first`
-- `ai-agent`
-- `agent-framework`
-- `memory`
-- `sqlite`
-- `cli`
-- `fastapi`
-- `developer-tools`
-- `github`
-- `personal-agent`
 
 ## What Skylattice Is Not
 

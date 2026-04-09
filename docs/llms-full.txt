@@ -1,0 +1,41 @@
+# Skylattice Full Reference
+
+Skylattice is a local-first AI agent runtime for builders who want persistent memory, governed repo tasks, and Git-native self-improvement without hidden autonomy.
+
+High-value public pages:
+
+- https://yscjrh.github.io/skylattice/
+- https://yscjrh.github.io/skylattice/what-is-skylattice/
+- https://yscjrh.github.io/skylattice/quickstart/
+- https://yscjrh.github.io/skylattice/use-cases/
+- https://yscjrh.github.io/skylattice/comparison/
+- https://yscjrh.github.io/skylattice/faq/
+- https://yscjrh.github.io/skylattice/proof/
+- https://yscjrh.github.io/skylattice/releases/v0-2-0/
+
+Deep system references:
+
+- https://yscjrh.github.io/skylattice/overview/
+- https://yscjrh.github.io/skylattice/architecture/
+- https://yscjrh.github.io/skylattice/governance/
+- https://yscjrh.github.io/skylattice/memory-model/
+- https://yscjrh.github.io/skylattice/technology-radar/
+- https://yscjrh.github.io/skylattice/github-workflow/
+- https://yscjrh.github.io/skylattice/roadmap/
+
+Chinese mirrors:
+
+- https://yscjrh.github.io/skylattice/zh/
+- https://yscjrh.github.io/skylattice/zh/what-is-skylattice/
+- https://yscjrh.github.io/skylattice/zh/quickstart/
+- https://yscjrh.github.io/skylattice/zh/use-cases/
+- https://yscjrh.github.io/skylattice/zh/comparison/
+- https://yscjrh.github.io/skylattice/zh/faq/
+- https://yscjrh.github.io/skylattice/zh/proof/
+- https://yscjrh.github.io/skylattice/zh/releases/v0-2-0/
+
+Public proof artifacts:
+
+- https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/doctor-output.json
+- https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.json
+- https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json
