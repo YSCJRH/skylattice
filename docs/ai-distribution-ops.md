@@ -69,6 +69,9 @@ Keep these assets ready and keep their backlinks aimed at the canonical Pages su
 - one category / comparison post
 - one directory and community target tracker
 - two to four short community-post drafts for different audiences
+- one posting runbook and one set of reusable directory blurbs
+
+Execution files live under `docs/outreach/`. Use `authority-program.md` as the 30-day sequence, `posting-runbook.md` as the posting checklist, and `directory-blurbs.md` for reusable short descriptions.
 
 ## Stable Release Follow-Up
 
@@ -76,3 +79,4 @@ Keep these assets ready and keep their backlinks aimed at the canonical Pages su
 - keep `v0.2.0` only as historical preview context
 - keep the Pages release page synced with the tracked GitHub release notes source
 - refresh the weekly discoverability summary after any meaningful release, landing-page, or metadata change
+- use `evals/ai-search/2026-04-10-post-release-review.md` as the first post-release checkpoint before the Day 14 review
