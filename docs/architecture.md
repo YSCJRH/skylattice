@@ -1,8 +1,8 @@
-﻿# Architecture
+# Architecture
 
 ![Skylattice runtime architecture](assets/runtime-architecture.svg)
 
-Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface. If you want the operator-facing quick start and public-safe sample outputs first, start from [README.md](../README.md) and `examples/redacted/`.
+Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface. If you want the operator-facing quick start and public-safe sample outputs first, start from [the landing page](index.md) and [proof.md](proof.md).
 
 ## Current Shape
 
@@ -108,3 +108,4 @@ Flow:
 - memory writes are attached to run ids when applicable
 - radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`
 - `skylattice doctor` and the read-only FastAPI surface expose the current local state without enabling mutation
+

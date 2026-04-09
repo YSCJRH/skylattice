@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/what-is-skylattice/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/what-is-skylattice/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/what-is-skylattice/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/quickstart/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/quickstart/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/quickstart/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/use-cases/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/use-cases/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/use-cases/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/comparison/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/comparison/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/comparison/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/faq/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/faq/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/faq/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/proof/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/proof/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/proof/" />
+  </url>
+  <url>
+    <loc>https://yscjrh.github.io/skylattice/releases/v0-2-0/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/releases/v0-2-0/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/releases/v0-2-0/" />
+  </url>
+</urlset>

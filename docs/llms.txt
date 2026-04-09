@@ -1,0 +1,18 @@
+# Skylattice
+
+> Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement.
+
+Canonical pages:
+
+- https://yscjrh.github.io/skylattice/
+- https://yscjrh.github.io/skylattice/what-is-skylattice/
+- https://yscjrh.github.io/skylattice/quickstart/
+- https://yscjrh.github.io/skylattice/use-cases/
+- https://yscjrh.github.io/skylattice/comparison/
+- https://yscjrh.github.io/skylattice/faq/
+- https://yscjrh.github.io/skylattice/proof/
+- https://yscjrh.github.io/skylattice/releases/v0-2-0/
+
+Repository:
+
+- https://github.com/YSCJRH/skylattice

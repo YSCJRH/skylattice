@@ -1,14 +1,15 @@
-﻿# GitHub Workflow
+# GitHub Workflow
 
 GitHub is an important external ledger and discovery surface, but not the runtime substrate.
 
 ## Roles
 
-GitHub serves four roles in the current system:
+GitHub serves five roles in the current system:
 
 - remote audit and synchronization target for this repository
 - task-agent collaboration surface for draft PRs and issue comments
 - Windows-first CI surface for the tracked task validation baseline
+- GitHub Pages distribution layer for public docs, search-engine discovery, and AI-readable landing pages
 - technology-radar discovery surface for scanning open-source repositories and releases
 
 ## What Stays Local
@@ -24,6 +25,7 @@ GitHub serves four roles in the current system:
 - prompts and skills
 - governance, task, and radar configs
 - GitHub workflow and template files under `.github/`
+- Pages configuration, machine-readable discovery files, and public benchmark docs
 - radar experiment artifacts under `docs/radar/experiments/`
 - radar promotion logs under `docs/radar/promotions/`
 - radar adoption registry updates under `configs/radar/adoptions.yaml`
@@ -43,8 +45,18 @@ The current public CI lane is intentionally narrow.
 - Python: `3.11`
 - command source of truth: `configs/task/validation.yaml`
 - execution helper: `tools/run_validation_suite.py`
+- public-site build check: `python -m mkdocs build --strict`
 
-This keeps the public automation aligned with the runtime boundary instead of creating a second hidden validation policy in workflow YAML.
+This keeps the public automation aligned with the runtime boundary while also ensuring the Pages distribution layer stays buildable.
+
+## GitHub Pages As A Distribution Layer
+
+The Pages site is intentionally public-facing and read-only.
+
+- English root pages are canonical
+- Chinese mirrors live under `/zh/`
+- `robots.txt`, `sitemap.xml`, `llms.txt`, and `llms-full.txt` are tracked artifacts
+- the site should help search engines and AI answer systems understand the repo, not replace runtime truth
 
 ## Technology Radar Use Of GitHub
 

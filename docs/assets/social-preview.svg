@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111d"/>
+      <stop offset="100%" stop-color="#11324b"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" rx="32" fill="url(#bg)"/>
+  <rect x="72" y="84" width="240" height="16" rx="8" fill="url(#bar)"/>
+  <text x="72" y="188" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700">Skylattice</text>
+  <text x="72" y="258" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="34">Local-first AI agent runtime</text>
+  <text x="72" y="320" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="28">Persistent memory • Governed repo tasks • Git-native self-improvement</text>
+  <rect x="72" y="388" width="1136" height="172" rx="24" fill="#091827" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="112" y="450" fill="#7dd3fc" font-family="Consolas, monospace" font-size="24">PS&gt; python -m skylattice.cli doctor</text>
+  <text x="112" y="494" fill="#cbd5e1" font-family="Consolas, monospace" font-size="22">status: ok</text>
+  <text x="112" y="528" fill="#cbd5e1" font-family="Consolas, monospace" font-size="22">validation: pytest, compileall, doctor, git status</text>
+  <text x="112" y="562" fill="#5eead4" font-family="Consolas, monospace" font-size="22">proof: task inspect, radar inspect, release, llms.txt</text>
+</svg>

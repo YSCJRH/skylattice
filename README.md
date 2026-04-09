@@ -8,6 +8,11 @@ Skylattice is a local-first AI agent runtime for builders who want persistent me
 
 It is an early public preview, but it is already runnable today: you can verify the local runtime with zero credentials, inspect representative task and radar outputs, and see how memory, governance, and Git history fit together before you trust it with real work.
 
+Public surfaces:
+
+- docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
+- GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
+
 | Runtime health | Task and radar proof |
 | --- | --- |
 | ![Doctor snapshot](docs/assets/doctor-snapshot.svg) | ![Task and radar snapshot](docs/assets/task-run-snapshot.svg) |
@@ -104,9 +109,13 @@ If you want to see the shape before using real tokens, compare your output to th
 - [Radar inspect JSON](examples/redacted/radar-run-sample.json): candidates, evidence, experiments, promotions, and memory
 - [Redacted examples guide](examples/redacted/README.md): what can and cannot be committed publicly
 
-## Shareable Overview
+## Public Site
 
-- [What Skylattice Is](docs/overview.md)
+- [Docs and AI-friendly landing pages](https://yscjrh.github.io/skylattice/)
+- [What Is Skylattice?](docs/what-is-skylattice.md)
+- [Quick Start](docs/quickstart.md)
+- [FAQ](docs/faq.md)
+- [Proof](docs/proof.md)
 
 ## Use Cases
 
@@ -168,18 +177,28 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
 ## Documentation Map
 
-- `README.md`: operator-facing overview, quick start, and public proof surfaces
-- `docs/overview.md`: shareable product narrative and positioning
-- `docs/use-cases.md`: who should care and what Skylattice is good for
-- `docs/comparison.md`: category-level comparison and positioning boundaries
-- `docs/architecture.md`: runtime modules and data flow
-- `docs/governance.md`: approval model, budgets, freeze mode, and safety gates
-- `docs/memory-model.md`: memory layers, write triggers, and rollback rules
-- `docs/technology-radar.md`: radar workflow, scoring, promotion gates, and rollback
-- `docs/github-workflow.md`: GitHub audit, CI, and collaboration behavior
-- `docs/releases/v0.2.0-public-preview.md`: first public preview release notes
-- `docs/roadmap.md`: staged delivery plan
-- `docs/adrs/`: architecture decision records
+- README.md: operator-facing overview, quick start, and public proof surfaces
+- mkdocs.yml: GitHub Pages configuration for the public distribution layer
+- docs/index.md: canonical landing page for search engines and AI answer systems
+- docs/what-is-skylattice.md: direct-answer overview page
+- docs/quickstart.md: canonical no-credential and token-enabled quick start
+- docs/faq.md: query-aligned public FAQ
+- docs/proof.md: proof surfaces, demo, and sample outputs
+- docs/overview.md: product narrative and positioning
+- docs/use-cases.md: who should care and what Skylattice is good for
+- docs/comparison.md: category-level comparison and positioning boundaries
+- docs/architecture.md: runtime modules and data flow
+- docs/governance.md: approval model, budgets, freeze mode, and safety gates
+- docs/memory-model.md: memory layers, write triggers, and rollback rules
+- docs/technology-radar.md: radar workflow, scoring, promotion gates, and rollback
+- docs/github-workflow.md: GitHub audit, CI, Pages, and collaboration behavior
+- docs/releases/v0.2.0-public-preview.md: tracked GitHub release notes source
+- docs/releases/v0-2-0.md: canonical public release page for the Pages site
+- docs/ai-distribution-ops.md: manual checklist for homepage, social preview, sitemap, and search-console alignment
+- docs/ai-search-benchmark.md: benchmark prompts for AI-search visibility tracking
+- docs/roadmap.md: staged delivery plan
+- docs/adrs/: architecture decision records
+- CITATION.cff: repository citation metadata for GitHub and downstream citation tools
 
 ## Repository Layout
 
@@ -210,15 +229,18 @@ Local-only surface:
 - `python -m compileall src/skylattice`
 - `python -m skylattice.cli doctor`
 - `python tools/run_validation_suite.py`
+- `python -m mkdocs build --strict`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`
 - confirm the GitHub repository description and topics still match the current public positioning
+- confirm the GitHub `homepageUrl` points to the Pages site
+- confirm the repository social preview still uses the custom public asset
+- confirm `robots.txt`, `sitemap.xml`, `llms.txt`, and `llms-full.txt` are present in the built site
 - keep Issues enabled
 - keep Discussions disabled initially
 - keep Wiki disabled initially
 
 ## Development Conventions
-
 - prefer branch names like `codex/<topic>`
 - prefer commit prefixes like `docs:`, `arch:`, `kernel:`, `memory:`, `gov:`, `radar:`, `eval:`
 - create a task brief under `docs/tasks/` before non-trivial work
@@ -227,5 +249,8 @@ Local-only surface:
 
 ## Project Home
 
+- Pages site: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - repository: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
-- role: remote collaboration and audit surface, not the sole memory store
+- role: GitHub remains the collaboration and audit surface, not the sole memory store
+
+

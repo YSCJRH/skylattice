@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {% set page_title = config.site_name %}
+  {% if page and page.title and page.title != config.site_name %}
+    {% set page_title = page.title ~ " | " ~ config.site_name %}
+  {% endif %}
+  <meta property="og:title" content="{{ page_title | e }}">
+  <meta name="twitter:title" content="{{ page_title | e }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {% if page and page.meta and page.meta.description %}
+  <meta name="description" content="{{ page.meta.description | e }}">
+  <meta property="og:description" content="{{ page.meta.description | e }}">
+  <meta name="twitter:description" content="{{ page.meta.description | e }}">
+  {% endif %}
+  {% if page and page.canonical_url %}
+  <link rel="canonical" href="{{ page.canonical_url }}">
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  {% endif %}
+  {% if config.extra and config.extra.social_image and config.site_url %}
+  <meta property="og:image" content="{{ config.site_url }}{{ config.extra.social_image }}">
+  <meta name="twitter:image" content="{{ config.site_url }}{{ config.extra.social_image }}">
+  {% endif %}
+  {% if page and page.meta and page.meta.robots %}
+  <meta name="robots" content="{{ page.meta.robots | e }}">
+  {% endif %}
+  {% if page and page.meta and page.meta.alternates %}
+    {% for alternate in page.meta.alternates %}
+  <link rel="alternate" hreflang="{{ alternate.lang | e }}" href="{{ alternate.href | e }}">
+    {% endfor %}
+  {% endif %}
+  {% if page and page.meta and page.meta.jsonld %}
+  <script type="application/ld+json">{{ page.meta.jsonld | safe }}</script>
+  {% endif %}
+{% endblock %}
