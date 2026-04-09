@@ -6,12 +6,13 @@
 
 Skylattice is a local-first AI agent runtime for builders who want persistent memory, governed repo tasks, and Git-native self-improvement without hidden autonomy.
 
-It is an early public preview, but it is already runnable today: you can verify the local runtime with zero credentials, inspect representative task and radar outputs, and see how memory, governance, and Git history fit together before you trust it with real work.
+It is still early, but it now ships a stable non-pre-release public baseline: you can verify the local runtime with zero credentials, inspect representative task and radar outputs, and see how memory, governance, and Git history fit together before you trust it with real work.
 
 Public surfaces:
 
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
+- latest stable release: [v0.2.1 Stable](docs/releases/v0-2-1.md)
 
 | Runtime health | Task and radar proof |
 | --- | --- |
@@ -157,7 +158,7 @@ If you read the repo and hit a confusing point before or after cloning, that is 
 
 ## Project Status
 
-Status: early public preview.
+Status: early-stage runtime with a stable non-pre-release public baseline.
 
 Good fit today:
 
@@ -171,7 +172,8 @@ Not a fit yet:
 - users who want zero-config autonomous agents
 - workflows that require AST refactors, arbitrary shell automation, or hands-off production GitHub operations
 
-Release notes: [docs/releases/v0.2.0-public-preview.md](docs/releases/v0.2.0-public-preview.md)  
+Release notes: [docs/releases/v0.2.1-stable.md](docs/releases/v0.2.1-stable.md)  
+Latest stable release: [docs/releases/v0-2-1.md](docs/releases/v0-2-1.md)  
 Changelog: [CHANGELOG.md](CHANGELOG.md)  
 Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
@@ -192,10 +194,14 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/memory-model.md: memory layers, write triggers, and rollback rules
 - docs/technology-radar.md: radar workflow, scoring, promotion gates, and rollback
 - docs/github-workflow.md: GitHub audit, CI, Pages, and collaboration behavior
-- docs/releases/v0.2.0-public-preview.md: tracked GitHub release notes source
-- docs/releases/v0-2-0.md: canonical public release page for the Pages site
-- docs/ai-distribution-ops.md: manual checklist for homepage, social preview, sitemap, and search-console alignment
-- docs/ai-search-benchmark.md: benchmark prompts for AI-search visibility tracking
+- docs/releases/v0.2.1-stable.md: tracked GitHub release notes source for the stable cut
+- docs/releases/v0-2-1.md: canonical stable release page for the Pages site
+- docs/releases/v0.2.0-public-preview.md: historical preview release notes source
+- docs/releases/v0-2-0.md: historical preview release page
+- docs/ai-distribution-ops.md: weekly discoverability loop plus homepage, social preview, sitemap, and search-console alignment
+- docs/ai-search-benchmark.md: isolated-agent query clusters and scorecard for weekly discoverability reviews
+- docs/outreach/: launch drafts, comparison copy, community posts, and distribution targets
+- evals/ai-search/: tracked discoverability baselines and summary templates
 - docs/roadmap.md: staged delivery plan
 - docs/adrs/: architecture decision records
 - CITATION.cff: repository citation metadata for GitHub and downstream citation tools

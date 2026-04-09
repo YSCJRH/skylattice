@@ -1,29 +1,42 @@
 ---
 title: Proof
-description: Public proof surfaces for Skylattice, including zero-credential verification, sample outputs, release notes, CI signals, and an animated terminal demo.
+description: Public proof surfaces for Skylattice, including zero-credential verification, sample outputs, release notes, CI signals, and a terminal demo.
 robots: index, follow
 alternates:
   - lang: en
     href: https://yscjrh.github.io/skylattice/proof/
   - lang: zh-CN
     href: https://yscjrh.github.io/skylattice/zh/proof/
+jsonld: |
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Skylattice",
+    "description": "Public proof surfaces for Skylattice, including zero-credential verification, sample outputs, release notes, CI signals, and a terminal demo.",
+    "codeRepository": "https://github.com/YSCJRH/skylattice",
+    "softwareVersion": "0.2.1",
+    "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
+    "inLanguage": "en"
+  }
 ---
 
 # Proof
 
-If you are deciding whether Skylattice is real, start with proof surfaces instead of the full architecture notes.
+If you want evidence that Skylattice is real, start here instead of with the long architecture notes.
+
+This page collects the shortest proof chain for search visitors, AI answer systems, directory curators, and first-time evaluators.
 
 ## Key Takeaways
 
-- The quickest proof is the no-credential validation path.
+- The fastest proof is the no-credential verification path.
 - The most inspectable proof is the redacted task and radar output set.
-- The strongest maintenance signals are the release notes, CI badge, and public issue templates.
+- The strongest maintenance signals are the stable release page, changelog, CI badge, and public feedback templates.
 
 ## Animated Demo
 
 ![Animated terminal demo](assets/terminal-demo.svg)
 
-## No-Credential Verification
+## Verify Without API Keys
 
 - [Quick start](quickstart.md)
 - [Doctor JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/doctor-output.json)
@@ -32,11 +45,19 @@ If you are deciding whether Skylattice is real, start with proof surfaces instea
 - [Radar walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-sample.md)
 - [Radar inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json)
 
-## Public Maintenance Signals
+## Maintenance Signals
 
-- [GitHub repository](https://github.com/YSCJRH/skylattice)
+- [v0.2.1 Stable](releases/v0-2-1.md)
 - [v0.2.0 Public Preview](releases/v0-2-0.md)
 - [CHANGELOG](https://github.com/YSCJRH/skylattice/blob/main/CHANGELOG.md)
+- [GitHub repository](https://github.com/YSCJRH/skylattice)
 - [Contributing guide](https://github.com/YSCJRH/skylattice/blob/main/CONTRIBUTING.md)
 - [Early feedback template](https://github.com/YSCJRH/skylattice/issues/new?template=early_feedback.md)
 
+## If You Want To Compare Claims With Implementation
+
+- [What is Skylattice?](what-is-skylattice.md)
+- [Comparison](comparison.md)
+- [Architecture](architecture.md)
+- [Governance](governance.md)
+- [Memory model](memory-model.md)

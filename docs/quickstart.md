@@ -7,21 +7,32 @@ alternates:
     href: https://yscjrh.github.io/skylattice/quickstart/
   - lang: zh-CN
     href: https://yscjrh.github.io/skylattice/zh/quickstart/
+jsonld: |
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Skylattice",
+    "description": "Verify Skylattice without API keys, then inspect proof artifacts and token-enabled workflows.",
+    "codeRepository": "https://github.com/YSCJRH/skylattice",
+    "softwareVersion": "0.2.1",
+    "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
+    "inLanguage": "en"
+  }
 ---
 
 # Quick Start
 
-You can verify that Skylattice is real without API keys.
+If you want to verify Skylattice without API keys, this is the page to use.
 
-The no-credential path proves the runtime boots, the validation baseline is tracked, and the repository contains representative sample outputs before you trust it with real tokens.
+The zero-credential path proves the runtime boots, the tracked validation commands are real, and the repository contains public-safe proof artifacts before you trust it with real tokens.
 
 ## Key Takeaways
 
 - The fastest success path is `install -> doctor -> pytest -> validation suite`.
-- You do not need `OPENAI_API_KEY` or `GITHUB_TOKEN` to verify the public preview.
-- Token-enabled runs are available after you compare your results to the redacted samples.
+- You do not need `OPENAI_API_KEY` or `GITHUB_TOKEN` to verify the stable public release.
+- The expected outputs are documented, so you can compare your local results with public-safe samples.
 
-## 5-Minute No-Credential Path
+## 5-Minute No-Credential Verification
 
 1. Install the project.
 
@@ -37,21 +48,36 @@ python -m skylattice.cli doctor
 
 Expected: a JSON report like [doctor-output.json](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/doctor-output.json) showing `status: ok`, the local SQLite path, and the tracked validation commands.
 
-3. Run smoke tests and the public validation suite.
+3. Run smoke tests.
 
 ```bash
 python -m pytest -q
+```
+
+Expected: the repository smoke tests pass without requiring cloud credentials.
+
+4. Run the public validation suite.
+
+```bash
 python tools/run_validation_suite.py
 ```
 
-Expected: passing tests and the Windows-first baseline from `configs/task/validation.yaml`.
+Expected: the Windows-first validation baseline from `configs/task/validation.yaml` passes and reports the same tracked commands that CI uses.
 
-4. Inspect the public-safe sample outputs.
+5. Inspect public-safe sample outputs.
 
 - [Task walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.md)
 - [Task inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.json)
 - [Radar walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-sample.md)
 - [Radar inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json)
+
+## Success Criteria
+
+You have a believable first-run result when:
+
+- `doctor` reports `status: ok`
+- the smoke tests and validation suite pass locally
+- the sample JSON structures look consistent with your local outputs
 
 ## Token-Enabled Path
 
@@ -72,7 +98,6 @@ skylattice radar scan --window weekly --limit 20
 
 ## Read Next
 
-- [Proof and sample outputs](proof.md)
+- [Proof](proof.md)
 - [FAQ](faq.md)
-- [v0.2.0 Public Preview](releases/v0-2-0.md)
-
+- [v0.2.1 Stable](releases/v0-2-1.md)

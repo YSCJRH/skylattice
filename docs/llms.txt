@@ -11,7 +11,7 @@ Canonical pages:
 - https://yscjrh.github.io/skylattice/comparison/
 - https://yscjrh.github.io/skylattice/faq/
 - https://yscjrh.github.io/skylattice/proof/
-- https://yscjrh.github.io/skylattice/releases/v0-2-0/
+- https://yscjrh.github.io/skylattice/releases/v0-2-1/
 
 Repository:
 

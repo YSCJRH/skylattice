@@ -44,6 +44,7 @@ nav:
   - FAQ: faq.md
   - Proof: proof.md
   - Release:
+      - v0.2.1 Stable: releases/v0-2-1.md
       - v0.2.0 Public Preview: releases/v0-2-0.md
   - System Docs:
       - Overview: overview.md
@@ -56,6 +57,12 @@ nav:
   - Public Ops:
       - AI Distribution Ops: ai-distribution-ops.md
       - AI Search Benchmark: ai-search-benchmark.md
+  - Outreach Kit:
+      - English Launch Draft: outreach/launch-en.md
+      - Chinese Launch Draft: outreach/launch-zh.md
+      - Category Post Draft: outreach/category-post.md
+      - Distribution Targets: outreach/distribution-targets.md
+      - Community Post Drafts: outreach/community-posts.md
   - Chinese:
       - Home (ZH): zh/index.md
       - What Is Skylattice? (ZH): zh/what-is-skylattice.md
@@ -64,7 +71,8 @@ nav:
       - Comparison (ZH): zh/comparison.md
       - FAQ (ZH): zh/faq.md
       - Proof (ZH): zh/proof.md
-      - Release (ZH): zh/releases/v0-2-0.md
+      - Release (ZH): zh/releases/v0-2-1.md
+      - Public Preview (ZH): zh/releases/v0-2-0.md
 
 extra:
   social_image: assets/social-preview.png

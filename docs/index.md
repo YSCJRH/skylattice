@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.2.0",
+    "softwareVersion": "0.2.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -22,15 +22,15 @@ jsonld: |
 
 # Skylattice
 
-Skylattice is a local-first AI agent runtime for builders who want persistent memory, governed repo tasks, and Git-native self-improvement without hidden autonomy.
+Skylattice is a local-first AI agent runtime for builders who want persistent memory, governed repo tasks, and Git-native reviewability instead of hidden autonomy.
 
-It is useful both as a runnable project and as a compact reference for a hard design problem: how to build an agent that keeps memory durable, keeps behavior reviewable, and keeps self-improvement inside explicit governance boundaries.
+If you are looking for an auditable agent framework rather than a chat wrapper, Skylattice gives you a compact runtime with local state, clear approval boundaries, and a stable public release surface.
 
 ## Key Takeaways
 
-- Skylattice is not a chat wrapper. It is a Git-native runtime with memory, task execution, ledgers, and bounded promotion paths.
-- You can verify the project without API keys by running `doctor`, the smoke tests, and the tracked validation suite.
-- The fastest public proofs are the redacted samples, release notes, and the no-credential quick start.
+- Skylattice is a persistent memory agent runtime, not a hosted assistant or generic coding bot.
+- You can verify the project without API keys, then inspect proof artifacts and release notes before trusting it with real credentials.
+- The current stable public page is [v0.2.1 Stable](releases/v0-2-1.md); [v0.2.0 Public Preview](releases/v0-2-0.md) remains the historical launch baseline.
 
 ## Start Here
 
@@ -39,8 +39,8 @@ It is useful both as a runnable project and as a compact reference for a hard de
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
 - [Proof and sample outputs](proof.md)
-- [v0.2.0 Public Preview](releases/v0-2-0.md)
+- [v0.2.1 Stable](releases/v0-2-1.md)
 
 ## Why This Page Exists
 
-This page is the canonical public summary for search engines and AI answer systems. If you are deciding whether Skylattice is worth citing, starring, or trying, start with the pages above rather than the full architecture docs.
+This is the canonical landing page for search engines, AI answer systems, directory submissions, and cold visitors. It gives the shortest truthful answer to four questions: what Skylattice is, what it already does, how to verify it without tokens, and why it is worth following.

@@ -17,7 +17,7 @@ jsonld: |
         "name": "What is Skylattice used for?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Skylattice is used as a local-first AI agent runtime and as a reference implementation for durable memory, governed repo tasks, and Git-native self-improvement."
+          "text": "Skylattice is used as a local-first AI agent runtime and as a compact reference implementation for durable memory, governed repo tasks, and Git-native self-improvement."
         }
       },
       {
@@ -30,10 +30,26 @@ jsonld: |
       },
       {
         "@type": "Question",
-        "name": "Can I verify Skylattice without API keys?",
+        "name": "How do I verify Skylattice without API keys?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. You can install the project, run skylattice doctor, run pytest, run the tracked validation suite, and inspect redacted sample outputs without adding credentials."
+          "text": "Install the project, run skylattice doctor, run pytest, run the tracked validation suite, and compare your results with the public-safe sample outputs."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Skylattice store memory in Git?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Private runtime memory stays under .local. Git history stores tracked docs, configs, prompts, ADRs, and other reviewable system behavior."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does Git-native governance mean here?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It means meaningful edits, validation policy, release notes, and bounded promotion paths are visible in tracked files and reviewable Git history instead of being hidden inside cloud defaults."
         }
       }
     ]
@@ -42,7 +58,7 @@ jsonld: |
 
 # FAQ
 
-Skylattice is easiest to understand through concrete questions.
+Skylattice is easiest to understand through direct questions.
 
 ## What is Skylattice used for?
 
@@ -50,20 +66,24 @@ Skylattice is used for two things today: running a local-first agent runtime wit
 
 ## Is Skylattice a generic coding agent framework?
 
-No. Skylattice is intentionally narrower than broad agent frameworks. It trades breadth for explicit approval tiers, tracked validation policy, and Git-backed reviewability.
+No. Skylattice is intentionally narrower than broad agent frameworks. It trades breadth for explicit approval tiers, tracked validation policy, Git-backed reviewability, and rollbackable change paths.
 
-## Can I verify Skylattice without API keys?
+## How do I verify Skylattice without API keys?
 
-Yes. Follow the [quick start](quickstart.md), run `doctor`, run the tests, and inspect the redacted outputs under `examples/redacted/`.
+Follow the [quick start](quickstart.md), run `doctor`, run the smoke tests, run the validation suite, and compare your outputs with the public-safe samples under `examples/redacted/`.
 
 ## Does Skylattice store memory in Git?
 
-No. Private runtime memory stays under `.local/`. Tracked Git history stores docs, prompts, configs, ledgers, and other reviewable system behavior.
+No. Private runtime memory stays under `.local/`. Tracked Git history stores docs, configs, prompts, release notes, and other reviewable system behavior.
+
+## What does Git-native governance mean here?
+
+It means meaningful edits, validation rules, and promotion paths stay visible in tracked files and Git history. The project is designed so operators can review what changed and why.
 
 ## Is Skylattice a hosted product?
 
-No. It is an early public preview of a local-first runtime and reference repo, not a hosted assistant or managed platform.
+No. It is a local-first runtime and reference repository, not a managed assistant service.
 
-## Where should I look for proof?
+## Where should I look for proof first?
 
-Start with [proof.md](proof.md), the [release page](releases/v0-2-0.md), and the sample outputs linked from the [quick start](quickstart.md).
+Start with [proof.md](proof.md), the [quick start](quickstart.md), and the [v0.2.1 Stable release page](releases/v0-2-1.md).

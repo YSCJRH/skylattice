@@ -1,6 +1,6 @@
 # What Skylattice Is
 
-For the canonical search-friendly overview page, start with [what-is-skylattice.md](what-is-skylattice.md).
+For the canonical search-friendly overview page, start with [what-is-skylattice.md](what-is-skylattice.md). For the current stable release signal, start with [releases/v0-2-1.md](releases/v0-2-1.md).
 
 Skylattice is a local-first AI agent runtime for people who want an agent they can inspect like software.
 
@@ -73,8 +73,7 @@ It is not yet a strong fit for:
 ## Where To Go Next
 
 - start with [index.md](index.md) for the canonical landing page and [quickstart.md](quickstart.md) for the proof-first walkthrough
-- read [docs/use-cases.md](use-cases.md) for concrete user-facing scenarios
-- read [docs/comparison.md](comparison.md) to understand what Skylattice is and is not competing with
-- read [docs/architecture.md](architecture.md) if you want the runtime map
+- read [use-cases.md](use-cases.md) for concrete user-facing scenarios
+- read [comparison.md](comparison.md) to understand what Skylattice is and is not competing with
+- read [architecture.md](architecture.md) if you want the runtime map
 - open a GitHub issue with early feedback on the public repository
-

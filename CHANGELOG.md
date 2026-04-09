@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.2.1 - Stable Discoverability Baseline
+
+Date: 2026-04-09
+
+### Added
+
+- a first non-pre-release stable release surface for Skylattice across the package metadata, Pages release page, and release notes source
+- answer-first English landing pages for `what-is`, `quickstart`, `comparison`, `faq`, and `proof`
+- clean UTF-8 Chinese mirror pages for the high-value public surfaces under `docs/zh/`
+- outreach assets for launch posts, comparison posts, distribution targets, and community post drafts
+- tracked AI-search review summaries under `evals/ai-search/`
+
+### Changed
+
+- the public release story now centers on `v0.2.1 Stable` instead of only the `v0.2.0` public preview
+- `mkdocs.yml`, `llms.txt`, `llms-full.txt`, and `sitemap.xml` now point to the stable release and expanded discoverability assets
+- `docs/ai-distribution-ops.md` and `docs/ai-search-benchmark.md` now document a weekly four-agent review loop instead of a single-thread benchmark posture
+- README and overview surfaces now describe Skylattice as an early-stage runtime with a stable public baseline
+
+### Notes
+
+- `v0.2.0 Public Preview` remains part of the public history but is no longer the primary release signal
+- remote follow-up still includes publishing the stable GitHub release, confirming the custom social preview image, and completing Search Console / Bing verification
+
 ## v0.2.0 - Public Preview
 
 Date: 2026-04-09

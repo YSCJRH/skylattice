@@ -1,32 +1,55 @@
 ---
 title: What Is Skylattice?
-description: Skylattice is a local-first AI agent runtime that combines durable memory, governed repo tasks, and Git-native self-improvement.
+description: Skylattice is a local-first AI agent runtime and auditable agent framework for durable memory, governed repo tasks, and Git-native reviewability.
 robots: index, follow
 alternates:
   - lang: en
     href: https://yscjrh.github.io/skylattice/what-is-skylattice/
   - lang: zh-CN
     href: https://yscjrh.github.io/skylattice/zh/what-is-skylattice/
+jsonld: |
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "Skylattice",
+    "description": "Local-first AI agent runtime and auditable agent framework for durable memory, governed repo tasks, and Git-native reviewability.",
+    "codeRepository": "https://github.com/YSCJRH/skylattice",
+    "softwareVersion": "0.2.1",
+    "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
+    "inLanguage": "en"
+  }
 ---
 
 # What Is Skylattice?
 
-Skylattice is a local-first AI agent runtime for people who want an agent they can inspect like software.
+Skylattice is a local-first AI agent runtime for people who want a persistent-memory agent they can inspect like software.
 
-Instead of hiding state in prompts or cloud services, Skylattice keeps private runtime memory under `.local/`, keeps durable system behavior in tracked files, and routes meaningful changes through reviewable Git history.
+It combines private local memory, governed repo tasks, and Git-native review surfaces so the system stays auditable instead of drifting behind hidden prompts or opaque cloud state.
 
 ## Key Takeaways
 
-- It is optimized for auditability, reversibility, and explicit governance instead of broad automation breadth.
-- It already demonstrates governed repo tasks and a bounded technology-radar workflow.
-- It is a good fit if you care about durable memory, clear approval boundaries, and Git-backed review surfaces.
+- Skylattice is an auditable agent framework, not a chat wrapper or a broad coding-bot platform.
+- It is strongest when you care about governed repo tasks, rollbackable changes, and durable local memory.
+- You can verify the runtime without API keys, then inspect stable release notes and public-safe sample outputs.
 
-## What It Already Does
+## What Makes It Different
 
-- stores runtime state in local SQLite-backed storage
-- exposes `doctor`, `task ...`, and `radar ...` CLI paths
-- records run inspection data, ledger events, and materialized edit payloads
-- uses tracked validation commands that align CI and runtime policy
+- local runtime state lives under `.local/` instead of inside tracked Git history
+- durable behavior lives in docs, configs, prompts, ADRs, and tests that operators can review
+- repo and external writes stay behind approval gates and tracked validation commands
+- bounded self-improvement runs through Git-backed radar promotions rather than silent prompt drift
+
+## Good Fit Today
+
+- builders exploring local-first AI agent infrastructure
+- contributors who want governed repo-task automation with ledger traces and inspectable edit payloads
+- teams comparing durable memory patterns, approval boundaries, and Git-native rollback strategies
+
+## Not The Best Fit Yet
+
+- users expecting a hosted assistant product
+- teams needing broad integrations before they care about auditability
+- workflows that require AST-aware refactors or unrestricted shell automation
 
 ## Read Next
 
@@ -34,3 +57,4 @@ Instead of hiding state in prompts or cloud services, Skylattice keeps private r
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
 - [Proof](proof.md)
+- [v0.2.1 Stable](releases/v0-2-1.md)
