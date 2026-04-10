@@ -200,8 +200,8 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/releases/v0-2-0.md: historical preview release page
 - docs/ai-distribution-ops.md: weekly discoverability loop plus homepage, social preview, sitemap, and search-console alignment
 - docs/ai-search-benchmark.md: isolated-agent query clusters and scorecard for weekly discoverability reviews
-- docs/outreach/: launch drafts, comparison copy, community posts, and distribution targets
-- evals/ai-search/: tracked discoverability baselines and summary templates
+- docs/outreach/: launch posts, directory blurbs, posting runbook, community posts, and distribution targets
+- evals/ai-search/: tracked discoverability baselines, post-release reviews, and summary templates
 - docs/roadmap.md: staged delivery plan
 - docs/adrs/: architecture decision records
 - CITATION.cff: repository citation metadata for GitHub and downstream citation tools

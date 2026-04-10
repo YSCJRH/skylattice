@@ -10,13 +10,23 @@ The goal is not to spray links everywhere. The goal is to earn a small number of
 
 ## Priority Targets
 
-| Surface | Audience | Format | Primary backlink | Proof asset | Status |
-| --- | --- | --- | --- | --- | --- |
-| Hacker News / Show HN | English technical builders | launch post | homepage + stable release | proof page | planned |
-| Reddit (`r/LocalLLaMA`, `r/opensource`, or a better-fit community) | AI infra and OSS readers | short launch + comments | what-is + proof | stable release | planned |
-| Awesome lists / curated directories that genuinely fit local-first agents or agent infrastructure | long-tail search readers | short project blurb | homepage + comparison | stable release | planned |
-| Chinese technical community post (`V2EX`, ??, ???, or a better-fit surface) | Chinese developers | launch post | Chinese homepage + quick start | Chinese stable release | planned |
-| Comparison or category article on a personal blog / publication | search and citation surfaces | long-form post | comparison + what-is | proof page | planned |
+| Surface | Audience | Format | Primary backlink | Proof asset | Suggested angle | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| Hacker News / Show HN | English technical builders | launch post | homepage + stable release | proof page | local-first runtime + Git-native reviewability | planned |
+| Reddit (`r/LocalLLaMA`, `r/opensource`, or a better-fit community) | AI infra and OSS readers | short launch + comments | what-is + proof | stable release | auditable agent behavior vs. broader frameworks | planned |
+| Awesome lists / curated directories that genuinely fit local-first agents or agent infrastructure | long-tail search readers | short project blurb | homepage + comparison | stable release | open-source local-first AI agent runtime | planned |
+| Chinese technical community post (`V2EX`, `??`, `???`, or a better-fit surface) | Chinese developers | launch post | Chinese homepage + quick start | Chinese stable release | ???? + ?????? | planned |
+| Comparison or category article on a personal blog / publication | search and citation surfaces | long-form post | comparison + what-is | proof page | why it is not a generic agent framework | planned |
+
+## Recording Fields
+
+For every real submission, record:
+
+- date
+- URL
+- which canonical link target was used
+- whether the positioning remained accurate
+- whether the post generated follow-up questions worth documenting
 
 ## Link Targets To Reuse
 
