@@ -16,7 +16,7 @@ Keep these public pages aligned before changing outreach copy or remote metadata
 - what-is page: `https://yscjrh.github.io/skylattice/what-is-skylattice/`
 - quick start: `https://yscjrh.github.io/skylattice/quickstart/`
 - proof page: `https://yscjrh.github.io/skylattice/proof/`
-- stable release page: `https://yscjrh.github.io/skylattice/releases/v0-2-1/`
+- stable release page: `https://yscjrh.github.io/skylattice/releases/v0-2-2/`
 
 ## Weekly Four-Agent Review Loop
 
@@ -75,8 +75,9 @@ Execution files live under `docs/outreach/`. Use `authority-program.md` as the 3
 
 ## Stable Release Follow-Up
 
-- keep `v0.2.1` as the canonical stable release page and GitHub release target
+- keep `v0.2.2` as the canonical stable release page and GitHub release target
 - keep `v0.2.0` only as historical preview context
+- keep `v0.2.1` as the first stable baseline in the public release history
 - keep the Pages release page synced with the tracked GitHub release notes source
 - refresh the weekly discoverability summary after any meaningful release, landing-page, or metadata change
 - use `evals/ai-search/2026-04-10-post-release-review.md` as the first post-release checkpoint before the Day 14 review

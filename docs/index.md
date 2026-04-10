@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.2.1",
+    "softwareVersion": "0.2.2",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -30,7 +30,7 @@ If you are looking for an auditable agent framework rather than a chat wrapper, 
 
 - Skylattice is a persistent memory agent runtime, not a hosted assistant or generic coding bot.
 - You can verify the project without API keys, then inspect proof artifacts and release notes before trusting it with real credentials.
-- The current stable public page is [v0.2.1 Stable](releases/v0-2-1.md); [v0.2.0 Public Preview](releases/v0-2-0.md) remains the historical launch baseline.
+- The current stable public page is [v0.2.2 Stable](releases/v0-2-2.md); [v0.2.1 Stable](releases/v0-2-1.md) remains the first stable baseline and [v0.2.0 Public Preview](releases/v0-2-0.md) remains the historical launch baseline.
 
 ## Start Here
 
@@ -39,7 +39,7 @@ If you are looking for an auditable agent framework rather than a chat wrapper, 
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
 - [Proof and sample outputs](proof.md)
-- [v0.2.1 Stable](releases/v0-2-1.md)
+- [v0.2.2 Stable](releases/v0-2-2.md)
 
 ## Why This Page Exists
 

@@ -33,7 +33,7 @@ CHINESE_EXPECTATIONS = {
     "docs/zh/faq.md": "Skylattice ??????",
     "docs/zh/proof.md": "??????? Skylattice ???????",
     "docs/zh/use-cases.md": "????",
-    "docs/zh/releases/v0-2-1.md": "? pre-release ????",
+    "docs/zh/releases/v0-2-2.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
 }
 def _tracked_files() -> list[str]:
     completed = subprocess.run(["git", "ls-files"], cwd=REPO_ROOT, capture_output=True, text=True, check=True)
@@ -95,6 +95,8 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/outreach/category-post.md",
         "docs/outreach/distribution-targets.md",
         "docs/outreach/community-posts.md",
+        "docs/releases/v0.2.2-stable.md",
+        "docs/releases/v0-2-2.md",
         "docs/releases/v0.2.1-stable.md",
         "docs/releases/v0-2-1.md",
         "docs/releases/v0.2.0-public-preview.md",
@@ -116,6 +118,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/zh/comparison.md",
         "docs/zh/faq.md",
         "docs/zh/proof.md",
+        "docs/zh/releases/v0-2-2.md",
         "docs/zh/releases/v0-2-1.md",
         "docs/zh/releases/v0-2-0.md",
         "docs/tasks/discoverability-optimization-30-day.md",
@@ -146,7 +149,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "homepageUrl",
     ]:
         assert phrase in readme
-    assert 'version = "0.2.1"' in pyproject
+    assert 'version = "0.2.2"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject
     assert 'Documentation = "https://yscjrh.github.io/skylattice/"' in pyproject
@@ -160,7 +163,7 @@ def test_public_site_metadata_is_tracked() -> None:
     assert mkdocs_config["repo_url"] == "https://github.com/YSCJRH/skylattice"
     assert mkdocs_config["extra"]["social_image"] == "assets/social-preview.png"
     assert citation["title"] == "Skylattice"
-    assert citation["version"] == "0.2.1"
+    assert citation["version"] == "0.2.2"
     assert citation["url"] == "https://yscjrh.github.io/skylattice/"
     assert "mkdocs>=1.6,<2.0" in pyproject
     assert "mkdocs-material>=9.6,<10.0" in pyproject
@@ -175,8 +178,8 @@ def test_ai_discovery_files_allow_public_crawlers() -> None:
     assert "User-agent: GPTBot" in robots
     assert "Allow: /" in robots
     assert "Sitemap: https://yscjrh.github.io/skylattice/sitemap.xml" in robots
-    assert "https://yscjrh.github.io/skylattice/releases/v0-2-1/" in llms
-    assert "https://yscjrh.github.io/skylattice/zh/releases/v0-2-1/" in llms_full
+    assert "https://yscjrh.github.io/skylattice/releases/v0-2-2/" in llms
+    assert "https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/" in llms_full
     assert "https://github.com/YSCJRH/skylattice" in llms
 
 
@@ -190,13 +193,14 @@ def test_sitemap_declares_core_pages_and_language_alternates() -> None:
         "https://yscjrh.github.io/skylattice/comparison/",
         "https://yscjrh.github.io/skylattice/faq/",
         "https://yscjrh.github.io/skylattice/proof/",
+        "https://yscjrh.github.io/skylattice/releases/v0-2-2/",
         "https://yscjrh.github.io/skylattice/releases/v0-2-1/",
         "https://yscjrh.github.io/skylattice/releases/v0-2-0/",
     ]:
         assert f"<loc>{loc}</loc>" in sitemap
     assert 'hreflang="zh-CN"' in sitemap
     assert 'https://yscjrh.github.io/skylattice/zh/' in sitemap
-    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-2-1/' in sitemap
+    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/' in sitemap
 
 
 def test_ai_distribution_docs_cover_weekly_review_loop_and_manual_ops() -> None:
@@ -224,7 +228,7 @@ def test_release_story_points_at_stable_surface() -> None:
             "README.md",
         ]
     )
-    assert "v0.2.1 Stable" in combined
+    assert "v0.2.2 Stable" in combined
     assert "stable non-pre-release" in combined or "stable release" in combined
 
 
@@ -233,8 +237,11 @@ def test_post_release_docs_do_not_keep_stale_release_todo_text() -> None:
         _read_text(path)
         for path in [
             "README.md",
-            "docs/releases/v0.2.1-stable.md",
+            "docs/releases/v0.2.2-stable.md",
+        "docs/releases/v0-2-2.md",
+        "docs/releases/v0.2.1-stable.md",
             "docs/releases/v0.2.0-public-preview.md",
+            "docs/releases/v0-2-2.md",
             "docs/releases/v0-2-1.md",
             "docs/releases/v0-2-0.md",
             "docs/overview.md",
