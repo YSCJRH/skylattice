@@ -34,10 +34,10 @@ For every real submission, record:
 - `https://yscjrh.github.io/skylattice/what-is-skylattice/`
 - `https://yscjrh.github.io/skylattice/quickstart/`
 - `https://yscjrh.github.io/skylattice/proof/`
-- `https://yscjrh.github.io/skylattice/releases/v0-2-1/`
+- `https://yscjrh.github.io/skylattice/releases/v0-2-2/`
 - `https://yscjrh.github.io/skylattice/zh/`
 - `https://yscjrh.github.io/skylattice/zh/quickstart/`
-- `https://yscjrh.github.io/skylattice/zh/releases/v0-2-1/`
+- `https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/`
 
 ## Submission Rule
 

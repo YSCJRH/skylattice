@@ -12,7 +12,7 @@ Public surfaces:
 
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
-- latest stable release: [v0.2.1 Stable](docs/releases/v0-2-1.md)
+- latest stable release: [v0.2.2 Stable](docs/releases/v0-2-2.md)
 
 | Runtime health | Task and radar proof |
 | --- | --- |
@@ -158,7 +158,7 @@ If you read the repo and hit a confusing point before or after cloning, that is 
 
 ## Project Status
 
-Status: early-stage runtime with a stable non-pre-release public baseline.
+Status: early-stage runtime with a stable non-pre-release public baseline and a tracked external authority kit.
 
 Good fit today:
 
@@ -172,8 +172,8 @@ Not a fit yet:
 - users who want zero-config autonomous agents
 - workflows that require AST refactors, arbitrary shell automation, or hands-off production GitHub operations
 
-Release notes: [docs/releases/v0.2.1-stable.md](docs/releases/v0.2.1-stable.md)  
-Latest stable release: [docs/releases/v0-2-1.md](docs/releases/v0-2-1.md)  
+Release notes: [docs/releases/v0.2.2-stable.md](docs/releases/v0.2.2-stable.md)  
+Latest stable release: [docs/releases/v0-2-2.md](docs/releases/v0-2-2.md)  
 Changelog: [CHANGELOG.md](CHANGELOG.md)  
 Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
@@ -194,8 +194,10 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/memory-model.md: memory layers, write triggers, and rollback rules
 - docs/technology-radar.md: radar workflow, scoring, promotion gates, and rollback
 - docs/github-workflow.md: GitHub audit, CI, Pages, and collaboration behavior
-- docs/releases/v0.2.1-stable.md: tracked GitHub release notes source for the stable cut
-- docs/releases/v0-2-1.md: canonical stable release page for the Pages site
+- docs/releases/v0.2.2-stable.md: tracked GitHub release notes source for the latest stable cut
+- docs/releases/v0-2-2.md: canonical stable release page for the Pages site
+- docs/releases/v0.2.1-stable.md: tracked GitHub release notes source for the first stable baseline
+- docs/releases/v0-2-1.md: historical stable baseline page
 - docs/releases/v0.2.0-public-preview.md: historical preview release notes source
 - docs/releases/v0-2-0.md: historical preview release page
 - docs/ai-distribution-ops.md: weekly discoverability loop plus homepage, social preview, sitemap, and search-console alignment
