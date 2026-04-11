@@ -108,6 +108,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/assets/doctor-snapshot.svg",
         "docs/assets/task-run-snapshot.svg",
         "docs/assets/runtime-architecture.svg",
+        "docs/assets/cover-hero.svg",
         "docs/assets/social-preview.svg",
         "docs/assets/social-preview.png",
         "docs/assets/terminal-demo.svg",
@@ -138,6 +139,7 @@ def test_public_positioning_surfaces_are_present() -> None:
     pyproject = _read_text("pyproject.toml")
     for phrase in [
         "Why Star Skylattice",
+        "Visual Proof",
         "5-Minute No-Credential Quick Start",
         "Token-Enabled Workflow",
         "Sample Outputs",
@@ -147,6 +149,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "stable non-pre-release public baseline",
         "python -m mkdocs build --strict",
         "homepageUrl",
+        "docs/assets/cover-hero.svg",
     ]:
         assert phrase in readme
     assert 'version = "0.2.2"' in pyproject
