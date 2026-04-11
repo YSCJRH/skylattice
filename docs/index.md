@@ -26,6 +26,8 @@ Skylattice is a local-first AI agent runtime for builders who want persistent me
 
 If you are looking for an auditable agent framework rather than a chat wrapper, Skylattice gives you a compact runtime with local state, clear approval boundaries, and a stable public release surface.
 
+![Skylattice hero](assets/cover-hero.svg)
+
 ## Key Takeaways
 
 - Skylattice is a persistent memory agent runtime, not a hosted assistant or generic coding bot.

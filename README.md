@@ -8,17 +8,13 @@ Skylattice is a local-first AI agent runtime for builders who want persistent me
 
 It is still early, but it now ships a stable non-pre-release public baseline: you can verify the local runtime with zero credentials, inspect representative task and radar outputs, and see how memory, governance, and Git history fit together before you trust it with real work.
 
+![Skylattice hero](docs/assets/cover-hero.svg)
+
 Public surfaces:
 
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
 - latest stable release: [v0.2.2 Stable](docs/releases/v0-2-2.md)
-
-| Runtime health | Task and radar proof |
-| --- | --- |
-| ![Doctor snapshot](docs/assets/doctor-snapshot.svg) | ![Task and radar snapshot](docs/assets/task-run-snapshot.svg) |
-
-![Runtime architecture](docs/assets/runtime-architecture.svg)
 
 ## Why Star Skylattice
 
@@ -35,6 +31,14 @@ Public surfaces:
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
+
+## Visual Proof
+
+| Runtime health | Task and radar proof |
+| --- | --- |
+| ![Doctor snapshot](docs/assets/doctor-snapshot.svg) | ![Task and radar snapshot](docs/assets/task-run-snapshot.svg) |
+
+![Runtime architecture](docs/assets/runtime-architecture.svg)
 
 ## 5-Minute No-Credential Quick Start
 
