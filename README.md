@@ -121,6 +121,7 @@ If you want to see the shape before using real tokens, compare your output to th
 - [Quick Start](docs/quickstart.md)
 - [FAQ](docs/faq.md)
 - [Proof](docs/proof.md)
+- [AI Distribution Ops](docs/ai-distribution-ops.md): includes the local social preview upload automation
 
 ## Use Cases
 

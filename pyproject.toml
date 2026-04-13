@@ -22,6 +22,9 @@ Issues = "https://github.com/YSCJRH/skylattice/issues"
 Changelog = "https://github.com/YSCJRH/skylattice/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
+automation = [
+  "playwright>=1.52,<2.0",
+]
 dev = [
   "pytest>=8,<9",
   "httpx>=0.27,<1.0",
