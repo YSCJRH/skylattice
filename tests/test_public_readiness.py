@@ -74,6 +74,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         ".github/ISSUE_TEMPLATE/early_feedback.md",
         ".github/ISSUE_TEMPLATE/config.yml",
         "tools/run_validation_suite.py",
+        "tools/upload_github_social_preview.py",
         "mkdocs.yml",
         "CITATION.cff",
         "CHANGELOG.md",
@@ -156,6 +157,7 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject
     assert 'Documentation = "https://yscjrh.github.io/skylattice/"' in pyproject
+    assert "playwright>=1.52,<2.0" in pyproject
 
 
 def test_public_site_metadata_is_tracked() -> None:
@@ -210,7 +212,7 @@ def test_ai_distribution_docs_cover_weekly_review_loop_and_manual_ops() -> None:
     ops = _read_text("docs/ai-distribution-ops.md")
     benchmark = _read_text("docs/ai-search-benchmark.md")
     baseline = _read_text("evals/ai-search/2026-04-09-baseline.md")
-    for phrase in ["homepageUrl", "social preview", "Google Search Console", "Bing Webmaster Tools", "Agent A", "Agent B", "Agent C", "Agent D", ".local/discoverability/", "evals/ai-search/"]:
+    for phrase in ["homepageUrl", "social preview", "tools/upload_github_social_preview.py", "Google Search Console", "Bing Webmaster Tools", "Agent A", "Agent B", "Agent C", "Agent D", ".local/discoverability/", "evals/ai-search/"]:
         assert phrase in ops
     for phrase in ["English Query Cluster", "Chinese Query Cluster", "Day 0", "Day 7", "Day 14", "Day 30", "isolated agents", "evals/ai-search/"]:
         assert phrase in benchmark

@@ -40,7 +40,14 @@ Store raw local evidence under `.local/discoverability/`. Store public-safe summ
 ## Remote Settings
 
 - keep GitHub `homepageUrl` set to `https://yscjrh.github.io/skylattice/`
-- upload `docs/assets/social-preview.png` as the repository social preview image
+- upload `docs/assets/social-preview.png` as the repository social preview image with the local automation:
+
+```bash
+python -m pip install -e .[automation]
+python -m playwright install chromium
+python tools/upload_github_social_preview.py --repository YSCJRH/skylattice
+```
+
 - keep the repository description aligned with `README.md`, `pyproject.toml`, and the Pages homepage
 - keep topics aligned with the current positioning surface
 - keep the latest GitHub release non-pre-release unless there is a deliberate preview posture again
