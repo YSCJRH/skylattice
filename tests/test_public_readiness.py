@@ -160,6 +160,21 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert "playwright>=1.52,<2.0" in pyproject
 
 
+def test_runtime_architecture_svg_wraps_long_labels() -> None:
+    svg = _read_text("docs/assets/runtime-architecture.svg")
+    for unwrapped_phrase in [
+        "discovery, experiment, promotion",
+        "approval tiers, freeze mode, policy gates",
+        "events, runs, layered SQLite-backed memory",
+        "docs, prompts, configs, ADRs, CI, examples",
+        "audit, collaboration, CI, radar discovery",
+        "planning and edit materialization when enabled",
+        "Private runtime state lives under .local/. Reviewable behavior stays in tracked files. GitHub helps audit and collaborate, but it is not the runtime truth.",
+    ]:
+        assert unwrapped_phrase not in svg
+    assert svg.count("<tspan") >= 10
+
+
 def test_public_site_metadata_is_tracked() -> None:
     mkdocs_config = yaml.safe_load(_read_text("mkdocs.yml"))
     citation = yaml.safe_load(_read_text("CITATION.cff"))
