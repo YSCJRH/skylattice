@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="180" y1="40" x2="1260" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#07111B"/>
+      <stop offset="58%" stop-color="#0A1725"/>
+      <stop offset="100%" stop-color="#10273D"/>
+    </linearGradient>
+    <radialGradient id="glow-left" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(318 180) rotate(27) scale(470 360)">
+      <stop offset="0%" stop-color="#1DD4D2" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#1DD4D2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-right" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1130 286) rotate(90) scale(360 420)">
+      <stop offset="0%" stop-color="#40B8FF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#40B8FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="112" y1="110" x2="360" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1ED5D3"/>
+      <stop offset="100%" stop-color="#4CB6FF"/>
+    </linearGradient>
+    <linearGradient id="panel-stroke" x1="806" y1="446" x2="1290" y2="740" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3FE0D6" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#4CB6FF" stop-opacity="0.72"/>
+    </linearGradient>
+    <filter id="soft-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1440" height="900" rx="40" fill="url(#bg)"/>
+  <rect width="1440" height="900" rx="40" fill="url(#glow-left)"/>
+  <rect width="1440" height="900" rx="40" fill="url(#glow-right)"/>
+
+  <g opacity="0.42">
+    <path d="M900 166L1026 214L1142 154L1268 230" stroke="#3FCFDB" stroke-width="1.5"/>
+    <path d="M860 288L986 236L1102 300L1244 258L1322 336" stroke="#4CB6FF" stroke-width="1.5"/>
+    <path d="M914 404L1038 338L1152 390L1260 334" stroke="#2BCACF" stroke-width="1.5"/>
+    <path d="M948 518L1080 454L1198 514L1308 468" stroke="#4CB6FF" stroke-width="1.5"/>
+    <path d="M1010 634L1136 568L1248 624L1334 590" stroke="#3CD8D6" stroke-width="1.5"/>
+    <path d="M1026 214L986 236L1038 338L1080 454L1136 568" stroke="#2FD7D2" stroke-width="1.5"/>
+    <path d="M1142 154L1102 300L1152 390L1198 514L1248 624" stroke="#5CB6FF" stroke-width="1.5"/>
+    <path d="M1268 230L1244 258L1260 334L1308 468L1334 590" stroke="#5CB6FF" stroke-width="1.5"/>
+  </g>
+
+  <g opacity="0.9">
+    <circle cx="900" cy="166" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1026" cy="214" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1142" cy="154" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1268" cy="230" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="860" cy="288" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="986" cy="236" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1102" cy="300" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1244" cy="258" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1322" cy="336" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="914" cy="404" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1038" cy="338" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1152" cy="390" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1260" cy="334" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="948" cy="518" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1080" cy="454" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1198" cy="514" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1308" cy="468" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1010" cy="634" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1136" cy="568" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+    <circle cx="1248" cy="624" r="8" fill="#0B1520" stroke="#38D8D5" stroke-width="2"/>
+    <circle cx="1334" cy="590" r="8" fill="#0B1520" stroke="#4CB6FF" stroke-width="2"/>
+  </g>
+
+  <circle cx="1136" cy="568" r="58" fill="#35D7D1" fill-opacity="0.12" filter="url(#soft-glow)"/>
+  <circle cx="1260" cy="334" r="58" fill="#4CB6FF" fill-opacity="0.1" filter="url(#soft-glow)"/>
+
+  <rect x="112" y="102" width="248" height="14" rx="7" fill="url(#accent)"/>
+
+  <text x="112" y="194" fill="#F8FAFC" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="32" font-weight="700">Skylattice</text>
+  <text x="112" y="310" fill="#F8FAFC" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="82" font-weight="700">Local-first AI</text>
+  <text x="112" y="392" fill="#F8FAFC" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="82" font-weight="700">agent runtime</text>
+  <text x="112" y="462" fill="#C7D2E0" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="31" font-weight="400">Persistent memory, governed repo tasks, and Git-native reviewability</text>
+  <text x="112" y="508" fill="#C7D2E0" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="31" font-weight="400">for builders who want automation without hidden autonomy.</text>
+
+  <g>
+    <rect x="112" y="560" width="232" height="54" rx="27" fill="#0F2233" stroke="#24445C"/>
+    <text x="145" y="595" fill="#E8EEF7" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="600">Persistent memory</text>
+    <rect x="362" y="560" width="276" height="54" rx="27" fill="#0F2233" stroke="#24445C"/>
+    <text x="395" y="595" fill="#E8EEF7" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="600">Governed repo tasks</text>
+    <rect x="656" y="560" width="312" height="54" rx="27" fill="#0F2233" stroke="#24445C"/>
+    <text x="689" y="595" fill="#E8EEF7" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="600">Git-native reviewability</text>
+  </g>
+
+  <rect x="820" y="620" width="500" height="188" rx="28" fill="#071522" fill-opacity="0.94" stroke="url(#panel-stroke)" stroke-width="2"/>
+  <rect x="820" y="620" width="500" height="64" rx="28" fill="#091B2B"/>
+  <circle cx="858" cy="652" r="8" fill="#173548"/>
+  <circle cx="884" cy="652" r="8" fill="#1E475F"/>
+  <circle cx="910" cy="652" r="8" fill="#296882"/>
+  <text x="962" y="661" fill="#A7BDD2" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="19" font-weight="600">Proof surface</text>
+  <text x="858" y="720" fill="#81D3FF" font-family="'JetBrains Mono', Consolas, monospace" font-size="22" font-weight="700">PS&gt; python -m skylattice.cli doctor</text>
+  <text x="858" y="756" fill="#D5DEEA" font-family="'JetBrains Mono', Consolas, monospace" font-size="20">status: ok</text>
+  <text x="858" y="788" fill="#D5DEEA" font-family="'JetBrains Mono', Consolas, monospace" font-size="20">validation: pytest / compileall / doctor</text>
+  <text x="858" y="820" fill="#5EDFD1" font-family="'JetBrains Mono', Consolas, monospace" font-size="20">proof: task inspect / stable release</text>
+
+  <text x="112" y="846" fill="#7EA4C3" font-family="'JetBrains Mono', Consolas, monospace" font-size="18">local state under .local/  //  tracked policy in Git  //  stable public release surface</text>
+</svg>
