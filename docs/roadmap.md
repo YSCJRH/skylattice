@@ -47,6 +47,13 @@ Delivered:
 
 ## Phase 4: Action Expansion And Recovery Hardening
 
+Status: next
+
+Recommended first slice:
+
+- harden halted-run recovery, retry safety, and GitHub sync idempotency before widening task actions further
+- expose clearer recovery diagnostics through inspect, CLI, and ledger surfaces
+
 Next goals:
 
 - richer repo operations beyond full-file rewrites
