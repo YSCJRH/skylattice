@@ -41,7 +41,9 @@ class OpenAIProvider:
             "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
             "Supported edit modes: rewrite, replace_text, insert_after, append_text.\n"
             "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
-            f"Allowed validation commands: {command_list}.\n"
+            f"Allowed validation refs: {command_list}.\n"
+            "Use validation_catalog from the repository context as the source of truth.\n"
+            "Prefer returning validation command ids instead of raw commands when possible.\n"
             "Return one branch name, one or more file operations, zero or more validation commands,\n"
             "one commit message, one draft pull request payload, and an optional issue comment payload."
         )

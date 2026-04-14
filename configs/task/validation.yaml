@@ -1,7 +1,30 @@
 runner: powershell
+default_profile: baseline
 
-allowed_commands:
-  - python -m pytest -q
-  - python -m compileall src/skylattice
-  - python -m skylattice.cli doctor
-  - git status --short
+commands:
+  - id: pytest
+    command: python -m pytest -q
+    description: Run the full Skylattice test suite.
+    expected_returncode: 0
+  - id: compileall
+    command: python -m compileall src/skylattice
+    description: Check Python import and syntax-level sanity.
+    expected_returncode: 0
+  - id: doctor
+    command: python -m skylattice.cli doctor
+    description: Verify the local runtime wiring and tracked validation baseline.
+    expected_returncode: 0
+    stdout_contains:
+      - '"status": "ok"'
+      - '"validation_config": "configs/task/validation.yaml"'
+  - id: git-status
+    command: git status --short
+    description: Confirm the worktree status is inspectable from the tracked baseline.
+    expected_returncode: 0
+
+profiles:
+  baseline:
+    - pytest
+    - compileall
+    - doctor
+    - git-status

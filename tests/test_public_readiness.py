@@ -56,11 +56,18 @@ def test_tracked_defaults_are_public_safe() -> None:
 def test_task_validation_config_defines_windows_baseline() -> None:
     payload = yaml.safe_load((REPO_ROOT / "configs" / "task" / "validation.yaml").read_text(encoding="utf-8"))
     assert payload["runner"] == "powershell"
-    assert payload["allowed_commands"] == [
-        "python -m pytest -q",
-        "python -m compileall src/skylattice",
-        "python -m skylattice.cli doctor",
-        "git status --short",
+    assert payload["default_profile"] == "baseline"
+    assert [item["id"] for item in payload["commands"]] == [
+        "pytest",
+        "compileall",
+        "doctor",
+        "git-status",
+    ]
+    assert payload["profiles"]["baseline"] == [
+        "pytest",
+        "compileall",
+        "doctor",
+        "git-status",
     ]
 
 
@@ -127,8 +134,10 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/discoverability-optimization-30-day.md",
         "docs/tasks/memory-review-retrieval.md",
         "docs/tasks/phase-4-recovery-hardening.md",
+        "docs/tasks/phase-4-validation-envelope.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
+        "docs/adrs/0007-tracked-validation-envelope.md",
         "evals/ai-search/_template.md",
         "evals/ai-search/2026-04-09-baseline.md",
         "examples/redacted/doctor-output.json",

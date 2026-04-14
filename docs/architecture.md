@@ -37,6 +37,7 @@ Both workflows share:
 - task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 - `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
+- validation commands now carry stable ids, expected outputs, and profile membership instead of acting as a flat string allowlist
 - local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
 
 ### Task Agent Path
@@ -47,7 +48,7 @@ Flow:
 
 1. interpret goal
 2. retrieve ranked profile, procedural, and semantic memory for the current goal
-3. generate a constrained plan with declared edit modes and tracked validation commands
+3. generate a constrained plan with declared edit modes and tracked validation refs
 4. gate repo and external writes
 5. execute deterministic text edits or full rewrites through the repo workspace adapter
 6. verify results with tracked validation commands and local edit invariants
@@ -102,7 +103,7 @@ Flow:
 ## Key Boundaries
 
 - GitHub is a source and audit surface, not runtime truth.
-- Task-agent validation commands are constrained to tracked config and do not grant arbitrary shell execution.
+- Task-agent validation commands are constrained to tracked config, profile membership, and declared expectations; they do not grant arbitrary shell execution.
 - halted repo and external write steps remain operator-resumed; there is no automatic retry worker
 - profile updates, semantic compaction, and procedural dedup stay review-driven local actions; there is no background memory mutation
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.

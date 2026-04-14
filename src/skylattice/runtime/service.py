@@ -144,6 +144,11 @@ class TaskAgentService:
                 "github_available": self.github is not None,
                 "validation_config": self._display_path(self.task_validation_policy.config_path),
                 "validation_commands": list(self.task_validation_policy.allowed_commands),
+                "validation_command_ids": list(self.task_validation_policy.command_ids),
+                "validation_profiles": {
+                    name: list(values) for name, values in self.task_validation_policy.profiles.items()
+                },
+                "default_validation_profile": self.task_validation_policy.default_profile,
             },
             "radar": self.radar.state_snapshot(),
         }
@@ -186,7 +191,7 @@ class TaskAgentService:
         plan = self.planner.create_plan(
             goal=goal_text,
             repo_context=repo_context,
-            allowed_validation_commands=self.task_validation_policy.allowed_commands,
+            allowed_validation_commands=self.task_validation_policy.allowed_refs,
         )
         branch_name = self._build_branch_name(plan.get("branch_name", "task"), run_id)
         steps = self._plan_to_steps(run_id=run_id, plan=plan, branch_name=branch_name)
@@ -597,8 +602,11 @@ class TaskAgentService:
         if step.action_name in {"workspace.replace_text", "workspace.insert_after", "workspace.append_text"}:
             return self._execute_materialized_edit_step(run, step)
 
-        if step.action_name == "workspace.run_check":
-            return self.workspace.run_check(str(step.action_args["command"]))
+        if step.action_name in {"workspace.run_check", "workspace.run_validation"}:
+            result = self.workspace.run_check(str(step.action_args["command"]))
+            if step.action_args.get("command_id"):
+                result["validation_id"] = str(step.action_args["command_id"])
+            return result
 
         if step.action_name == "git.commit_all":
             self.git.add_all()
@@ -706,9 +714,21 @@ class TaskAgentService:
         }
 
     def _verify_step(self, step: RunStep, result: dict[str, object]) -> bool:
-        if step.action_name == "workspace.run_check":
-            if int(result.get("returncode", 1)) != 0:
-                raise RuntimeError(f"Check failed: {result.get('command')}")
+        if step.action_name in {"workspace.run_check", "workspace.run_validation"}:
+            expected_returncode = int(step.verification.get("expected_returncode", 0))
+            if int(result.get("returncode", 1)) != expected_returncode:
+                raise RuntimeError(
+                    f"Check failed: {result.get('command')} returned {result.get('returncode', 1)}; "
+                    f"expected {expected_returncode}"
+                )
+            stdout = str(result.get("stdout", ""))
+            stderr = str(result.get("stderr", ""))
+            for expected in step.verification.get("stdout_contains", []):
+                if str(expected) not in stdout:
+                    raise RuntimeError(f"Check failed: stdout missing expected text {expected!r}")
+            for expected in step.verification.get("stderr_contains", []):
+                if str(expected) not in stderr:
+                    raise RuntimeError(f"Check failed: stderr missing expected text {expected!r}")
             return True
         if step.action_name in {
             "workspace.edit_file",
@@ -745,6 +765,12 @@ class TaskAgentService:
             "remote_url": self._safe_call(self.git.remote_url, default=""),
             "files": files,
             "allowed_validation_commands": list(self.task_validation_policy.allowed_commands),
+            "allowed_validation_refs": list(self.task_validation_policy.allowed_refs),
+            "default_validation_profile": self.task_validation_policy.default_profile,
+            "validation_profiles": {
+                name: list(values) for name, values in self.task_validation_policy.profiles.items()
+            },
+            "validation_catalog": self.task_validation_policy.command_catalog(),
             "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text"],
             "memory_context": self._memory_context_for_goal(goal_text),
         }
@@ -1200,16 +1226,21 @@ class TaskAgentService:
             step_index += 1
 
         for command in plan.get("validation_commands", []):
+            spec = self.task_validation_policy.resolve_command(str(command))
             steps.append(
                 RunStep(
                     run_id=run_id,
                     step_index=step_index,
-                    step_id=f"check-{step_index}",
-                    summary=f"Run check {command}",
+                    step_id=f"check-{step_index}-{spec.id}",
+                    summary=f"Run validation {spec.id}",
                     required_tier=PermissionTier.OBSERVE,
-                    action_name="workspace.run_check",
-                    action_args={"command": str(command)},
-                    verification={"returncode": 0},
+                    action_name="workspace.run_validation",
+                    action_args={"command_id": spec.id, "command": spec.command},
+                    verification={
+                        "expected_returncode": spec.expected_returncode,
+                        "stdout_contains": list(spec.stdout_contains),
+                        "stderr_contains": list(spec.stderr_contains),
+                    },
                 )
             )
             step_index += 1

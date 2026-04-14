@@ -47,7 +47,13 @@ Delivered:
 
 ## Phase 4: Action Expansion And Recovery Hardening
 
-Status: next
+Status: in progress
+
+Delivered so far:
+
+- resume-safe task recovery metadata for blocked and halted runs
+- branch-scoped PR reuse and deduplicated issue-comment sync on resume
+- tracked validation command ids, profiles, and richer expectation checks shared by runtime and CI
 
 Recommended first slice:
 

@@ -16,7 +16,7 @@ from skylattice.governance import GovernanceDecision, GovernanceGate, Governance
 from skylattice.kernel import load_kernel_config
 from skylattice.memory import ConflictStrategy, MemoryLayer, default_memory_policies
 from skylattice.providers import FakeProvider
-from skylattice.runtime import TaskAgentService
+from skylattice.runtime import TaskAgentService, load_task_validation_policy
 
 
 class FakeGitHubAdapter:
@@ -143,7 +143,11 @@ def _run(command: list[str], cwd: Path) -> str:
     return completed.stdout
 
 
-def create_temp_repo(tmp_path: Path, validation_commands: tuple[str, ...] | None = None) -> Path:
+def create_temp_repo(
+    tmp_path: Path,
+    validation_commands: tuple[str, ...] | None = None,
+    validation_yaml: str | None = None,
+) -> Path:
     repo = tmp_path / "repo"
     repo.mkdir()
     commands = validation_commands or ("python -m pytest -q", "python -m compileall src/skylattice", "python -m skylattice.cli doctor", "git status --short")
@@ -201,11 +205,14 @@ destructive_keywords:
   - reset
 """.strip(),
     )
-    _write(
-        repo / "configs" / "task" / "validation.yaml",
-        "runner: powershell\n\nallowed_commands:\n"
-        + "".join(f"  - {command}\n" for command in commands),
-    )
+    if validation_yaml is not None:
+        _write(repo / "configs" / "task" / "validation.yaml", validation_yaml.strip() + "\n")
+    else:
+        _write(
+            repo / "configs" / "task" / "validation.yaml",
+            "runner: powershell\n\nallowed_commands:\n"
+            + "".join(f"  - {command}\n" for command in commands),
+        )
     _write(repo / "README.md", "# Temp Repo\n\nInitial content.\n")
 
     _run(["git", "init", "-b", "main"], repo)
@@ -281,6 +288,12 @@ def build_issue_comment_plan() -> dict[str, object]:
     return plan
 
 
+def build_validation_id_plan(validation_ref: str) -> dict[str, object]:
+    plan = build_fake_plan()
+    plan["validation_commands"] = [validation_ref]
+    return plan
+
+
 def test_health_and_doctor_reports() -> None:
     report = build_doctor_report()
     client = TestClient(app)
@@ -305,6 +318,38 @@ def test_doctor_command_outputs_runtime_json() -> None:
     assert payload["runtime"]["db_path"] == ".local/state/skylattice.sqlite3"
     assert payload["runtime"]["validation_config"] == "configs/task/validation.yaml"
     assert payload["kernel"]["paths"]["repo_root"] == "."
+
+
+def test_task_validation_policy_loads_richer_schema(tmp_path: Path) -> None:
+    repo = create_temp_repo(
+        tmp_path,
+        validation_yaml="""
+runner: powershell
+default_profile: docs
+commands:
+  - id: hello
+    command: python -c "print('validation-ok')"
+    description: Print a stable marker.
+    expected_returncode: 0
+    stdout_contains:
+      - validation-ok
+  - id: git-status
+    command: git status --short
+    expected_returncode: 0
+profiles:
+  docs:
+    - hello
+    - git-status
+""",
+    )
+
+    policy = load_task_validation_policy(repo)
+
+    assert policy.default_profile == "docs"
+    assert policy.command_ids == ("hello", "git-status")
+    assert policy.profile_command_ids() == ("hello", "git-status")
+    assert policy.resolve_command("hello").command == 'python -c "print(\'validation-ok\')"'
+    assert policy.resolve_command("git status --short").id == "git-status"
 
 
 def test_kernel_config_reads_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -458,11 +503,86 @@ def test_task_run_supports_mixed_edit_modes_and_records_materialized_payloads(tm
         "workspace.insert_after",
         "workspace.append_text",
     ]
-    assert details["steps"][4]["action_name"] == "workspace.run_check"
+    assert details["steps"][4]["action_name"] == "workspace.run_validation"
     assert details["steps"][4]["action_args"]["command"] == "git diff --stat"
+    assert details["steps"][4]["action_args"]["command_id"] == "git-diff-stat"
     assert all("materialized_edit" in step["result"] for step in details["steps"][1:4])
     assert details["steps"][1]["result"]["materialized_edit"]["target_text"] == "Initial content."
     assert github.pull_requests[0]["title"] == "docs: exercise deterministic task-agent edits"
+
+
+def test_task_run_accepts_validation_ids_and_records_validation_metadata(tmp_path: Path) -> None:
+    repo = create_temp_repo(
+        tmp_path,
+        validation_yaml="""
+runner: powershell
+default_profile: baseline
+commands:
+  - id: marker-check
+    command: python -c "print('validation-ok')"
+    expected_returncode: 0
+    stdout_contains:
+      - validation-ok
+profiles:
+  baseline:
+    - marker-check
+""",
+    )
+    provider = FakeProvider(
+        plan=build_validation_id_plan("marker-check"),
+        file_outputs={"README.md": "# Temp Repo\n\nValidation id path.\n"},
+    )
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=FakeGitHubAdapter())
+    service.git = LocalPushGitAdapter(repo)
+
+    completed = service.run_task(
+        goal_input="Refresh the README and run the tracked marker validation.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    details = service.inspect_run(completed.run_id)
+
+    assert completed.status.value == "completed"
+    assert details["steps"][2]["action_name"] == "workspace.run_validation"
+    assert details["steps"][2]["action_args"]["command_id"] == "marker-check"
+    assert details["steps"][2]["result"]["validation_id"] == "marker-check"
+    assert provider.plan_inputs[0]["allowed_validation_commands"] == ["marker-check", 'python -c "print(\'validation-ok\')"']
+
+
+def test_validation_step_fails_when_expected_stdout_is_missing(tmp_path: Path) -> None:
+    repo = create_temp_repo(
+        tmp_path,
+        validation_yaml="""
+runner: powershell
+default_profile: baseline
+commands:
+  - id: marker-check
+    command: python -c "print('wrong-output')"
+    expected_returncode: 0
+    stdout_contains:
+      - validation-ok
+profiles:
+  baseline:
+    - marker-check
+""",
+    )
+    provider = FakeProvider(
+        plan=build_validation_id_plan("marker-check"),
+        file_outputs={"README.md": "# Temp Repo\n\nValidation failure path.\n"},
+    )
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=FakeGitHubAdapter())
+    service.git = LocalPushGitAdapter(repo)
+
+    failed = service.run_task(
+        goal_input="Refresh the README and run the tracked marker validation.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    details = service.inspect_run(failed.run_id)
+
+    assert failed.status.value == "failed"
+    assert details["steps"][2]["status"] == "failed"
+    assert "stdout missing expected text" in details["steps"][2]["result"]["last_error"]
 
 
 def test_halted_push_reports_recovery_and_resumes(tmp_path: Path) -> None:

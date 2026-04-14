@@ -36,6 +36,7 @@ Task validation is intentionally narrow.
 - task-agent validation commands are limited to exact entries in `configs/task/validation.yaml`
 - the tracked validation config is shared by the runtime and GitHub Actions CI
 - planning a validation step does not grant arbitrary shell access or widen operator approvals
+- validation refs resolve to tracked command ids, expected return codes, and optional stdout/stderr checks
 - deterministic text-edit primitives still require `repo-write`; validation commands stay in the `observe` tier
 
 ## Recovery Guard

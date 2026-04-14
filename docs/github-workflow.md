@@ -53,6 +53,7 @@ The current public CI lane is intentionally narrow.
 - runner: `windows-latest`
 - Python: `3.11`
 - command source of truth: `configs/task/validation.yaml`
+- default shared profile: `baseline`
 - execution helper: `tools/run_validation_suite.py`
 - public-site build check: `python -m mkdocs build --strict`
 

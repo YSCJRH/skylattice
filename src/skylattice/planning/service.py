@@ -26,6 +26,13 @@ class TaskPlanner:
             repo_context=repo_context,
             allowed_validation_commands=allowed_validation_commands,
         )
+        allowed_values = set(allowed_validation_commands)
+        validation_catalog = repo_context.get("validation_catalog", [])
+        if isinstance(validation_catalog, list):
+            for entry in validation_catalog:
+                if isinstance(entry, dict):
+                    allowed_values.add(str(entry.get("id", "")))
+                    allowed_values.add(str(entry.get("command", "")))
         operations = plan.get("file_operations")
         if not operations:
             raise RuntimeError("Planner did not return any file operations")
@@ -43,6 +50,6 @@ class TaskPlanner:
             operation["create_if_missing"] = bool(operation.get("create_if_missing", False))
 
         for command in plan.get("validation_commands", []):
-            if str(command) not in allowed_validation_commands:
+            if str(command) not in allowed_values:
                 raise RuntimeError(f"Planner returned a validation command outside tracked policy: {command}")
         return plan
