@@ -9,6 +9,7 @@ from .interfaces import (
     MemoryStore,
     RecordStatus,
     RetrievalRequest,
+    RetrievalSort,
 )
 from .policies import MemoryLayerPolicy, default_memory_policies
 from .repository import SQLiteMemoryRepository
@@ -23,6 +24,7 @@ __all__ = [
     "MemoryStore",
     "RecordStatus",
     "RetrievalRequest",
+    "RetrievalSort",
     "SQLiteMemoryRepository",
     "default_memory_policies",
 ]

@@ -27,6 +27,7 @@ Public surfaces:
 
 - local SQLite-backed runtime state plus layered memory under `.local/`
 - CLI commands for `doctor`, `task ...`, and `radar ...`
+- reviewed local memory commands via `skylattice memory ...` for profile proposals, search, export, and rollback
 - deterministic task edit modes: `rewrite`, `replace_text`, `insert_after`, and `append_text`
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection

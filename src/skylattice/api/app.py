@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Query
 
 from skylattice import __version__
+from skylattice.memory.interfaces import MemoryLayer, RecordStatus
 from skylattice.runtime import TaskAgentService
 
 app = FastAPI(
@@ -48,6 +49,24 @@ def get_run_events(run_id: str, service: TaskAgentService = Depends(get_task_age
 @app.get("/runs/{run_id}/memory")
 def get_run_memory(run_id: str, service: TaskAgentService = Depends(get_task_agent_service)) -> list[dict[str, object]]:
     return service.inspect_run(run_id)["memory"]
+
+
+@app.get("/memory/records/{record_id}")
+def get_memory_record(record_id: str, service: TaskAgentService = Depends(get_task_agent_service)) -> dict[str, object]:
+    return service.inspect_memory_record(record_id)
+
+
+@app.get("/memory/search")
+def search_memory(
+    query: str,
+    layer: list[MemoryLayer] = Query(default=[]),
+    status: list[RecordStatus] = Query(default=[]),
+    limit: int = 5,
+    service: TaskAgentService = Depends(get_task_agent_service),
+) -> list[dict[str, object]]:
+    layers = tuple(layer) if layer else None
+    statuses = tuple(status) if status else None
+    return service.search_memory(query=query, layers=layers, statuses=statuses, limit=limit)
 
 
 @app.get("/radar/runs/{run_id}")

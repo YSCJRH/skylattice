@@ -506,6 +506,8 @@ class RadarService:
             run_id=candidate.run_id,
             source_refs=[promoted.promotion_id, self.config.promotion.adoption_registry],
             metadata={
+                "workflow": "radar-adoption-registry",
+                "canonical": False,
                 "origin": "radar",
                 "repo_slug": candidate.repo_slug,
                 "topic_tags": list(candidate.topics),
@@ -877,6 +879,8 @@ class RadarService:
             "metadata": record.metadata,
             "run_id": record.run_id,
             "supersedes": record.supersedes,
+            "created_at": record.created_at,
+            "updated_at": record.updated_at,
         }
 
 

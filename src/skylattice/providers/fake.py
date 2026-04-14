@@ -11,6 +11,7 @@ class FakeProvider:
     plan: dict[str, Any]
     file_outputs: dict[str, str] = field(default_factory=dict)
     edit_outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    plan_inputs: list[dict[str, Any]] = field(default_factory=list)
 
     def generate_plan(
         self,
@@ -19,6 +20,13 @@ class FakeProvider:
         repo_context: dict[str, Any],
         allowed_validation_commands: tuple[str, ...],
     ) -> dict[str, Any]:
+        self.plan_inputs.append(
+            {
+                "goal": goal,
+                "repo_context": dict(repo_context),
+                "allowed_validation_commands": list(allowed_validation_commands),
+            }
+        )
         return dict(self.plan)
 
     def rewrite_file(

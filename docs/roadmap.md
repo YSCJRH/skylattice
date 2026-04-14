@@ -34,12 +34,16 @@ Delivered:
 
 ## Phase 3: Memory And Retrieval Deepening
 
-Next goals:
+Status: complete
+
+Delivered:
 
 - explicit profile memory editing and confirmation flow
 - stronger semantic compaction and retrieval ranking
 - procedural playbook deduplication and review tooling
 - export and rollback tooling for local memory artifacts
+- task-planning memory context for profile, procedural, and semantic recall
+- read-only memory inspection and search API endpoints
 
 ## Phase 4: Action Expansion And Recovery Hardening
 

@@ -37,6 +37,7 @@ Both workflows share:
 - task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 - `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
+- local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
 
 ### Task Agent Path
 
@@ -45,11 +46,14 @@ Both workflows share:
 Flow:
 
 1. interpret goal
-2. generate a constrained plan with declared edit modes and tracked validation commands
-3. gate repo and external writes
-4. execute deterministic text edits or full rewrites through the repo workspace adapter
-5. verify results with tracked validation commands and local edit invariants
-6. write episodic and procedural memory
+2. retrieve ranked profile, procedural, and semantic memory for the current goal
+3. generate a constrained plan with declared edit modes and tracked validation commands
+4. gate repo and external writes
+5. execute deterministic text edits or full rewrites through the repo workspace adapter
+6. verify results with tracked validation commands and local edit invariants
+7. write episodic and procedural memory
+
+The planner can see a bounded `memory_context`, but memory retrieval does not widen permissions or validation scope.
 
 Current task edit modes:
 
@@ -97,6 +101,7 @@ Flow:
 
 - GitHub is a source and audit surface, not runtime truth.
 - Task-agent validation commands are constrained to tracked config and do not grant arbitrary shell execution.
+- profile updates, semantic compaction, and procedural dedup stay review-driven local actions; there is no background memory mutation
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
 - The runtime does not depend on GitHub to exist, but the radar workflow depends on `GITHUB_TOKEN` for discovery.
@@ -106,6 +111,7 @@ Flow:
 - every task and radar run has ledger events
 - task edit steps record their materialized payloads for inspection
 - memory writes are attached to run ids when applicable
+- memory records can be listed, searched, exported, rolled back, and reviewed through the CLI without exposing a write API
 - radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`
 - `skylattice doctor` and the read-only FastAPI surface expose the current local state without enabling mutation
 

@@ -28,6 +28,11 @@ class ConflictStrategy(StrEnum):
     APPEND_ONLY = "append-only"
 
 
+class RetrievalSort(StrEnum):
+    RELEVANCE = "relevance"
+    RECENT = "recent"
+
+
 @dataclass(frozen=True)
 class MemoryRecord:
     record_id: str
@@ -39,6 +44,8 @@ class MemoryRecord:
     metadata: dict[str, Any] = field(default_factory=dict)
     run_id: str | None = None
     supersedes: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +54,9 @@ class RetrievalRequest:
     query: str
     limit: int = 5
     include_stale: bool = False
+    metadata_filters: tuple[tuple[str, str], ...] = ()
+    statuses: tuple[RecordStatus, ...] = ()
+    sort_by: RetrievalSort = RetrievalSort.RELEVANCE
 
 
 @dataclass(frozen=True)

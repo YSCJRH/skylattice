@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 import re
 import uuid
+import json
+from datetime import UTC, datetime
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -13,7 +15,8 @@ from skylattice.actions import GitAdapter, GitHubAdapter, RepoWorkspaceAdapter
 from skylattice.governance import GovernanceDecision, GovernanceGate, GovernanceRequest, PermissionTier
 from skylattice.kernel import build_kernel_summary, load_kernel_config
 from skylattice.ledger import EventKind, LedgerStore
-from skylattice.memory import MemoryLayer, SQLiteMemoryRepository
+from skylattice.memory.interfaces import MemoryLayer, RecordStatus, RetrievalRequest, RetrievalSort
+from skylattice.memory.repository import SQLiteMemoryRepository
 from skylattice.planning import TaskPlanner
 from skylattice.providers import OpenAIProvider
 from skylattice.radar import GitHubRadarSource, RadarRepository, RadarService
@@ -26,6 +29,8 @@ from .task_config import TaskValidationPolicy, load_task_validation_policy
 
 
 class TaskAgentService:
+    MEMORY_CONTEXT_LIMIT = 3
+
     def __init__(
         self,
         *,
@@ -177,7 +182,7 @@ class TaskAgentService:
             source_refs=[goal_source],
             metadata={"phase": "active"},
         )
-        repo_context = self._build_repo_context()
+        repo_context = self._build_repo_context(goal_text=goal_text)
         plan = self.planner.create_plan(
             goal=goal_text,
             repo_context=repo_context,
@@ -260,6 +265,175 @@ class TaskAgentService:
 
     def latest_radar_digest(self) -> dict[str, object]:
         return self.radar.latest_digest()
+
+    def list_memory_records(
+        self,
+        *,
+        layers: tuple[MemoryLayer, ...] | None = None,
+        statuses: tuple[RecordStatus, ...] | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, object]]:
+        effective_statuses = statuses if statuses is not None else (RecordStatus.ACTIVE,)
+        records = self.memory.list_records(layers=layers, statuses=effective_statuses, limit=limit)
+        return [self._serialize_memory(record) for record in records]
+
+    def inspect_memory_record(self, record_id: str) -> dict[str, object]:
+        return self._serialize_memory(self.memory.get_record(record_id))
+
+    def search_memory(
+        self,
+        *,
+        query: str,
+        layers: tuple[MemoryLayer, ...] | None = None,
+        statuses: tuple[RecordStatus, ...] | None = None,
+        limit: int = 5,
+    ) -> list[dict[str, object]]:
+        records = self.memory.retrieve(
+            RetrievalRequest(
+                layers=layers or tuple(MemoryLayer),
+                query=query,
+                limit=limit,
+                include_stale=statuses is not None,
+                statuses=statuses or (),
+                sort_by=RetrievalSort.RELEVANCE,
+            )
+        )
+        return [self._serialize_memory(record) for record in records]
+
+    def list_memory_review_queue(self, *, limit: int = 50) -> list[dict[str, object]]:
+        records = self.memory.list_records(statuses=(RecordStatus.CONSTRAINED,), limit=limit)
+        return [self._serialize_memory(record) for record in records]
+
+    def propose_profile_memory(self, *, key: str, value: str, reason: str) -> dict[str, object]:
+        profile_key = key.strip()
+        profile_value = value.strip()
+        rationale = reason.strip()
+        if not profile_key or not profile_value or not rationale:
+            raise RuntimeError("Profile memory proposals require non-empty key, value, and reason.")
+        record = self.memory.create(
+            layer=MemoryLayer.PROFILE,
+            summary=f"Profile preference for {profile_key}: {profile_value}",
+            source_refs=[profile_key],
+            metadata={
+                "proposal_type": "profile_update",
+                "profile_key": profile_key,
+                "value": profile_value,
+                "reason": rationale,
+            },
+            status=RecordStatus.CONSTRAINED,
+        )
+        return self._serialize_memory(record)
+
+    def confirm_memory_record(self, record_id: str) -> dict[str, object]:
+        record = self.memory.get_record(record_id)
+        if record.status is not RecordStatus.CONSTRAINED:
+            raise RuntimeError(f"Memory record {record_id} is not waiting for review.")
+        proposal_type = str(record.metadata.get("proposal_type", ""))
+        if proposal_type == "profile_update":
+            confirmed = self._confirm_profile_record(record)
+        elif proposal_type == "semantic_compaction":
+            confirmed = self._confirm_semantic_compaction(record)
+        elif proposal_type == "procedural_dedup":
+            confirmed = self._confirm_procedural_dedup(record)
+        else:
+            confirmed = self.memory.update_record(record.record_id, status=RecordStatus.ACTIVE)
+        return self._serialize_memory(confirmed)
+
+    def reject_memory_record(self, record_id: str) -> dict[str, object]:
+        record = self.memory.get_record(record_id)
+        if record.status is not RecordStatus.CONSTRAINED:
+            raise RuntimeError(f"Memory record {record_id} is not waiting for review.")
+        self.memory.rollback(record.record_id)
+        return self._serialize_memory(self.memory.get_record(record.record_id))
+
+    def rollback_memory_record(self, record_id: str) -> dict[str, object]:
+        record = self.memory.get_record(record_id)
+        if record.status is not RecordStatus.ACTIVE:
+            raise RuntimeError(f"Only active memory records can be rolled back: {record_id}")
+        self.memory.rollback(record.record_id)
+        return self._serialize_memory(self.memory.get_record(record.record_id))
+
+    def create_semantic_compaction_proposals(self) -> list[dict[str, object]]:
+        active_records = self.memory.list_records(
+            layers=(MemoryLayer.SEMANTIC,),
+            statuses=(RecordStatus.ACTIVE,),
+        )
+        proposals: list[dict[str, object]] = []
+        groups: dict[tuple[str, str], list[object]] = {}
+
+        for record in active_records:
+            normalized = self._normalize_summary(record.summary)
+            if normalized:
+                groups.setdefault(("summary", normalized), []).append(record)
+            for tag in sorted(self._coerce_tag_list(record.metadata.get("topic_tags"))):
+                groups.setdefault(("tag", tag), []).append(record)
+
+        for (basis, value), records in groups.items():
+            deduped = self._dedupe_records(records)
+            if len(deduped) < 2:
+                continue
+            if basis == "summary":
+                summary = deduped[0].summary
+            else:
+                summary = f"Compacted semantic memory for topic '{value}'."
+            proposal = self._create_semantic_proposal(
+                summary=summary,
+                basis=basis,
+                basis_value=value,
+                records=deduped,
+            )
+            if proposal is not None:
+                proposals.append(self._serialize_memory(proposal))
+
+        return proposals
+
+    def create_procedural_dedup_proposals(self) -> list[dict[str, object]]:
+        active_records = self.memory.list_records(
+            layers=(MemoryLayer.PROCEDURAL,),
+            statuses=(RecordStatus.ACTIVE,),
+        )
+        by_workflow: dict[str, list[object]] = {}
+        for record in active_records:
+            workflow = str(record.metadata.get("workflow", "")).strip()
+            if workflow:
+                by_workflow.setdefault(workflow, []).append(record)
+
+        proposals: list[dict[str, object]] = []
+        for workflow, records in sorted(by_workflow.items()):
+            deduped = self._dedupe_records(records)
+            if len(deduped) < 2:
+                continue
+            proposal = self._create_procedural_proposal(workflow=workflow, records=deduped)
+            if proposal is not None:
+                proposals.append(self._serialize_memory(proposal))
+        return proposals
+
+    def export_memory_records(
+        self,
+        *,
+        layers: tuple[MemoryLayer, ...] | None = None,
+        statuses: tuple[RecordStatus, ...] | None = None,
+        output_path: str | None = None,
+    ) -> dict[str, object]:
+        records = self.memory.list_records(layers=layers, statuses=statuses)
+        destination = self._resolve_memory_export_path(output_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "export_version": 1,
+            "generated_at": datetime.now(UTC).isoformat(),
+            "filters": {
+                "layers": [layer.value for layer in layers or ()],
+                "statuses": [status.value for status in statuses or ()],
+            },
+            "count": len(records),
+            "records": [self._serialize_memory(record) for record in records],
+        }
+        destination.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return {
+            "path": self._display_path(destination),
+            "count": len(records),
+            "export_version": 1,
+        }
 
     def _execute_until_blocked(self, run_id: str) -> TaskRun:
         run = self.run_repository.get_run(run_id)
@@ -431,7 +605,7 @@ class TaskAgentService:
             current_content=self.workspace.read_text(path),
             instructions=str(step.action_args["instructions"]),
             plan_summary=run.plan_summary,
-            repo_context=self._build_repo_context(),
+            repo_context=self._build_repo_context(goal_text=run.goal),
         )
         payload = {"mode": "rewrite", "content": updated}
         written = self.workspace.apply_materialized_edit(
@@ -457,7 +631,7 @@ class TaskAgentService:
             current_content=self.workspace.read_text(path),
             instructions=str(step.action_args["instructions"]),
             plan_summary=run.plan_summary,
-            repo_context=self._build_repo_context(),
+            repo_context=self._build_repo_context(goal_text=run.goal),
         )
         written = self.workspace.apply_materialized_edit(
             path,
@@ -506,7 +680,7 @@ class TaskAgentService:
             return True
         return True
 
-    def _build_repo_context(self) -> dict[str, object]:
+    def _build_repo_context(self, *, goal_text: str = "") -> dict[str, object]:
         files = self.workspace.list_files(limit=120)
         context = {
             "repo_root": ".",
@@ -515,11 +689,50 @@ class TaskAgentService:
             "files": files,
             "allowed_validation_commands": list(self.task_validation_policy.allowed_commands),
             "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text"],
+            "memory_context": self._memory_context_for_goal(goal_text),
         }
         for candidate in ("README.md", "docs/roadmap.md", "docs/architecture.md"):
             if candidate in files:
                 context[candidate] = self.workspace.read_text(candidate)[:4000]
         return context
+
+    def _memory_context_for_goal(self, goal_text: str) -> dict[str, list[dict[str, object]]]:
+        query = goal_text.strip()
+        return {
+            "profile": [
+                self._serialize_memory(record)
+                for record in self.memory.retrieve(
+                    RetrievalRequest(
+                        layers=(MemoryLayer.PROFILE,),
+                        query=query,
+                        limit=self.MEMORY_CONTEXT_LIMIT,
+                        sort_by=RetrievalSort.RELEVANCE,
+                    )
+                )
+            ],
+            "procedural": [
+                self._serialize_memory(record)
+                for record in self.memory.retrieve(
+                    RetrievalRequest(
+                        layers=(MemoryLayer.PROCEDURAL,),
+                        query=query,
+                        limit=self.MEMORY_CONTEXT_LIMIT,
+                        sort_by=RetrievalSort.RELEVANCE,
+                    )
+                )
+            ],
+            "semantic": [
+                self._serialize_memory(record)
+                for record in self.memory.retrieve(
+                    RetrievalRequest(
+                        layers=(MemoryLayer.SEMANTIC,),
+                        query=query,
+                        limit=self.MEMORY_CONTEXT_LIMIT,
+                        sort_by=RetrievalSort.RELEVANCE,
+                    )
+                )
+            ],
+        }
 
     def _display_path(self, path: Path) -> str:
         try:
@@ -527,6 +740,191 @@ class TaskAgentService:
         except ValueError:
             return str(path)
         return relative.as_posix() if relative.parts else "."
+
+    def _resolve_memory_export_path(self, output_path: str | None) -> Path:
+        if output_path:
+            candidate = Path(output_path)
+            resolved = candidate if candidate.is_absolute() else (self.repo_root / candidate).resolve()
+        else:
+            timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+            resolved = self.database.paths.memory_root / "exports" / f"{timestamp}.json"
+        try:
+            resolved.relative_to(self.database.paths.local_root)
+        except ValueError as exc:
+            raise RuntimeError("Memory exports must stay under .local/.") from exc
+        return resolved
+
+    @staticmethod
+    def _normalize_summary(summary: str) -> str:
+        return " ".join(re.findall(r"[a-z0-9]+", summary.lower()))
+
+    @staticmethod
+    def _coerce_tag_list(value: object) -> list[str]:
+        if isinstance(value, (list, tuple, set)):
+            tags = [str(item).strip().lower() for item in value if str(item).strip()]
+            return sorted(dict.fromkeys(tags))
+        return []
+
+    @staticmethod
+    def _dedupe_records(records: list[Any]) -> list[Any]:
+        deduped: dict[str, Any] = {}
+        for record in records:
+            deduped[record.record_id] = record
+        return sorted(
+            deduped.values(),
+            key=lambda item: (item.confidence, item.created_at or "", item.record_id),
+            reverse=True,
+        )
+
+    def _matching_records_by_metadata(
+        self,
+        *,
+        layer: MemoryLayer,
+        statuses: tuple[RecordStatus, ...],
+        key: str,
+        value: str,
+    ) -> list[Any]:
+        matches: list[Any] = []
+        for record in self.memory.list_records(layers=(layer,), statuses=statuses):
+            candidate = record.metadata.get(key)
+            if isinstance(candidate, (list, tuple, set)):
+                values = {str(item).strip().lower() for item in candidate}
+                if value.strip().lower() in values:
+                    matches.append(record)
+            elif str(candidate).strip().lower() == value.strip().lower():
+                matches.append(record)
+        return matches
+
+    def _existing_proposal(
+        self,
+        *,
+        layer: MemoryLayer,
+        proposal_type: str,
+        source_record_ids: list[str],
+        discriminator_key: str,
+        discriminator_value: str,
+    ) -> Any | None:
+        source_signature = "|".join(sorted(source_record_ids))
+        for record in self.memory.list_records(layers=(layer,), statuses=(RecordStatus.CONSTRAINED,)):
+            metadata = record.metadata
+            if str(metadata.get("proposal_type", "")) != proposal_type:
+                continue
+            if str(metadata.get(discriminator_key, "")) != discriminator_value:
+                continue
+            existing_signature = "|".join(sorted(str(item) for item in metadata.get("source_record_ids", [])))
+            if existing_signature == source_signature:
+                return record
+        return None
+
+    def _create_semantic_proposal(self, *, summary: str, basis: str, basis_value: str, records: list[Any]) -> Any | None:
+        source_record_ids = [record.record_id for record in records]
+        existing = self._existing_proposal(
+            layer=MemoryLayer.SEMANTIC,
+            proposal_type="semantic_compaction",
+            source_record_ids=source_record_ids,
+            discriminator_key="proposal_signature",
+            discriminator_value=f"{basis}:{basis_value}",
+        )
+        if existing is not None:
+            return None
+        merged_tags = sorted(
+            {
+                tag
+                for record in records
+                for tag in self._coerce_tag_list(record.metadata.get("topic_tags"))
+            }
+        )
+        merged_sources = list(dict.fromkeys(ref for record in records for ref in record.source_refs))
+        return self.memory.create(
+            layer=MemoryLayer.SEMANTIC,
+            summary=summary,
+            source_refs=merged_sources,
+            metadata={
+                "proposal_type": "semantic_compaction",
+                "proposal_basis": basis,
+                "proposal_basis_value": basis_value,
+                "proposal_signature": f"{basis}:{basis_value}",
+                "source_record_ids": source_record_ids,
+                "compacted_from": source_record_ids,
+                "topic_tags": merged_tags,
+                "origin": "memory-review",
+            },
+            confidence=round(sum(record.confidence for record in records) / len(records), 3),
+            status=RecordStatus.CONSTRAINED,
+        )
+
+    def _create_procedural_proposal(self, *, workflow: str, records: list[Any]) -> Any | None:
+        source_record_ids = [record.record_id for record in records]
+        existing = self._existing_proposal(
+            layer=MemoryLayer.PROCEDURAL,
+            proposal_type="procedural_dedup",
+            source_record_ids=source_record_ids,
+            discriminator_key="workflow",
+            discriminator_value=workflow,
+        )
+        if existing is not None:
+            return None
+        canonical = sorted(
+            records,
+            key=lambda item: (-item.confidence, item.created_at or "", item.record_id),
+        )[0]
+        merged_sources = list(dict.fromkeys(ref for record in records for ref in record.source_refs))
+        return self.memory.create(
+            layer=MemoryLayer.PROCEDURAL,
+            summary=f"Canonical procedural workflow for {workflow}.",
+            source_refs=merged_sources,
+            metadata={
+                "proposal_type": "procedural_dedup",
+                "workflow": workflow,
+                "source_record_ids": source_record_ids,
+                "canonical_record_id": canonical.record_id,
+                "canonical_summary": canonical.summary,
+                "canonical": False,
+            },
+            confidence=canonical.confidence,
+            status=RecordStatus.CONSTRAINED,
+        )
+
+    def _confirm_profile_record(self, record: Any) -> Any:
+        profile_key = str(record.metadata.get("profile_key", "")).strip()
+        if not profile_key:
+            raise RuntimeError(f"Profile proposal {record.record_id} is missing profile_key metadata.")
+        active_records = self._matching_records_by_metadata(
+            layer=MemoryLayer.PROFILE,
+            statuses=(RecordStatus.ACTIVE,),
+            key="profile_key",
+            value=profile_key,
+        )
+        superseded_id = None
+        for active in active_records:
+            if active.record_id == record.record_id:
+                continue
+            if superseded_id is None:
+                superseded_id = active.record_id
+                self.memory.update_record(active.record_id, status=RecordStatus.SUPERSEDED)
+            else:
+                self.memory.update_record(active.record_id, status=RecordStatus.TOMBSTONED)
+        return self.memory.update_record(record.record_id, status=RecordStatus.ACTIVE, supersedes=superseded_id)
+
+    def _confirm_semantic_compaction(self, record: Any) -> Any:
+        source_ids = [str(item) for item in record.metadata.get("source_record_ids", []) if str(item)]
+        if len(source_ids) < 2:
+            raise RuntimeError(f"Semantic compaction proposal {record.record_id} does not list enough source records.")
+        for source_id in source_ids:
+            self.memory.update_record(source_id, status=RecordStatus.SUPERSEDED)
+        metadata = {**record.metadata, "origin": "memory-review", "compacted_from": source_ids}
+        return self.memory.update_record(record.record_id, status=RecordStatus.ACTIVE, metadata=metadata, supersedes=source_ids[0])
+
+    def _confirm_procedural_dedup(self, record: Any) -> Any:
+        workflow = str(record.metadata.get("workflow", "")).strip()
+        source_ids = [str(item) for item in record.metadata.get("source_record_ids", []) if str(item)]
+        canonical_record_id = str(record.metadata.get("canonical_record_id", "")).strip()
+        if not workflow or len(source_ids) < 2 or not canonical_record_id:
+            raise RuntimeError(f"Procedural dedup proposal {record.record_id} is missing workflow metadata.")
+        for source_id in source_ids:
+            self.memory.update_record(source_id, status=RecordStatus.SUPERSEDED)
+        metadata = {**record.metadata, "canonical": True}
+        return self.memory.update_record(record.record_id, status=RecordStatus.ACTIVE, metadata=metadata, supersedes=canonical_record_id)
 
     def _plan_to_steps(self, *, run_id: str, plan: dict[str, Any], branch_name: str) -> list[RunStep]:
         steps: list[RunStep] = [
@@ -689,7 +1087,11 @@ class TaskAgentService:
                 summary="Branch-edit-validate-commit-push-draft-PR workflow is available for repo ops tasks.",
                 run_id=run_id,
                 source_refs=[run_id],
-                metadata={"workflow": "repo-ops-github-triage"},
+                metadata={
+                    "workflow": "repo-ops-github-triage",
+                    "origin": "task",
+                    "canonical": False,
+                },
             )
             self.ledger.append(
                 run_id=run_id,
@@ -770,4 +1172,6 @@ class TaskAgentService:
             "metadata": record.metadata,
             "run_id": record.run_id,
             "supersedes": record.supersedes,
+            "created_at": record.created_at,
+            "updated_at": record.updated_at,
         }
