@@ -19,10 +19,23 @@ from skylattice.providers import FakeProvider
 from skylattice.runtime import TaskAgentService, load_task_validation_policy
 
 
+class FakeGitHubRepoRef:
+    slug = "example/skylattice"
+
+
 class FakeGitHubAdapter:
     def __init__(self) -> None:
+        self.repo = FakeGitHubRepoRef()
         self.pull_requests: list[dict[str, object]] = []
         self.comments: list[dict[str, object]] = []
+        self.issues: dict[int, dict[str, object]] = {
+            7: {
+                "number": 7,
+                "title": "Tracked issue for tests",
+                "state": "open",
+                "html_url": "https://github.com/example/skylattice/issues/7",
+            }
+        }
 
     def create_or_update_draft_pr(
         self,
@@ -65,6 +78,20 @@ class FakeGitHubAdapter:
         }
         self.comments.append(payload)
         return payload
+
+    def get_issue(self, issue_number: int) -> dict[str, object]:
+        payload = self.issues.get(issue_number)
+        if payload is None:
+            raise RuntimeError(f"Unknown issue: {issue_number}")
+        return dict(payload)
+
+    def list_issues(self, *, state: str = "open", per_page: int = 10) -> list[dict[str, object]]:
+        issues = [dict(payload) for payload in self.issues.values() if str(payload.get("state", "")).lower() == state.lower()]
+        return issues[:per_page]
+
+    def list_pull_requests(self, *, state: str = "open", per_page: int = 10) -> list[dict[str, object]]:
+        pulls = [dict(payload) for payload in self.pull_requests if str(payload.get("state", state)).lower() == state.lower()]
+        return pulls[:per_page]
 
     def list_issue_comments(self, *, issue_number: int, per_page: int = 100) -> list[dict[str, object]]:
         return [comment for comment in self.comments if int(comment["issue_number"]) == issue_number][:per_page]
@@ -131,6 +158,17 @@ class FlakyIssueCommentGitHubAdapter(FakeGitHubAdapter):
             super().create_or_reuse_issue_comment(issue_number=issue_number, body=body, dedupe_key=dedupe_key)
             raise RuntimeError("simulated issue comment failure")
         return super().create_or_reuse_issue_comment(issue_number=issue_number, body=body, dedupe_key=dedupe_key)
+
+
+class ClosedIssueGitHubAdapter(FakeGitHubAdapter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.issues[7] = {
+            "number": 7,
+            "title": "Closed tracked issue for tests",
+            "state": "closed",
+            "html_url": "https://github.com/example/skylattice/issues/7",
+        }
 
 
 def _write(path: Path, content: str) -> None:
@@ -588,6 +626,29 @@ profiles:
     assert provider.plan_inputs[0]["allowed_validation_commands"] == ["marker-check", 'python -c "print(\'validation-ok\')"']
 
 
+def test_task_planner_receives_bounded_github_context_when_available(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    github = FakeGitHubAdapter()
+    provider = FakeProvider(
+        plan=build_fake_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nGitHub context path.\n"},
+    )
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    service.git = LocalPushGitAdapter(repo)
+
+    service.run_task(
+        goal_input="Refresh the README and prepare a PR.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+
+    github_context = provider.plan_inputs[0]["repo_context"]["github_context"]
+    assert github_context["available"] is True
+    assert github_context["repository"] == "example/skylattice"
+    assert github_context["open_issues"][0]["number"] == 7
+    assert "open_pull_requests" in github_context
+
+
 def test_task_run_supports_create_file_and_copy_file_primitives(tmp_path: Path) -> None:
     repo = create_temp_repo(
         tmp_path,
@@ -729,6 +790,31 @@ def test_issue_comment_resume_reuses_existing_comment(tmp_path: Path) -> None:
     assert resumed_details["steps"][-1]["result"]["reused"] is True
     assert resumed_details["steps"][-1]["result"]["sync_mode"] == "reuse"
     assert resumed_details["steps"][-1]["result"]["attempt_count"] == 2
+
+
+def test_issue_comment_preflight_rejects_closed_issue(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    provider = FakeProvider(
+        plan=build_issue_comment_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nClosed issue preflight path.\n"},
+    )
+    github = ClosedIssueGitHubAdapter()
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    service.git = LocalPushGitAdapter(repo)
+
+    failed = service.run_task(
+        goal_input="Refresh the README, prepare a PR, and leave an issue comment.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    details = service.inspect_run(failed.run_id)
+
+    assert failed.status.value == "failed"
+    assert details["steps"][-2]["action_name"] == "github.inspect_issue"
+    assert details["steps"][-2]["status"] == "failed"
+    assert "GitHub issue is not open" in details["steps"][-2]["result"]["last_error"]
+    assert details["steps"][-1]["status"] == "planned"
+    assert len(github.comments) == 0
 
 
 def test_task_validation_commands_come_from_tracked_config(tmp_path: Path) -> None:

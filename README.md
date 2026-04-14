@@ -32,6 +32,7 @@ Public surfaces:
 - explicit non-destructive repo ops: `create_file` and `copy_file`
 - halted task runs now expose recovery guidance, retry metadata, and resume-safe GitHub sync behavior
 - tracked validation now uses stable command ids and profiles shared by runtime and CI
+- when GitHub is configured, planning can see bounded open issue/PR context and issue comments preflight their targets
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`

@@ -621,6 +621,19 @@ class TaskAgentService:
             pushed = self.git.push(branch_name, remote=str(step.action_args.get("remote", "origin")))
             return {"branch_name": pushed}
 
+        if step.action_name == "github.inspect_issue":
+            if self.github is None:
+                raise RuntimeError("GitHub adapter is not configured")
+            issue_number = int(step.action_args["issue_number"])
+            issue = self.github.get_issue(issue_number)
+            return {
+                "issue_number": int(issue.get("number", issue_number)),
+                "title": issue.get("title"),
+                "state": issue.get("state"),
+                "html_url": issue.get("html_url"),
+                "artifact_refs": [str(issue.get("html_url", ""))] if issue.get("html_url") else [],
+            }
+
         if step.action_name == "github.sync_pull_request":
             if self.github is None:
                 raise RuntimeError("GitHub adapter is not configured")
@@ -783,6 +796,10 @@ class TaskAgentService:
             if not result.get("html_url"):
                 raise RuntimeError("GitHub PR sync did not return html_url")
             return True
+        if step.action_name == "github.inspect_issue":
+            if str(result.get("state", "")).lower() != "open":
+                raise RuntimeError(f"GitHub issue is not open: {result.get('issue_number')}")
+            return True
         if step.action_name == "github.add_issue_comment":
             if not result.get("html_url"):
                 raise RuntimeError("GitHub comment did not return html_url")
@@ -806,10 +823,45 @@ class TaskAgentService:
             "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text", "create_file", "copy_file"],
             "memory_context": self._memory_context_for_goal(goal_text),
         }
+        if self.github is not None:
+            context["github_context"] = self._github_sync_context()
         for candidate in ("README.md", "docs/roadmap.md", "docs/architecture.md"):
             if candidate in files:
                 context[candidate] = self.workspace.read_text(candidate)[:4000]
         return context
+
+    def _github_sync_context(self) -> dict[str, object]:
+        if self.github is None:
+            return {}
+        try:
+            issues = self.github.list_issues(state="open", per_page=5)
+            pulls = self.github.list_pull_requests(state="open", per_page=5)
+        except Exception as exc:  # noqa: BLE001
+            return {"available": False, "error": str(exc)}
+        return {
+            "available": True,
+            "repository": self.github.repo.slug,
+            "open_issues": [
+                {
+                    "number": item.get("number"),
+                    "title": item.get("title"),
+                    "state": item.get("state"),
+                    "html_url": item.get("html_url"),
+                }
+                for item in issues
+            ],
+            "open_pull_requests": [
+                {
+                    "number": item.get("number"),
+                    "title": item.get("title"),
+                    "state": item.get("state"),
+                    "html_url": item.get("html_url"),
+                    "head_ref": item.get("head", {}).get("ref") if isinstance(item.get("head"), dict) else None,
+                    "base_ref": item.get("base", {}).get("ref") if isinstance(item.get("base"), dict) else None,
+                }
+                for item in pulls
+            ],
+        }
 
     def _build_recovery_summary(self, run: TaskRun, steps: list[RunStep]) -> dict[str, object]:
         step: RunStep | None = None
@@ -1330,6 +1382,21 @@ class TaskAgentService:
 
         issue_comment = plan.get("issue_comment")
         if isinstance(issue_comment, dict):
+            steps.append(
+                RunStep(
+                    run_id=run_id,
+                    step_index=step_index,
+                    step_id="issue-preflight",
+                    summary="Inspect target GitHub issue before comment sync",
+                    required_tier=PermissionTier.OBSERVE,
+                    action_name="github.inspect_issue",
+                    action_args={
+                        "issue_number": int(issue_comment["issue_number"]),
+                    },
+                    verification={"expects_state": "open"},
+                )
+            )
+            step_index += 1
             steps.append(
                 RunStep(
                     run_id=run_id,

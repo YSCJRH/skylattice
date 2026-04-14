@@ -55,6 +55,7 @@ Delivered so far:
 - branch-scoped PR reuse and deduplicated issue-comment sync on resume
 - tracked validation command ids, profiles, and richer expectation checks shared by runtime and CI
 - explicit non-destructive repo ops for tracked file creation and template copying
+- bounded GitHub issue and PR planning context plus issue-comment preflight checks
 
 Recommended first slice:
 

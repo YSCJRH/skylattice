@@ -48,7 +48,7 @@ Flow:
 
 1. interpret goal
 2. retrieve ranked profile, procedural, and semantic memory for the current goal
-3. generate a constrained plan with declared edit modes and tracked validation refs
+3. generate a constrained plan with declared edit modes, tracked validation refs, and bounded GitHub sync context when available
 4. gate repo and external writes
 5. execute deterministic text edits or full rewrites through the repo workspace adapter
 6. verify results with tracked validation commands and local edit invariants
@@ -57,6 +57,7 @@ Flow:
 
 The planner can see a bounded `memory_context`, but memory retrieval does not widen permissions or validation scope.
 Resume behavior is also bounded: blocked and halted steps expose structured recovery metadata, and GitHub sync steps try to reuse prior remote artifacts instead of blindly duplicating them.
+GitHub context is similarly bounded: planner prompts may see recent open issues and PRs, but GitHub remains advisory collaboration context rather than runtime truth.
 
 Current task edit modes:
 

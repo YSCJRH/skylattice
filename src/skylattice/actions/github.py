@@ -42,6 +42,36 @@ class GitHubAdapter:
     def get_repo(self) -> dict[str, Any]:
         return self._request_json("GET", f"/repos/{self.repo.slug}")
 
+    def get_issue(self, issue_number: int) -> dict[str, Any]:
+        payload = self._request_json("GET", f"/repos/{self.repo.slug}/issues/{issue_number}")
+        return payload if isinstance(payload, dict) else {}
+
+    def list_issues(
+        self,
+        *,
+        state: str = "open",
+        per_page: int = 10,
+    ) -> list[dict[str, Any]]:
+        payload = self._request_json(
+            "GET",
+            f"/repos/{self.repo.slug}/issues?{urlencode({'state': state, 'per_page': per_page})}",
+        )
+        if not isinstance(payload, list):
+            return []
+        return [item for item in payload if "pull_request" not in item]
+
+    def list_pull_requests(
+        self,
+        *,
+        state: str = "open",
+        per_page: int = 10,
+    ) -> list[dict[str, Any]]:
+        payload = self._request_json(
+            "GET",
+            f"/repos/{self.repo.slug}/pulls?{urlencode({'state': state, 'per_page': per_page})}",
+        )
+        return payload if isinstance(payload, list) else []
+
     def get_repository(self, repo_slug: str) -> dict[str, Any]:
         return self._request_json("GET", f"/repos/{self._parse_repo(repo_slug).slug}")
 

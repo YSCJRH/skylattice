@@ -38,6 +38,7 @@ class OpenAIProvider:
             "Repository context:\n"
             f"{json.dumps(repo_context, indent=2)}\n\n"
             "Use memory_context when it helps clarify standing preferences, reusable workflows, or durable semantic context.\n"
+            "Use github_context when it is available to keep pull request and issue-comment plans aligned with recent open collaboration state.\n"
             "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
             "Supported file operation modes: rewrite, replace_text, insert_after, append_text, create_file, copy_file.\n"
             "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
