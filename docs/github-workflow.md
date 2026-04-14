@@ -37,6 +37,15 @@ GitHub serves five roles in the current system:
 - add issue comments when the task plan calls for them
 - present PR and Issue templates that reinforce task briefs, verification, and privacy-safe reporting
 
+## Resume-Safe Sync
+
+Task-agent GitHub sync is now recovery-aware.
+
+- draft PR sync remains branch-scoped, so a resumed run updates the existing draft PR instead of creating a fresh one for the same head branch
+- issue comments use a stable per-run dedupe marker so resume can reuse an already-created comment if the first attempt failed after the remote write
+- `task inspect`, CLI status, and `GET /runs/{run_id}/recovery` expose whether a run is resumable, what approval is required next, and the likely side-effect risk
+- this is still operator-triggered recovery, not autonomous retry logic
+
 ## CI Baseline
 
 The current public CI lane is intentionally narrow.

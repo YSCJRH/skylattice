@@ -51,6 +51,11 @@ def get_run_memory(run_id: str, service: TaskAgentService = Depends(get_task_age
     return service.inspect_run(run_id)["memory"]
 
 
+@app.get("/runs/{run_id}/recovery")
+def get_run_recovery(run_id: str, service: TaskAgentService = Depends(get_task_agent_service)) -> dict[str, object]:
+    return service.get_run_recovery(run_id)
+
+
 @app.get("/memory/records/{record_id}")
 def get_memory_record(record_id: str, service: TaskAgentService = Depends(get_task_agent_service)) -> dict[str, object]:
     return service.inspect_memory_record(record_id)

@@ -29,6 +29,7 @@ Public surfaces:
 - CLI commands for `doctor`, `task ...`, and `radar ...`
 - reviewed local memory commands via `skylattice memory ...` for profile proposals, search, export, and rollback
 - deterministic task edit modes: `rewrite`, `replace_text`, `insert_after`, and `append_text`
+- halted task runs now expose recovery guidance, retry metadata, and resume-safe GitHub sync behavior
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`

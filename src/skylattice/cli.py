@@ -148,7 +148,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 _dump(service.inspect_run(run.run_id))
                 return 0
             if args.task_command == "status":
-                _dump(service._serialize_run(service.get_run(args.run_id)))
+                _dump(
+                    {
+                        "run": service._serialize_run(service.get_run(args.run_id)),
+                        "recovery": service.get_run_recovery(args.run_id),
+                    }
+                )
                 return 0
             if args.task_command == "resume":
                 run = service.resume_task(

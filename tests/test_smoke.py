@@ -32,25 +32,60 @@ class FakeGitHubAdapter:
         title: str,
         body: str,
     ) -> dict[str, object]:
+        for payload in self.pull_requests:
+            if payload["head_branch"] == head_branch:
+                payload.update({"base_branch": base_branch, "title": title, "body": body})
+                return {
+                    **payload,
+                    "reused": True,
+                    "sync_mode": "update",
+                    "dedupe_key": head_branch,
+                }
         payload = {
-            "number": 1,
-            "html_url": "https://github.com/example/skylattice/pull/1",
+            "number": len(self.pull_requests) + 1,
+            "html_url": f"https://github.com/example/skylattice/pull/{len(self.pull_requests) + 1}",
             "head_branch": head_branch,
             "base_branch": base_branch,
             "title": title,
             "body": body,
         }
         self.pull_requests.append(payload)
-        return payload
+        return {
+            **payload,
+            "reused": False,
+            "sync_mode": "create",
+            "dedupe_key": head_branch,
+        }
 
     def add_issue_comment(self, *, issue_number: int, body: str) -> dict[str, object]:
         payload = {
             "issue_number": issue_number,
             "body": body,
-            "html_url": f"https://github.com/example/skylattice/issues/{issue_number}#issuecomment-1",
+            "html_url": f"https://github.com/example/skylattice/issues/{issue_number}#issuecomment-{len(self.comments) + 1}",
         }
         self.comments.append(payload)
         return payload
+
+    def list_issue_comments(self, *, issue_number: int, per_page: int = 100) -> list[dict[str, object]]:
+        return [comment for comment in self.comments if int(comment["issue_number"]) == issue_number][:per_page]
+
+    def create_or_reuse_issue_comment(self, *, issue_number: int, body: str, dedupe_key: str) -> dict[str, object]:
+        marker = f"<!-- skylattice:{dedupe_key} -->"
+        for payload in self.list_issue_comments(issue_number=issue_number):
+            if marker in str(payload["body"]):
+                return {
+                    **payload,
+                    "reused": True,
+                    "sync_mode": "reuse",
+                    "dedupe_key": dedupe_key,
+                }
+        payload = self.add_issue_comment(issue_number=issue_number, body=f"{body}\n\n{marker}")
+        return {
+            **payload,
+            "reused": False,
+            "sync_mode": "create",
+            "dedupe_key": dedupe_key,
+        }
 
 
 class LocalPushGitAdapter:
@@ -64,6 +99,38 @@ class LocalPushGitAdapter:
     def push(self, branch_name: str, remote: str = "origin") -> str:
         self.push_calls.append({"branch_name": branch_name, "remote": remote})
         return branch_name
+
+
+class FlakyPushGitAdapter(LocalPushGitAdapter):
+    def __init__(self, repo_root: Path) -> None:
+        super().__init__(repo_root)
+        self.failures_remaining = 1
+
+    def push(self, branch_name: str, remote: str = "origin") -> str:
+        self.push_calls.append({"branch_name": branch_name, "remote": remote})
+        if self.failures_remaining > 0:
+            self.failures_remaining -= 1
+            raise RuntimeError("simulated push failure")
+        return branch_name
+
+
+class FlakyIssueCommentGitHubAdapter(FakeGitHubAdapter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.failures_remaining = 1
+
+    def create_or_reuse_issue_comment(self, *, issue_number: int, body: str, dedupe_key: str) -> dict[str, object]:
+        marker = f"<!-- skylattice:{dedupe_key} -->"
+        existing = [
+            comment
+            for comment in self.list_issue_comments(issue_number=issue_number)
+            if marker in str(comment["body"])
+        ]
+        if not existing and self.failures_remaining > 0:
+            self.failures_remaining -= 1
+            super().create_or_reuse_issue_comment(issue_number=issue_number, body=body, dedupe_key=dedupe_key)
+            raise RuntimeError("simulated issue comment failure")
+        return super().create_or_reuse_issue_comment(issue_number=issue_number, body=body, dedupe_key=dedupe_key)
 
 
 def _write(path: Path, content: str) -> None:
@@ -205,6 +272,15 @@ def build_multimode_plan() -> dict[str, object]:
     }
 
 
+def build_issue_comment_plan() -> dict[str, object]:
+    plan = build_fake_plan()
+    plan["issue_comment"] = {
+        "issue_number": 7,
+        "body": "Skylattice prepared a governed repo update and draft PR.",
+    }
+    return plan
+
+
 def test_health_and_doctor_reports() -> None:
     report = build_doctor_report()
     client = TestClient(app)
@@ -335,6 +411,7 @@ def test_task_resume_executes_branch_push_and_pr(tmp_path: Path) -> None:
     assert any(record["layer"] == "episodic" for record in details["memory"])
     assert any(record["layer"] == "procedural" for record in details["memory"])
     assert any(record["layer"] == "working" and record["status"] == "tombstoned" for record in details["memory"])
+    assert details["recovery"]["status"] == "completed"
 
 
 def test_task_run_supports_mixed_edit_modes_and_records_materialized_payloads(tmp_path: Path) -> None:
@@ -388,6 +465,72 @@ def test_task_run_supports_mixed_edit_modes_and_records_materialized_payloads(tm
     assert github.pull_requests[0]["title"] == "docs: exercise deterministic task-agent edits"
 
 
+def test_halted_push_reports_recovery_and_resumes(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    provider = FakeProvider(
+        plan=build_fake_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nInitial content.\n\n## Recovery\n\nPush retry test.\n"},
+    )
+    github = FakeGitHubAdapter()
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    flaky_git = FlakyPushGitAdapter(repo)
+    service.git = flaky_git
+
+    halted = service.run_task(
+        goal_input="Refresh the README and prepare a PR.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    halted_details = service.inspect_run(halted.run_id)
+
+    assert halted.status.value == "halted"
+    assert halted_details["recovery"]["resumable"] is True
+    assert halted_details["recovery"]["next_step_id"] == "push"
+    assert halted_details["recovery"]["recommended_allows"] == ["external-write"]
+    assert halted_details["steps"][4]["result"]["attempt_count"] == 1
+    assert halted_details["steps"][4]["result"]["last_error"] == "simulated push failure"
+
+    resumed = service.resume_task(run_id=halted.run_id, allow_external_write=True)
+    resumed_details = service.inspect_run(resumed.run_id)
+
+    assert resumed.status.value == "completed"
+    assert resumed_details["steps"][4]["result"]["attempt_count"] == 2
+    assert resumed_details["steps"][4]["result"]["previous_errors"] == ["simulated push failure"]
+    assert resumed_details["recovery"]["status"] == "completed"
+
+
+def test_issue_comment_resume_reuses_existing_comment(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    provider = FakeProvider(
+        plan=build_issue_comment_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nInitial content.\n\n## Recovery\n\nIssue comment retry test.\n"},
+    )
+    github = FlakyIssueCommentGitHubAdapter()
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    service.git = LocalPushGitAdapter(repo)
+
+    halted = service.run_task(
+        goal_input="Refresh the README, prepare a PR, and leave an issue comment.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    halted_details = service.inspect_run(halted.run_id)
+
+    assert halted.status.value == "halted"
+    assert halted_details["recovery"]["next_step_id"] == "issue-comment"
+    assert halted_details["recovery"]["side_effect_risk"] == "medium"
+    assert len(github.comments) == 1
+
+    resumed = service.resume_task(run_id=halted.run_id, allow_external_write=True)
+    resumed_details = service.inspect_run(resumed.run_id)
+
+    assert resumed.status.value == "completed"
+    assert len(github.comments) == 1
+    assert resumed_details["steps"][-1]["result"]["reused"] is True
+    assert resumed_details["steps"][-1]["result"]["sync_mode"] == "reuse"
+    assert resumed_details["steps"][-1]["result"]["attempt_count"] == 2
+
+
 def test_task_validation_commands_come_from_tracked_config(tmp_path: Path) -> None:
     repo = create_temp_repo(tmp_path, validation_commands=("git diff --stat",))
     service = TaskAgentService.from_repo(repo_root=repo)
@@ -410,6 +553,7 @@ def test_api_returns_run_events_and_memory(tmp_path: Path) -> None:
         run_response = client.get(f"/runs/{run.run_id}")
         event_response = client.get(f"/runs/{run.run_id}/events")
         memory_response = client.get(f"/runs/{run.run_id}/memory")
+        recovery_response = client.get(f"/runs/{run.run_id}/recovery")
     finally:
         app.dependency_overrides.clear()
 
@@ -418,4 +562,6 @@ def test_api_returns_run_events_and_memory(tmp_path: Path) -> None:
     assert event_response.status_code == 200
     assert any(event["kind"] == "run" for event in event_response.json())
     assert memory_response.status_code == 200
+    assert recovery_response.status_code == 200
+    assert recovery_response.json()["status"] in {"awaiting_approval", "completed"}
     assert any(record["layer"] == "working" for record in memory_response.json())

@@ -217,6 +217,8 @@ class TaskAgentService:
         allow_repo_write: bool = False,
         allow_external_write: bool = False,
     ) -> TaskRun:
+        run = self.run_repository.get_run(run_id)
+        recovery = self._build_recovery_summary(run, self.run_repository.list_steps(run_id))
         self.run_repository.grant_approvals(
             run_id,
             self._build_approvals(allow_repo_write=allow_repo_write, allow_external_write=allow_external_write),
@@ -231,6 +233,18 @@ class TaskAgentService:
                 "external_write": allow_external_write,
             },
         )
+        self.ledger.append(
+            run_id=run_id,
+            kind=EventKind.RUN,
+            summary="Task run resume requested",
+            actor="operator",
+            payload={
+                "resumable": recovery.get("resumable", False),
+                "next_step_id": recovery.get("next_step_id"),
+                "next_action_name": recovery.get("next_action_name"),
+                "recommended_allows": recovery.get("recommended_allows", []),
+            },
+        )
         return self._execute_until_blocked(run_id)
 
     def get_run(self, run_id: str) -> TaskRun:
@@ -238,12 +252,18 @@ class TaskAgentService:
 
     def inspect_run(self, run_id: str) -> dict[str, object]:
         run = self.run_repository.get_run(run_id)
+        steps = self.run_repository.list_steps(run_id)
         return {
             "run": self._serialize_run(run),
-            "steps": [self._serialize_step(step) for step in self.run_repository.list_steps(run_id)],
+            "recovery": self._build_recovery_summary(run, steps),
+            "steps": [self._serialize_step(step) for step in steps],
             "events": [self._serialize_event(event) for event in self.ledger.list_for_run(run_id)],
             "memory": [self._serialize_memory(record) for record in self.memory.list_for_run(run_id)],
         }
+
+    def get_run_recovery(self, run_id: str) -> dict[str, object]:
+        run = self.run_repository.get_run(run_id)
+        return self._build_recovery_summary(run, self.run_repository.list_steps(run_id))
 
     def scan_radar(self, *, window: str = "manual", limit: int | None = None):
         return self.radar.scan(window=window, limit=limit)
@@ -456,8 +476,16 @@ class TaskAgentService:
             )
             if outcome.decision is GovernanceDecision.DENIED:
                 self.run_repository.update_status(run_id, RunStatus.WAITING_APPROVAL, error=outcome.reason)
+                blocked_result = {
+                    **step.result,
+                    "recovery": self._step_recovery_metadata(
+                        step,
+                        run_status=RunStatus.WAITING_APPROVAL,
+                        reason=outcome.reason,
+                    ),
+                }
                 blocked_step = RunStep(
-                    **{**asdict(step), "status": RunStepStatus.BLOCKED, "result": {"reason": outcome.reason}}
+                    **{**asdict(step), "status": RunStepStatus.BLOCKED, "result": blocked_result}
                 )
                 self.run_repository.update_step(blocked_step)
                 self.ledger.append(
@@ -468,6 +496,20 @@ class TaskAgentService:
                     payload={"reason": outcome.reason, "required_tier": step.required_tier.value},
                 )
                 return self.run_repository.get_run(run_id)
+
+            next_attempt = self._next_attempt_count(step)
+            if step.status in {RunStepStatus.FAILED, RunStepStatus.BLOCKED}:
+                self.ledger.append(
+                    run_id=run_id,
+                    kind=EventKind.RUN,
+                    summary=f"Retrying step {step.step_id}",
+                    actor="skylattice",
+                    payload={
+                        "step_id": step.step_id,
+                        "attempt_count": next_attempt,
+                        "action_name": step.action_name,
+                    },
+                )
 
             self.run_repository.set_current_step(run_id, step.step_index)
             running_step = RunStep(**{**asdict(step), "status": RunStepStatus.RUNNING})
@@ -481,8 +523,9 @@ class TaskAgentService:
                     if step.required_tier in {PermissionTier.REPO_WRITE, PermissionTier.EXTERNAL_WRITE}
                     else RunStatus.FAILED
                 )
+                failed_result = self._build_failed_step_result(step, error=str(exc), run_status=status)
                 failed_step = RunStep(
-                    **{**asdict(step), "status": RunStepStatus.FAILED, "result": {"error": str(exc)}}
+                    **{**asdict(step), "status": RunStepStatus.FAILED, "result": failed_result}
                 )
                 self.run_repository.update_step(failed_step)
                 self.run_repository.update_status(run_id, status, error=str(exc))
@@ -497,8 +540,9 @@ class TaskAgentService:
                 )
                 return self.run_repository.get_run(run_id)
 
+            verified_result = self._build_verified_step_result(step, {**result, "verified": verified})
             verified_step = RunStep(
-                **{**asdict(step), "status": RunStepStatus.VERIFIED, "result": {**result, "verified": verified}}
+                **{**asdict(step), "status": RunStepStatus.VERIFIED, "result": verified_result}
             )
             self.run_repository.update_step(verified_step)
             self.ledger.append(
@@ -578,18 +622,31 @@ class TaskAgentService:
             return {
                 "number": response.get("number"),
                 "html_url": response.get("html_url"),
+                "reused": bool(response.get("reused", False)),
+                "sync_mode": str(response.get("sync_mode", "create")),
+                "dedupe_key": str(response.get("dedupe_key", step.action_args["head_branch"])),
                 "artifact_refs": [str(response.get("html_url", ""))] if response.get("html_url") else [],
             }
 
         if step.action_name == "github.add_issue_comment":
             if self.github is None:
                 raise RuntimeError("GitHub adapter is not configured")
-            response = self.github.add_issue_comment(
-                issue_number=int(step.action_args["issue_number"]),
-                body=str(step.action_args["body"]),
-            )
+            issue_number = int(step.action_args["issue_number"])
+            body = str(step.action_args["body"])
+            dedupe_key = self._dedupe_key_for_step(step)
+            if hasattr(self.github, "create_or_reuse_issue_comment"):
+                response = self.github.create_or_reuse_issue_comment(
+                    issue_number=issue_number,
+                    body=body,
+                    dedupe_key=dedupe_key or f"{step.run_id}:{step.step_id}",
+                )
+            else:
+                response = self.github.add_issue_comment(issue_number=issue_number, body=body)
             return {
                 "html_url": response.get("html_url"),
+                "reused": bool(response.get("reused", False)),
+                "sync_mode": str(response.get("sync_mode", "create")),
+                "dedupe_key": str(response.get("dedupe_key", dedupe_key or "")),
                 "artifact_refs": [str(response.get("html_url", ""))] if response.get("html_url") else [],
             }
 
@@ -696,6 +753,71 @@ class TaskAgentService:
                 context[candidate] = self.workspace.read_text(candidate)[:4000]
         return context
 
+    def _build_recovery_summary(self, run: TaskRun, steps: list[RunStep]) -> dict[str, object]:
+        step: RunStep | None = None
+        status_label = "not_needed"
+        resumable = False
+        reason = ""
+
+        if run.status is RunStatus.WAITING_APPROVAL:
+            step = next((item for item in steps if item.status is RunStepStatus.BLOCKED), None)
+            status_label = "awaiting_approval"
+            resumable = True
+            reason = run.error or "Task run is waiting for operator approval."
+        elif run.status is RunStatus.HALTED:
+            step = next((item for item in reversed(steps) if item.status is RunStepStatus.FAILED), None)
+            status_label = "retryable"
+            resumable = True
+            reason = run.error or "Task run halted after a retryable repo or external write failure."
+        elif run.status is RunStatus.FAILED:
+            step = next((item for item in reversed(steps) if item.status is RunStepStatus.FAILED), None)
+            status_label = "not_resumable"
+            reason = run.error or "Task run failed in a non-retryable state."
+        elif run.status is RunStatus.COMPLETED:
+            status_label = "completed"
+            reason = "Task run completed."
+        else:
+            step = next((item for item in steps if item.status in {RunStepStatus.BLOCKED, RunStepStatus.FAILED}), None)
+            status_label = "in_progress"
+            reason = "Task run is active."
+
+        if step is None:
+            return {
+                "status": status_label,
+                "resumable": resumable,
+                "reason": reason,
+                "next_step_id": None,
+                "next_step_index": None,
+                "next_action_name": None,
+                "required_tier": None,
+                "recommended_allows": [],
+                "side_effect_risk": "none",
+                "attempt_count": 0,
+                "last_error": run.error,
+                "dedupe_key": None,
+                "guidance": [],
+            }
+
+        recovery = self._step_recovery_metadata(step, run_status=run.status, reason=reason)
+        stored = step.result.get("recovery")
+        if isinstance(stored, dict):
+            recovery = {**recovery, **stored}
+        return {
+            "status": status_label,
+            "resumable": resumable,
+            "reason": reason,
+            "next_step_id": step.step_id,
+            "next_step_index": step.step_index,
+            "next_action_name": step.action_name,
+            "required_tier": step.required_tier.value,
+            "recommended_allows": recovery.get("recommended_allows", []),
+            "side_effect_risk": recovery.get("side_effect_risk", "low"),
+            "attempt_count": self._step_attempt_count(step),
+            "last_error": step.result.get("last_error", run.error),
+            "dedupe_key": recovery.get("dedupe_key"),
+            "guidance": recovery.get("guidance", []),
+        }
+
     def _memory_context_for_goal(self, goal_text: str) -> dict[str, list[dict[str, object]]]:
         query = goal_text.strip()
         return {
@@ -740,6 +862,115 @@ class TaskAgentService:
         except ValueError:
             return str(path)
         return relative.as_posix() if relative.parts else "."
+
+    @staticmethod
+    def _step_attempt_count(step: RunStep) -> int:
+        raw = step.result.get("attempt_count", 0)
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return 0
+
+    def _next_attempt_count(self, step: RunStep) -> int:
+        return self._step_attempt_count(step) + 1
+
+    @staticmethod
+    def _step_error_history(step: RunStep) -> list[str]:
+        history: list[str] = []
+        previous = step.result.get("previous_errors", [])
+        if isinstance(previous, list):
+            history.extend(str(item) for item in previous if str(item).strip())
+        last_error = step.result.get("last_error")
+        if isinstance(last_error, str) and last_error.strip():
+            history.append(last_error)
+        return list(dict.fromkeys(history))
+
+    def _required_allows_for_step(self, step: RunStep) -> list[str]:
+        if step.required_tier is PermissionTier.REPO_WRITE:
+            return ["repo-write"]
+        if step.required_tier is PermissionTier.EXTERNAL_WRITE:
+            return ["external-write"]
+        return []
+
+    @staticmethod
+    def _side_effect_risk(action_name: str) -> str:
+        if action_name == "github.add_issue_comment":
+            return "medium"
+        if action_name in {"github.sync_pull_request", "git.push_branch"}:
+            return "low"
+        if action_name.startswith("workspace.") or action_name == "git.commit_all":
+            return "low"
+        return "none"
+
+    def _dedupe_key_for_step(self, step: RunStep) -> str | None:
+        if step.action_name == "github.sync_pull_request":
+            return str(step.action_args.get("head_branch", ""))
+        if step.action_name == "github.add_issue_comment":
+            return f"{step.run_id}:{step.step_id}"
+        if step.action_name == "git.push_branch":
+            return str(step.action_args.get("branch_name", ""))
+        return None
+
+    def _step_recovery_metadata(
+        self,
+        step: RunStep,
+        *,
+        run_status: RunStatus,
+        reason: str,
+    ) -> dict[str, object]:
+        recommended_allows = self._required_allows_for_step(step)
+        guidance: list[str] = []
+        status_label = "not_needed"
+        resumable = False
+
+        if run_status is RunStatus.WAITING_APPROVAL:
+            status_label = "awaiting_approval"
+            resumable = True
+            if recommended_allows:
+                guidance.append(f"Resume with --allow {' '.join(recommended_allows)} once you approve this step.")
+            else:
+                guidance.append("This step is waiting for approval before execution can continue.")
+        elif run_status is RunStatus.HALTED:
+            status_label = "retryable"
+            resumable = True
+            guidance.append("Review the last error before retrying this step.")
+            if step.required_tier is PermissionTier.EXTERNAL_WRITE:
+                guidance.append("Check whether the previous external write partially succeeded before resuming.")
+            if recommended_allows:
+                guidance.append(f"Resume with --allow {' '.join(recommended_allows)} after verifying side effects.")
+        elif run_status is RunStatus.FAILED:
+            status_label = "not_resumable"
+            guidance.append("Fix the underlying issue and start a new run once the repo is ready.")
+        elif run_status is RunStatus.COMPLETED:
+            status_label = "completed"
+        else:
+            status_label = "in_progress"
+
+        return {
+            "status": status_label,
+            "resumable": resumable,
+            "recommended_allows": recommended_allows,
+            "side_effect_risk": self._side_effect_risk(step.action_name),
+            "dedupe_key": self._dedupe_key_for_step(step),
+            "guidance": guidance,
+            "reason": reason,
+        }
+
+    def _build_failed_step_result(self, step: RunStep, *, error: str, run_status: RunStatus) -> dict[str, object]:
+        return {
+            "attempt_count": self._next_attempt_count(step),
+            "last_error": error,
+            "previous_errors": self._step_error_history(step),
+            "recovery": self._step_recovery_metadata(step, run_status=run_status, reason=error),
+        }
+
+    def _build_verified_step_result(self, step: RunStep, result: dict[str, object]) -> dict[str, object]:
+        payload = dict(result)
+        payload["attempt_count"] = self._next_attempt_count(step)
+        previous_errors = self._step_error_history(step)
+        if previous_errors:
+            payload["previous_errors"] = previous_errors
+        return payload
 
     def _resolve_memory_export_path(self, output_path: str | None) -> Path:
         if output_path:

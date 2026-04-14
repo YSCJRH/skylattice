@@ -38,6 +38,15 @@ Task validation is intentionally narrow.
 - planning a validation step does not grant arbitrary shell access or widen operator approvals
 - deterministic text-edit primitives still require `repo-write`; validation commands stay in the `observe` tier
 
+## Recovery Guard
+
+Recovery is explicit rather than automatic.
+
+- blocked and halted runs require an operator-driven `task resume`
+- repo-write and external-write failures can be retryable, but Skylattice must surface the failing step, required approval, and side-effect risk first
+- resume-safe GitHub sync prefers branch-scoped PR reuse and deduplicated issue comments over blind replay
+- no background retry worker is allowed in the current architecture
+
 ## Radar-Specific Guards
 
 Auto-approved does not mean unbounded. Radar writes still pass extra gates in code:

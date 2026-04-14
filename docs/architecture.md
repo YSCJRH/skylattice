@@ -51,9 +51,11 @@ Flow:
 4. gate repo and external writes
 5. execute deterministic text edits or full rewrites through the repo workspace adapter
 6. verify results with tracked validation commands and local edit invariants
-7. write episodic and procedural memory
+7. expose retry diagnostics for blocked or halted steps, then resume only with explicit operator action
+8. write episodic and procedural memory
 
 The planner can see a bounded `memory_context`, but memory retrieval does not widen permissions or validation scope.
+Resume behavior is also bounded: blocked and halted steps expose structured recovery metadata, and GitHub sync steps try to reuse prior remote artifacts instead of blindly duplicating them.
 
 Current task edit modes:
 
@@ -101,6 +103,7 @@ Flow:
 
 - GitHub is a source and audit surface, not runtime truth.
 - Task-agent validation commands are constrained to tracked config and do not grant arbitrary shell execution.
+- halted repo and external write steps remain operator-resumed; there is no automatic retry worker
 - profile updates, semantic compaction, and procedural dedup stay review-driven local actions; there is no background memory mutation
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
@@ -110,6 +113,7 @@ Flow:
 
 - every task and radar run has ledger events
 - task edit steps record their materialized payloads for inspection
+- halted and blocked task steps record retry metadata and recovery guidance for `task inspect`, CLI status, and the read-only API
 - memory writes are attached to run ids when applicable
 - memory records can be listed, searched, exported, rolled back, and reviewed through the CLI without exposing a write API
 - radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`

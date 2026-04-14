@@ -92,6 +92,35 @@ class GitHubAdapter:
             {"body": body},
         )
 
+    def list_issue_comments(self, *, issue_number: int, per_page: int = 100) -> list[dict[str, Any]]:
+        payload = self._request_json(
+            "GET",
+            f"/repos/{self.repo.slug}/issues/{issue_number}/comments?{urlencode({'per_page': per_page})}",
+        )
+        return payload if isinstance(payload, list) else []
+
+    def create_or_reuse_issue_comment(self, *, issue_number: int, body: str, dedupe_key: str) -> dict[str, Any]:
+        marker = self._comment_marker(dedupe_key)
+        for comment in self.list_issue_comments(issue_number=issue_number):
+            if marker in str(comment.get("body", "")):
+                return {
+                    **comment,
+                    "reused": True,
+                    "sync_mode": "reuse",
+                    "dedupe_key": dedupe_key,
+                }
+
+        payload = self.add_issue_comment(
+            issue_number=issue_number,
+            body=self._append_comment_marker(body, marker),
+        )
+        return {
+            **payload,
+            "reused": False,
+            "sync_mode": "create",
+            "dedupe_key": dedupe_key,
+        }
+
     def create_or_update_draft_pr(
         self,
         *,
@@ -104,12 +133,18 @@ class GitHubAdapter:
         open_pulls = self._request_json("GET", f"/repos/{self.repo.slug}/pulls?{query}")
         if isinstance(open_pulls, list) and open_pulls:
             number = int(open_pulls[0]["number"])
-            return self._request_json(
+            payload = self._request_json(
                 "PATCH",
                 f"/repos/{self.repo.slug}/pulls/{number}",
                 {"title": title, "body": body, "base": base_branch},
             )
-        return self._request_json(
+            return {
+                **payload,
+                "reused": True,
+                "sync_mode": "update",
+                "dedupe_key": head_branch,
+            }
+        payload = self._request_json(
             "POST",
             f"/repos/{self.repo.slug}/pulls",
             {
@@ -120,6 +155,12 @@ class GitHubAdapter:
                 "draft": True,
             },
         )
+        return {
+            **payload,
+            "reused": False,
+            "sync_mode": "create",
+            "dedupe_key": head_branch,
+        }
 
     def _request_json(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
@@ -159,3 +200,13 @@ class GitHubAdapter:
             raise ValueError(f"Unsupported GitHub repository value: {value}")
         owner, name = cleaned.split("/", 1)
         return GitHubRepoRef(owner=owner, name=name)
+
+    @staticmethod
+    def _comment_marker(dedupe_key: str) -> str:
+        return f"<!-- skylattice:{dedupe_key} -->"
+
+    @staticmethod
+    def _append_comment_marker(body: str, marker: str) -> str:
+        if marker in body:
+            return body
+        return f"{body.rstrip()}\n\n{marker}"
