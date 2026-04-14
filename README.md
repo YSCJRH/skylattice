@@ -29,6 +29,7 @@ Public surfaces:
 - CLI commands for `doctor`, `task ...`, and `radar ...`
 - reviewed local memory commands via `skylattice memory ...` for profile proposals, search, export, and rollback
 - deterministic task edit modes: `rewrite`, `replace_text`, `insert_after`, and `append_text`
+- explicit non-destructive repo ops: `create_file` and `copy_file`
 - halted task runs now expose recovery guidance, retry metadata, and resume-safe GitHub sync behavior
 - tracked validation now uses stable command ids and profiles shared by runtime and CI
 - append-only ledger and run inspection for task and radar workflows

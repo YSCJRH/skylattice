@@ -39,8 +39,9 @@ class OpenAIProvider:
             f"{json.dumps(repo_context, indent=2)}\n\n"
             "Use memory_context when it helps clarify standing preferences, reusable workflows, or durable semantic context.\n"
             "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
-            "Supported edit modes: rewrite, replace_text, insert_after, append_text.\n"
+            "Supported file operation modes: rewrite, replace_text, insert_after, append_text, create_file, copy_file.\n"
             "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
+            "Prefer create_file for new tracked text files and copy_file when starting from an existing tracked-safe template.\n"
             f"Allowed validation refs: {command_list}.\n"
             "Use validation_catalog from the repository context as the source of truth.\n"
             "Prefer returning validation command ids instead of raw commands when possible.\n"
@@ -64,9 +65,10 @@ class OpenAIProvider:
                                 "path": {"type": "string"},
                                 "mode": {
                                     "type": "string",
-                                    "enum": ["rewrite", "replace_text", "insert_after", "append_text"],
+                                    "enum": ["rewrite", "replace_text", "insert_after", "append_text", "create_file", "copy_file"],
                                 },
                                 "create_if_missing": {"type": "boolean"},
+                                "source_path": {"type": "string"},
                                 "instructions": {"type": "string"},
                             },
                             "required": ["path", "mode", "create_if_missing", "instructions"],

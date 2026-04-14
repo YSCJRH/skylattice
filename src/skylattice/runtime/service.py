@@ -596,8 +596,11 @@ class TaskAgentService:
         if step.action_name == "git.create_branch":
             return self.git.create_branch(str(step.action_args["branch_name"]))
 
-        if step.action_name in {"workspace.edit_file", "workspace.rewrite_file"}:
+        if step.action_name in {"workspace.edit_file", "workspace.rewrite_file", "workspace.create_file"}:
             return self._execute_rewrite_step(run, step)
+
+        if step.action_name == "workspace.copy_file":
+            return self._execute_copy_step(step)
 
         if step.action_name in {"workspace.replace_text", "workspace.insert_after", "workspace.append_text"}:
             return self._execute_materialized_edit_step(run, step)
@@ -673,10 +676,12 @@ class TaskAgentService:
             repo_context=self._build_repo_context(goal_text=run.goal),
         )
         payload = {"mode": "rewrite", "content": updated}
+        if step.action_name == "workspace.create_file":
+            payload["mode"] = "create_file"
         written = self.workspace.apply_materialized_edit(
             path,
             payload,
-            create_if_missing=bool(step.action_args.get("create_if_missing", False)),
+            create_if_missing=bool(step.action_args.get("create_if_missing", step.action_name == "workspace.create_file")),
         )
         return {
             "path": written,
@@ -705,11 +710,30 @@ class TaskAgentService:
         )
         return {
             "path": written,
+            "source_path": payload.get("source_path"),
             "artifact_refs": [written],
             "materialized_edit": payload,
             "verification_metadata": {
                 "content_length": len(self.workspace.read_text(path)),
                 "expected_occurrences": payload.get("expected_occurrences"),
+            },
+        }
+
+    def _execute_copy_step(self, step: RunStep) -> dict[str, object]:
+        source_path = str(step.action_args["source_path"])
+        destination_path = str(step.action_args["path"])
+        written = self.workspace.copy_file(source_path, destination_path)
+        payload = {
+            "mode": "copy_file",
+            "source_path": source_path,
+        }
+        return {
+            "path": written,
+            "source_path": source_path,
+            "artifact_refs": [written],
+            "materialized_edit": payload,
+            "verification_metadata": {
+                "content_length": len(self.workspace.read_text(destination_path)),
             },
         }
 
@@ -733,15 +757,23 @@ class TaskAgentService:
         if step.action_name in {
             "workspace.edit_file",
             "workspace.rewrite_file",
+            "workspace.create_file",
             "workspace.replace_text",
             "workspace.insert_after",
             "workspace.append_text",
+            "workspace.copy_file",
         }:
             path = step.action_args["path"]
             if not self.workspace.read_text(str(path)).strip():
                 raise RuntimeError(f"Edited file is empty: {path}")
             if "materialized_edit" not in result:
                 raise RuntimeError(f"Edit step did not record a materialized payload: {path}")
+            if step.action_name == "workspace.copy_file":
+                source_path = result.get("source_path")
+                if not source_path:
+                    raise RuntimeError(f"Copy step did not record source_path: {path}")
+                if self.workspace.read_text(str(source_path)) != self.workspace.read_text(str(path)):
+                    raise RuntimeError(f"Copied file does not match source: {path}")
             return True
         if step.action_name == "git.commit_all":
             if self.git.status_porcelain().strip():
@@ -771,7 +803,7 @@ class TaskAgentService:
                 name: list(values) for name, values in self.task_validation_policy.profiles.items()
             },
             "validation_catalog": self.task_validation_policy.command_catalog(),
-            "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text"],
+            "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text", "create_file", "copy_file"],
             "memory_context": self._memory_context_for_goal(goal_text),
         }
         for candidate in ("README.md", "docs/roadmap.md", "docs/architecture.md"):
@@ -1205,6 +1237,8 @@ class TaskAgentService:
                 "replace_text": "workspace.replace_text",
                 "insert_after": "workspace.insert_after",
                 "append_text": "workspace.append_text",
+                "create_file": "workspace.create_file",
+                "copy_file": "workspace.copy_file",
             }[mode]
             steps.append(
                 RunStep(
@@ -1218,6 +1252,7 @@ class TaskAgentService:
                         "path": path,
                         "mode": mode,
                         "create_if_missing": bool(operation.get("create_if_missing", False)),
+                        "source_path": str(operation.get("source_path", "")),
                         "instructions": str(operation["instructions"]),
                     },
                     verification={"path": path, "mode": mode},

@@ -48,6 +48,14 @@ Recovery is explicit rather than automatic.
 - resume-safe GitHub sync prefers branch-scoped PR reuse and deduplicated issue comments over blind replay
 - no background retry worker is allowed in the current architecture
 
+## Repo Operation Boundary
+
+Richer repo operations are still intentionally narrow.
+
+- non-destructive tracked file creation and template copying are allowed through explicit task primitives
+- destructive file lifecycle actions such as delete or move remain out of scope for the current runtime slice
+- this keeps repo automation useful for scaffolding work without weakening the default destructive guard
+
 ## Radar-Specific Guards
 
 Auto-approved does not mean unbounded. Radar writes still pass extra gates in code:

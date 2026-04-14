@@ -64,6 +64,8 @@ Current task edit modes:
 - `replace_text`
 - `insert_after`
 - `append_text`
+- `create_file`
+- `copy_file`
 
 ### Technology Radar Path
 
@@ -104,6 +106,7 @@ Flow:
 
 - GitHub is a source and audit surface, not runtime truth.
 - Task-agent validation commands are constrained to tracked config, profile membership, and declared expectations; they do not grant arbitrary shell execution.
+- Current richer repo ops remain non-destructive: `create_file` and `copy_file` are in scope, while delete and move stay deferred.
 - halted repo and external write steps remain operator-resumed; there is no automatic retry worker
 - profile updates, semantic compaction, and procedural dedup stay review-driven local actions; there is no background memory mutation
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.

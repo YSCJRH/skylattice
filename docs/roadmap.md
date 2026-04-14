@@ -54,6 +54,7 @@ Delivered so far:
 - resume-safe task recovery metadata for blocked and halted runs
 - branch-scoped PR reuse and deduplicated issue-comment sync on resume
 - tracked validation command ids, profiles, and richer expectation checks shared by runtime and CI
+- explicit non-destructive repo ops for tracked file creation and template copying
 
 Recommended first slice:
 

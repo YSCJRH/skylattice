@@ -43,7 +43,7 @@ class RepoWorkspaceAdapter:
         return sorted(files)
 
     def read_text(self, relative_path: str) -> str:
-        path = self._resolve(relative_path)
+        path = self._resolve(relative_path, allow_missing=True)
         return path.read_text(encoding="utf-8") if path.exists() else ""
 
     def search(self, pattern: str) -> list[str]:
@@ -65,6 +65,26 @@ class RepoWorkspaceAdapter:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         return str(path.relative_to(self.repo_root).as_posix())
+
+    def create_file(self, relative_path: str, content: str) -> str:
+        path = self._resolve(relative_path, allow_missing=True)
+        if path.exists():
+            raise ValueError(f"File already exists: {relative_path}")
+        return self.write_text(relative_path, content, create_if_missing=True)
+
+    def copy_file(self, source_path: str, destination_path: str) -> str:
+        source = self._resolve(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        destination = self._resolve(destination_path, allow_missing=True)
+        if destination.exists():
+            raise ValueError(f"Destination already exists: {destination_path}")
+        if source.suffix and source.suffix not in self.SAFE_EXTENSIONS:
+            raise ValueError(f"Copies from {source.suffix} files are not allowed in the MVP")
+        if destination.suffix and destination.suffix not in self.SAFE_EXTENSIONS:
+            raise ValueError(f"Copies to {destination.suffix} files are not allowed in the MVP")
+        content = source.read_text(encoding="utf-8")
+        return self.write_text(destination_path, content, create_if_missing=True)
 
     def replace_text(
         self,
@@ -127,6 +147,16 @@ class RepoWorkspaceAdapter:
         create_if_missing: bool = False,
     ) -> str:
         mode = str(payload.get("mode", ""))
+        if mode == "create_file":
+            return self.create_file(
+                relative_path,
+                str(payload.get("content", "")),
+            )
+        if mode == "copy_file":
+            return self.copy_file(
+                str(payload.get("source_path", "")),
+                relative_path,
+            )
         if mode == "rewrite":
             return self.write_text(
                 relative_path,

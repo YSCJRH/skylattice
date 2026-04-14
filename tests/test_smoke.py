@@ -214,6 +214,7 @@ destructive_keywords:
             + "".join(f"  - {command}\n" for command in commands),
         )
     _write(repo / "README.md", "# Temp Repo\n\nInitial content.\n")
+    _write(repo / "docs" / "tasks" / "_template.md", "# Task Brief Template\n\n## Intent\n\n- describe the goal\n")
 
     _run(["git", "init", "-b", "main"], repo)
     _run(["git", "config", "user.email", "tests@example.com"], repo)
@@ -292,6 +293,35 @@ def build_validation_id_plan(validation_ref: str) -> dict[str, object]:
     plan = build_fake_plan()
     plan["validation_commands"] = [validation_ref]
     return plan
+
+
+def build_repo_primitives_plan(validation_ref: str) -> dict[str, object]:
+    return {
+        "summary": "Create a note and scaffold a task brief from the tracked template.",
+        "branch_name": "repo-primitives",
+        "file_operations": [
+            {
+                "path": "docs/notes.md",
+                "mode": "create_file",
+                "create_if_missing": True,
+                "instructions": "Create a short tracked note describing the new repo primitives.",
+            },
+            {
+                "path": "docs/tasks/new-brief.md",
+                "mode": "copy_file",
+                "source_path": "docs/tasks/_template.md",
+                "create_if_missing": False,
+                "instructions": "Copy the tracked task brief template to a new brief path.",
+            },
+        ],
+        "validation_commands": [validation_ref],
+        "commit_message": "docs: add note and task brief scaffold",
+        "pull_request": {
+            "title": "docs: add note and task brief scaffold",
+            "body": "This exercises create_file and copy_file task operations.",
+            "base_branch": "main",
+        },
+    }
 
 
 def test_health_and_doctor_reports() -> None:
@@ -410,6 +440,15 @@ def test_repo_workspace_supports_deterministic_edit_primitives(tmp_path: Path) -
         workspace.replace_text("notes.md", "gamma", "GAMMA")
     with pytest.raises(ValueError, match="Anchor text not found"):
         workspace.insert_after("notes.md", "missing", "\nextra")
+    created = workspace.create_file("docs/created.md", "# Created\n")
+    copied = workspace.copy_file("docs/created.md", "docs/copied.md")
+    assert created == "docs/created.md"
+    assert copied == "docs/copied.md"
+    assert (repo / "docs" / "copied.md").read_text(encoding="utf-8") == "# Created\n"
+    with pytest.raises(ValueError, match="File already exists"):
+        workspace.create_file("docs/created.md", "# Exists\n")
+    with pytest.raises(ValueError, match="Destination already exists"):
+        workspace.copy_file("docs/created.md", "docs/copied.md")
 
 
 def test_task_run_waits_for_approval(tmp_path: Path) -> None:
@@ -547,6 +586,47 @@ profiles:
     assert details["steps"][2]["action_args"]["command_id"] == "marker-check"
     assert details["steps"][2]["result"]["validation_id"] == "marker-check"
     assert provider.plan_inputs[0]["allowed_validation_commands"] == ["marker-check", 'python -c "print(\'validation-ok\')"']
+
+
+def test_task_run_supports_create_file_and_copy_file_primitives(tmp_path: Path) -> None:
+    repo = create_temp_repo(
+        tmp_path,
+        validation_yaml="""
+runner: powershell
+default_profile: baseline
+commands:
+  - id: git-diff-stat
+    command: git diff --stat
+    expected_returncode: 0
+profiles:
+  baseline:
+    - git-diff-stat
+""",
+    )
+    provider = FakeProvider(
+        plan=build_repo_primitives_plan("git-diff-stat"),
+        file_outputs={"docs/notes.md": "# Repo Primitives\n\nCreate-file path.\n"},
+    )
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=FakeGitHubAdapter())
+    service.git = LocalPushGitAdapter(repo)
+
+    completed = service.run_task(
+        goal_input="Create a note and scaffold a new task brief.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    details = service.inspect_run(completed.run_id)
+
+    assert completed.status.value == "completed"
+    assert (repo / "docs" / "notes.md").read_text(encoding="utf-8").startswith("# Repo Primitives")
+    assert (repo / "docs" / "tasks" / "new-brief.md").read_text(encoding="utf-8") == (
+        repo / "docs" / "tasks" / "_template.md"
+    ).read_text(encoding="utf-8")
+    assert details["steps"][1]["action_name"] == "workspace.create_file"
+    assert details["steps"][1]["result"]["materialized_edit"]["mode"] == "create_file"
+    assert details["steps"][2]["action_name"] == "workspace.copy_file"
+    assert details["steps"][2]["result"]["materialized_edit"]["mode"] == "copy_file"
+    assert details["steps"][2]["result"]["source_path"] == "docs/tasks/_template.md"
 
 
 def test_validation_step_fails_when_expected_stdout_is_missing(tmp_path: Path) -> None:
