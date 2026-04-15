@@ -58,6 +58,24 @@ class RadarDecision(StrEnum):
     FREEZE = "freeze"
 
 
+class RadarEvidenceKind(StrEnum):
+    DISCOVERY_HIT = "discovery-hit"
+    OBJECT_METADATA = "object-metadata"
+    RELEASE_METADATA = "release-metadata"
+
+
+LEGACY_EVIDENCE_KIND_MAP = {
+    "search-result": RadarEvidenceKind.DISCOVERY_HIT.value,
+    "repository": RadarEvidenceKind.OBJECT_METADATA.value,
+    "release": RadarEvidenceKind.RELEASE_METADATA.value,
+}
+
+
+def normalize_evidence_kind(value: str) -> str:
+    key = value.strip().lower()
+    return LEGACY_EVIDENCE_KIND_MAP.get(key, key)
+
+
 @dataclass(frozen=True)
 class RadarRun:
     run_id: str

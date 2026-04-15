@@ -10,7 +10,7 @@ import uuid
 from skylattice.actions import GitHubAdapter
 
 from .config import RadarProviderConfig
-from .models import RadarCandidate, RadarCandidateStatus, RadarDecision, RadarEvidence
+from .models import RadarCandidate, RadarCandidateStatus, RadarDecision, RadarEvidence, RadarEvidenceKind
 
 
 class RadarDiscoverySource(Protocol):
@@ -83,7 +83,7 @@ class GitHubRadarSource:
                             provider_object_type="repository",
                             provider_object_id=repo_slug,
                             provider_url=str(item.get("html_url", "")) or None,
-                            evidence_kind="search-result",
+                            evidence_kind=RadarEvidenceKind.DISCOVERY_HIT.value,
                             source=query,
                             summary=f"GitHub search matched {repo_slug} for topic '{topic}'",
                             payload={"sort": sort, "stars": int(item.get("stargazers_count", 0))},
@@ -136,7 +136,7 @@ class GitHubRadarSource:
                 provider_object_type="repository",
                 provider_object_id=candidate.repo_slug,
                 provider_url=candidate.html_url,
-                evidence_kind="repository",
+                evidence_kind=RadarEvidenceKind.OBJECT_METADATA.value,
                 source=f"repos/{candidate.repo_slug}",
                 summary=f"Loaded repository metadata for {candidate.repo_slug}",
                 payload={
@@ -156,7 +156,7 @@ class GitHubRadarSource:
                     provider_object_type="release",
                     provider_object_id=str(release.get("tag_name") or ""),
                     provider_url=candidate.html_url,
-                    evidence_kind="release",
+                    evidence_kind=RadarEvidenceKind.RELEASE_METADATA.value,
                     source=f"repos/{candidate.repo_slug}/releases/latest",
                     summary=f"Loaded latest release metadata for {candidate.repo_slug}",
                     payload={

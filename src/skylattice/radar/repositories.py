@@ -19,6 +19,7 @@ from .models import (
     RadarRunStatus,
     RadarState,
     RadarWindow,
+    normalize_evidence_kind,
 )
 from skylattice.runtime.db import RuntimeDatabase
 
@@ -493,7 +494,7 @@ class RadarRepository:
             provider_object_type=row["provider_object_type"] or "repository",
             provider_object_id=row["provider_object_id"] or row["source"],
             provider_url=row["provider_url"],
-            evidence_kind=row["evidence_kind"],
+            evidence_kind=normalize_evidence_kind(row["evidence_kind"] or ""),
             source=row["source"],
             summary=row["summary"],
             payload=json.loads(row["payload_json"] or "{}"),

@@ -41,6 +41,7 @@ Public surfaces:
 - tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
 - provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
 - adoption matching and scoring boosts now prefer provider-neutral source identity, with `repo_slug` kept as a compatibility fallback
+- normalized radar evidence taxonomy now uses provider-neutral kind names such as `discovery-hit`, `object-metadata`, and `release-metadata`
 - a Windows-first schedule runbook in [docs/radar-scheduling.md](docs/radar-scheduling.md) so operators can register and verify local radar tasks without hidden shell glue
 
 ## Visual Proof

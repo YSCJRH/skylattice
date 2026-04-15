@@ -20,6 +20,7 @@ No webpage scraping, browser automation, or multi-source aggregation is in scope
 The runtime now expresses this through a stable `RadarDiscoverySource` boundary so future providers can fit without rewriting `RadarService`.
 Tracked provider intent now lives in `configs/radar/providers.yaml`, so future provider rollout starts as a reviewable config change instead of a hidden runtime assumption.
 Candidate and evidence inspection now also carries a provider-neutral identity contract beside the current GitHub-shaped fields, so future providers do not need to masquerade as GitHub repositories just to enter the radar pipeline.
+Evidence kinds also use a normalized taxonomy (`discovery-hit`, `object-metadata`, `release-metadata`) instead of provider-specific labels.
 
 ## Candidate Selection
 

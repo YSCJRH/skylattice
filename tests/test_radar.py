@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from skylattice.actions import GitAdapter
 from skylattice.api import app, get_task_agent_service
 from skylattice.runtime import TaskAgentService
+from skylattice.radar.models import normalize_evidence_kind
 
 
 class LocalPushGitAdapter:
@@ -308,6 +309,7 @@ def test_radar_scan_promotes_candidate_and_updates_registry(tmp_path: Path) -> N
     assert details["evidence"][0]["provider_object_type"] == "repository"
     assert details["evidence"][0]["provider_object_id"] == "example/radar-kit"
     assert details["evidence"][0]["provider_url"] == "https://github.com/example/radar-kit"
+    assert details["evidence"][0]["evidence_kind"] == "discovery-hit"
     assert any(promotion["status"] == "promoted" for promotion in details["promotions"])
     assert "example/radar-kit" in adoptions
     assert "source_provider: github" in adoptions
@@ -506,5 +508,21 @@ adopted_patterns:
     score = scorer.score(candidate, active_days=14, created_days=30)
 
     assert score.breakdown["adoption_boost"] == 0.12
+
+
+def test_legacy_evidence_kinds_are_normalized_on_read(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+    service.radar.git = fake_git
+
+    run = service.scan_radar(window="manual", limit=2)
+    details = service.inspect_radar_run(run.run_id)
+    kinds = {item["evidence_kind"] for item in details["evidence"]}
+
+    assert "discovery-hit" in kinds
+    assert "object-metadata" in kinds
+    assert all(normalize_evidence_kind(kind) == kind for kind in kinds)
 
 
