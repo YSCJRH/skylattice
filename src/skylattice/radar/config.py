@@ -1,4 +1,4 @@
-﻿"""Tracked configuration loading for the technology radar."""
+"""Tracked configuration loading for the technology radar."""
 
 from __future__ import annotations
 
@@ -52,6 +52,7 @@ class RadarWindowsTaskConfig:
     folder: str
     description: str
     schedule_expression: str
+    trigger_command: str | None = None
 
 
 @dataclass(frozen=True)
@@ -185,6 +186,7 @@ def _load_schedule_config(raw: dict[str, object]) -> RadarScheduleConfig:
                 folder=str(windows_task.get("folder", "\\Skylattice")),
                 description=str(windows_task.get("description", "Run Skylattice radar scan")),
                 schedule_expression=str(windows_task.get("schedule_expression", "WEEKLY")),
+                trigger_command=str(windows_task.get("trigger_command")) if windows_task.get("trigger_command") else None,
             ),
         )
     if not schedules:
@@ -198,6 +200,7 @@ def _load_schedule_config(raw: dict[str, object]) -> RadarScheduleConfig:
                 folder="\\Skylattice",
                 description="Run Skylattice weekly GitHub radar scan",
                 schedule_expression="WEEKLY",
+                trigger_command="New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am",
             ),
         )
     default_schedule = str(raw.get("default_schedule", next(iter(schedules))))

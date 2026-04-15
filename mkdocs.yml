@@ -54,6 +54,7 @@ nav:
       - Governance: governance.md
       - Memory Model: memory-model.md
       - Technology Radar: technology-radar.md
+      - Radar Scheduling: radar-scheduling.md
       - GitHub Workflow: github-workflow.md
       - Roadmap: roadmap.md
   - Public Ops:

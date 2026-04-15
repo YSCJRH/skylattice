@@ -1,4 +1,4 @@
-﻿# Technology Radar
+# Technology Radar
 
 The technology radar is Skylattice's bounded external-learning workflow.
 
@@ -54,6 +54,7 @@ Skylattice does not run a resident scheduler inside the repo.
 - `skylattice radar schedule show` exposes the tracked schedule view
 - `skylattice radar schedule render --target windows-task` renders Windows-first local registration details
 - `skylattice radar schedule run` resolves one tracked schedule into the same bounded `radar scan` path
+- [radar-scheduling.md](radar-scheduling.md) is the operator runbook for Windows task registration, first-run checks, and weekly-cycle validation
 
 This keeps schedule behavior reviewable without promoting GitHub or an internal queue to runtime truth.
 

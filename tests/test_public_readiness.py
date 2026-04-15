@@ -78,6 +78,7 @@ def test_radar_schedule_config_defines_windows_first_baseline() -> None:
     assert payload["schedules"]["weekly-github"]["enabled"] is True
     assert payload["schedules"]["weekly-github"]["window"] == "weekly"
     assert payload["schedules"]["weekly-github"]["windows_task"]["folder"] == "\\Skylattice"
+    assert payload["schedules"]["weekly-github"]["windows_task"]["trigger_command"] == "New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am"
 
 
 def test_public_engineering_baseline_files_exist() -> None:
@@ -102,6 +103,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/comparison.md",
         "docs/faq.md",
         "docs/proof.md",
+        "docs/radar-scheduling.md",
         "docs/ai-distribution-ops.md",
         "docs/ai-search-benchmark.md",
         "docs/memory-model.md",
@@ -152,6 +154,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-4-destructive-repo-ops.md",
         "docs/tasks/phase-4-github-collaboration-sync.md",
         "docs/tasks/phase-4-closeout-phase-5-entry.md",
+        "docs/tasks/phase-5-schedule-operator-runbook.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",

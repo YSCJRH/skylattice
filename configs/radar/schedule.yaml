@@ -10,6 +10,7 @@ schedules:
       folder: \Skylattice
       description: Run Skylattice weekly GitHub radar scan
       schedule_expression: WEEKLY
+      trigger_command: New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am
 
   manual-github:
     enabled: true
