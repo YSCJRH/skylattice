@@ -102,8 +102,12 @@ The report records:
 - which radar run was checked
 - whether `trigger_mode`, `schedule_id`, `window`, `limit`, and completion status matched expectations
 - whether the overall validation passed
+- the tracked weekly record template path
+- a suggested tracked record destination if you want to promote the result into a reviewable repo note
 
 If you want to validate a specific run instead of the latest one, add `--run-id <run_id>`.
+
+If you want to turn the local report into a tracked weekly note, start from the template at [ops/radar-weekly-validation-template.md](ops/radar-weekly-validation-template.md) and copy the suggested record path from the validation output. Skylattice still keeps that promotion step manual on purpose.
 
 ## Weekly-Cycle Validation Checklist
 

@@ -39,6 +39,7 @@ Public surfaces:
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
+- weekly validation output now points to a tracked note template plus a suggested record path, without writing tracked docs automatically
 - tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
 - provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
 - adoption matching and scoring boosts now prefer provider-neutral source identity, with `repo_slug` kept as a compatibility fallback

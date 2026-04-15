@@ -113,6 +113,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/faq.md",
         "docs/proof.md",
         "docs/radar-scheduling.md",
+        "docs/ops/radar-weekly-validation-template.md",
         "docs/ai-distribution-ops.md",
         "docs/ai-search-benchmark.md",
         "docs/memory-model.md",
@@ -170,6 +171,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-5-adoption-identity.md",
         "docs/tasks/phase-5-evidence-taxonomy.md",
         "docs/tasks/phase-5-schedule-validation-report.md",
+        "docs/tasks/phase-5-validation-record-template.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -219,6 +221,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "normalized radar evidence taxonomy now uses provider-neutral kind names",
         "radar schedule validate",
         ".local/radar/validations/",
+        "tracked note template plus a suggested record path",
     ]:
         assert phrase in readme
     assert 'version = "0.3.0"' in pyproject
