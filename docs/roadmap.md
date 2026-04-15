@@ -58,6 +58,12 @@ Delivered so far:
 - explicit destructive repo ops for tracked file move/delete with separate operator approval
 - bounded GitHub issue and PR planning context plus issue-comment preflight checks
 
+Recommended next slice:
+
+- harden GitHub collaboration sync so draft PR and issue-comment steps expose clearer remote target state, sync outcomes, and resume guidance
+- keep GitHub advisory and audit-oriented rather than mirroring remote state into local runtime truth
+- close the Phase 4 operator loop before moving on to scheduler work or broader automation
+
 Next goals:
 
 - richer repo operations beyond full-file rewrites

@@ -138,6 +138,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-4-repo-primitives.md",
         "docs/tasks/phase-4-github-sync-context.md",
         "docs/tasks/phase-4-destructive-repo-ops.md",
+        "docs/tasks/phase-4-github-collaboration-sync.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
