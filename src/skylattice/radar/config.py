@@ -79,11 +79,37 @@ class RadarScheduleConfig:
 
 
 @dataclass(frozen=True)
+class RadarProviderEntry:
+    provider_id: str
+    kind: str
+    enabled: bool
+    live: bool
+    description: str
+
+
+@dataclass(frozen=True)
+class RadarProviderConfig:
+    default_provider: str
+    providers: dict[str, RadarProviderEntry]
+
+    def get(self, provider_id: str | None = None) -> RadarProviderEntry:
+        effective = provider_id or self.default_provider
+        try:
+            return self.providers[effective]
+        except KeyError as exc:
+            raise KeyError(f"Unknown radar provider: {effective}") from exc
+
+    def enabled_provider_ids(self) -> tuple[str, ...]:
+        return tuple(key for key, item in self.providers.items() if item.enabled)
+
+
+@dataclass(frozen=True)
 class RadarConfig:
     sources: RadarSourceConfig
     scoring: RadarScoringConfig
     promotion: RadarPromotionConfig
     schedule: RadarScheduleConfig
+    providers: RadarProviderConfig
 
 
 @dataclass(frozen=True)
@@ -101,6 +127,7 @@ def load_radar_config(repo_root: Path | None = None) -> RadarConfig:
     raw_scoring = load_yaml("configs/radar/scoring.yaml", root)
     raw_promotion = load_yaml("configs/radar/promotion.yaml", root)
     raw_schedule = load_yaml("configs/radar/schedule.yaml", root)
+    raw_providers = load_yaml("configs/radar/providers.yaml", root)
 
     return RadarConfig(
         sources=RadarSourceConfig(
@@ -130,6 +157,7 @@ def load_radar_config(repo_root: Path | None = None) -> RadarConfig:
             adoption_registry=str(raw_promotion.get("adoption_registry", "configs/radar/adoptions.yaml")),
         ),
         schedule=_load_schedule_config(raw_schedule),
+        providers=_load_provider_config(raw_providers),
     )
 
 
@@ -205,3 +233,29 @@ def _load_schedule_config(raw: dict[str, object]) -> RadarScheduleConfig:
         )
     default_schedule = str(raw.get("default_schedule", next(iter(schedules))))
     return RadarScheduleConfig(default_schedule=default_schedule, schedules=schedules)
+
+
+def _load_provider_config(raw: dict[str, object]) -> RadarProviderConfig:
+    providers_raw = raw.get("providers", {})
+    providers_map = providers_raw if isinstance(providers_raw, dict) else {}
+    providers: dict[str, RadarProviderEntry] = {}
+    for provider_id, item in providers_map.items():
+        if not isinstance(item, dict):
+            continue
+        providers[str(provider_id)] = RadarProviderEntry(
+            provider_id=str(provider_id),
+            kind=str(item.get("kind", provider_id)),
+            enabled=bool(item.get("enabled", False)),
+            live=bool(item.get("live", False)),
+            description=str(item.get("description", "")),
+        )
+    if not providers:
+        providers["github"] = RadarProviderEntry(
+            provider_id="github",
+            kind="github",
+            enabled=True,
+            live=True,
+            description="GitHub repository search, repository metadata, and latest release metadata.",
+        )
+    default_provider = str(raw.get("default_provider", next(iter(providers))))
+    return RadarProviderConfig(default_provider=default_provider, providers=providers)

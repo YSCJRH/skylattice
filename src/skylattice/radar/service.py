@@ -35,7 +35,7 @@ from .models import (
 )
 from .repositories import RadarRepository
 from .scoring import RadarScorer
-from .source import GitHubRadarSource, RadarDiscoverySource
+from .source import RadarDiscoverySource, resolve_radar_source
 
 
 class RadarService:
@@ -81,7 +81,8 @@ class RadarService:
         github: GitHubAdapter | None,
         source: RadarDiscoverySource | None = None,
     ) -> "RadarService":
-        actual_source = source or (GitHubRadarSource(github) if github is not None else None)
+        config = load_radar_config(repo_root)
+        actual_source = resolve_radar_source(providers=config.providers, github=github, override=source)
         return cls(
             repo_root=repo_root,
             radar_repository=radar_repository,
@@ -93,7 +94,7 @@ class RadarService:
             git=git,
             github=github,
             source=actual_source,
-            config=load_radar_config(repo_root),
+            config=config,
         )
 
     def state_snapshot(self) -> dict[str, object]:
@@ -102,6 +103,8 @@ class RadarService:
         return {
             "source_available": self.source is not None,
             "source_provider": self.source.provider if self.source is not None else None,
+            "default_provider": self.config.providers.default_provider,
+            "enabled_providers": list(self.config.providers.enabled_provider_ids()),
             "freeze_mode": state.freeze_mode,
             "consecutive_failures": state.consecutive_failures,
             "latest_run_id": latest.run_id if latest is not None else None,

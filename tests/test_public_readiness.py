@@ -81,6 +81,15 @@ def test_radar_schedule_config_defines_windows_first_baseline() -> None:
     assert payload["schedules"]["weekly-github"]["windows_task"]["trigger_command"] == "New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am"
 
 
+def test_radar_provider_config_reserves_future_provider_shape() -> None:
+    payload = yaml.safe_load((REPO_ROOT / "configs" / "radar" / "providers.yaml").read_text(encoding="utf-8"))
+    assert payload["default_provider"] == "github"
+    assert payload["providers"]["github"]["enabled"] is True
+    assert payload["providers"]["github"]["kind"] == "github"
+    assert payload["providers"]["future-second-provider"]["enabled"] is False
+    assert payload["providers"]["future-second-provider"]["kind"] == "reserved"
+
+
 def test_public_engineering_baseline_files_exist() -> None:
     required = [
         ".github/workflows/ci.yml",
@@ -155,6 +164,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-4-github-collaboration-sync.md",
         "docs/tasks/phase-4-closeout-phase-5-entry.md",
         "docs/tasks/phase-5-schedule-operator-runbook.md",
+        "docs/tasks/phase-5-provider-contract.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -163,6 +173,8 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/adrs/0010-explicit-destructive-repo-approval.md",
         "docs/adrs/0011-github-collaboration-sync-hardening.md",
         "docs/adrs/0012-local-scheduler-and-radar-source-abstraction.md",
+        "docs/adrs/0013-tracked-radar-provider-contract.md",
+        "configs/radar/providers.yaml",
         "configs/radar/schedule.yaml",
         "evals/ai-search/_template.md",
         "evals/ai-search/2026-04-09-baseline.md",

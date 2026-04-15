@@ -38,6 +38,7 @@ Both workflows share:
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 - `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
 - `load_radar_config()` also loads tracked radar schedule intent from `configs/radar/schedule.yaml`
+- `load_radar_config()` also loads tracked radar provider intent from `configs/radar/providers.yaml`
 - validation commands now carry stable ids, expected outputs, and profile membership instead of acting as a flat string allowlist
 - local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
 
@@ -86,7 +87,7 @@ Flow:
 7. update `configs/radar/adoptions.yaml` and promotion logs
 8. support rollback through explicit promotion records
 
-Radar now also has tracked local schedule intent plus Windows-first schedule rendering and an operator runbook, but it still delegates actual recurring execution to the operating system instead of a resident Skylattice worker.
+Radar now also has tracked local schedule intent, tracked provider intent, plus Windows-first schedule rendering and an operator runbook, but it still delegates actual recurring execution to the operating system instead of a resident Skylattice worker.
 
 ## Data Stores
 
