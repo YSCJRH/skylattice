@@ -173,6 +173,7 @@ schedules:
       folder: \\Skylattice
       description: Run Skylattice weekly GitHub radar scan
       schedule_expression: WEEKLY
+      trigger_command: New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am
 """.strip(),
     )
     _write(repo / "tests" / "test_placeholder.py", "def test_placeholder():\n    assert True\n")
@@ -338,7 +339,18 @@ def test_radar_schedule_show_render_and_run_use_tracked_schedule(tmp_path: Path)
     assert rendered["target"] == "windows-task"
     assert rendered["schedule"]["schedule_id"] == "weekly-github"
     assert "radar schedule run --schedule weekly-github" in rendered["command"]
+    assert rendered["working_directory"] == str(repo.resolve())
+    assert rendered["windows_task"]["registration_mode"] == "scheduled"
+    assert rendered["windows_task"]["trigger_command"] == "New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am"
+    assert rendered["windows_task"]["action"]["execute"] == "powershell.exe"
+    assert "EncodedCommand" in rendered["windows_task"]["action"]["arguments"]
+    assert "Set-Location -LiteralPath" in rendered["windows_task"]["action"]["script"]
+    assert str(repo.resolve()) in rendered["windows_task"]["action"]["script"]
     assert "Register-ScheduledTask" in rendered["windows_task"]["register_command"]
+    assert "New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am" in rendered["windows_task"]["register_command"]
+    assert "Get-ScheduledTask" in rendered["windows_task"]["inspect_command"]
+    assert "Start-ScheduledTask" in rendered["windows_task"]["run_now_command"]
+    assert "Unregister-ScheduledTask" in rendered["windows_task"]["unregister_command"]
     assert run.window.value == "weekly"
     assert run.limit == 20
 

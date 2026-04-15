@@ -1,4 +1,4 @@
-﻿# Roadmap
+# Roadmap
 
 ## Phase 0: Foundation Docs And Skeleton
 
@@ -70,12 +70,12 @@ Delivered so far:
 - tracked radar schedule intent in `configs/radar/schedule.yaml`
 - `skylattice radar schedule show`, `render`, and `run`
 - Windows-first task registration rendering instead of a resident scheduler
+- a Windows-first schedule operator runbook plus working-directory-safe task action rendering
 - stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
 - GitHub remains the only live discovery provider in this slice
 
 Next goals:
 
 - validate local scheduled radar runs across at least one full weekly cycle
-- add sharper schedule docs and operator runbooks for OS-level task registration
 - prepare for a second radar provider without widening autonomy or hiding provider provenance
 - keep experiment and promotion semantics stable while source inputs broaden

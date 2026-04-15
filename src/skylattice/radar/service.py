@@ -1,7 +1,8 @@
-﻿"""Technology radar service for discovery, experimentation, and bounded promotion."""
+"""Technology radar service for discovery, experimentation, and bounded promotion."""
 
 from __future__ import annotations
 
+import base64
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -122,23 +123,57 @@ class RadarService:
         if target != "windows-task":
             raise RuntimeError(f"Unsupported radar schedule render target: {target}")
         schedule = self.config.schedule.get(schedule_id)
-        command = schedule.target_command
+        repo_root = str(self.repo_root)
+        escaped_repo_root = repo_root.replace("'", "''")
+        action_script = f"Set-Location -LiteralPath '{escaped_repo_root}'; {schedule.target_command}"
+        encoded_command = base64.b64encode(action_script.encode("utf-16le")).decode("ascii")
+        action_execute = "powershell.exe"
+        action_arguments = f"-NoProfile -ExecutionPolicy Bypass -EncodedCommand {encoded_command}"
+        trigger_command = schedule.windows_task.trigger_command
+        register_command = (
+            "Register-ScheduledTask "
+            f"-TaskName \"Skylattice Radar {schedule.schedule_id}\" "
+            f"-TaskPath \"{schedule.windows_task.folder}\" "
+            "-Action (New-ScheduledTaskAction "
+            f"-Execute \"{action_execute}\" -Argument \"{action_arguments}\") "
+        )
+        if trigger_command:
+            register_command += f"-Trigger ({trigger_command}) "
+        register_command += f"-Description \"{schedule.windows_task.description}\""
         return {
             "target": target,
             "schedule": self._serialize_schedule(schedule),
-            "working_directory": ".",
-            "command": command,
+            "working_directory": repo_root,
+            "command": schedule.target_command,
             "windows_task": {
                 "task_name": f"Skylattice Radar {schedule.schedule_id}",
                 "folder": schedule.windows_task.folder,
                 "description": schedule.windows_task.description,
                 "schedule_expression": schedule.windows_task.schedule_expression,
-                "register_command": (
-                    "Register-ScheduledTask "
+                "trigger_command": trigger_command,
+                "registration_mode": "scheduled" if trigger_command else "on-demand",
+                "action": {
+                    "execute": action_execute,
+                    "arguments": action_arguments,
+                    "script": action_script,
+                    "working_directory": repo_root,
+                },
+                "register_command": register_command,
+                "inspect_command": (
+                    "Get-ScheduledTask "
+                    f"-TaskName \"Skylattice Radar {schedule.schedule_id}\" "
+                    f"-TaskPath \"{schedule.windows_task.folder}\""
+                ),
+                "run_now_command": (
+                    "Start-ScheduledTask "
+                    f"-TaskName \"Skylattice Radar {schedule.schedule_id}\" "
+                    f"-TaskPath \"{schedule.windows_task.folder}\""
+                ),
+                "unregister_command": (
+                    "Unregister-ScheduledTask "
                     f"-TaskName \"Skylattice Radar {schedule.schedule_id}\" "
                     f"-TaskPath \"{schedule.windows_task.folder}\" "
-                    "-Action (New-ScheduledTaskAction "
-                    f"-Execute \"python\" -Argument \"-m skylattice.cli radar schedule run --schedule {schedule.schedule_id}\")"
+                    "-Confirm:$false"
                 ),
             },
         }
@@ -914,6 +949,7 @@ class RadarService:
                 "folder": schedule.windows_task.folder,
                 "description": schedule.windows_task.description,
                 "schedule_expression": schedule.windows_task.schedule_expression,
+                "trigger_command": schedule.windows_task.trigger_command,
             },
         }
 

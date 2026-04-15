@@ -86,7 +86,7 @@ Flow:
 7. update `configs/radar/adoptions.yaml` and promotion logs
 8. support rollback through explicit promotion records
 
-Radar now also has tracked local schedule intent plus Windows-first schedule rendering, but it still delegates actual recurring execution to the operating system instead of a resident Skylattice worker.
+Radar now also has tracked local schedule intent plus Windows-first schedule rendering and an operator runbook, but it still delegates actual recurring execution to the operating system instead of a resident Skylattice worker.
 
 ## Data Stores
 
