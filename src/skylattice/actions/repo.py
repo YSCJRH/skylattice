@@ -86,6 +86,30 @@ class RepoWorkspaceAdapter:
         content = source.read_text(encoding="utf-8")
         return self.write_text(destination_path, content, create_if_missing=True)
 
+    def delete_file(self, relative_path: str) -> str:
+        path = self._resolve(relative_path)
+        if not path.is_file():
+            raise ValueError(f"Path is not a file: {relative_path}")
+        if path.suffix and path.suffix not in self.SAFE_EXTENSIONS:
+            raise ValueError(f"Deletes for {path.suffix} files are not allowed in the MVP")
+        path.unlink()
+        return str(path.relative_to(self.repo_root).as_posix())
+
+    def move_file(self, source_path: str, destination_path: str) -> str:
+        source = self._resolve(source_path)
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        destination = self._resolve(destination_path, allow_missing=True)
+        if destination.exists():
+            raise ValueError(f"Destination already exists: {destination_path}")
+        if source.suffix and source.suffix not in self.SAFE_EXTENSIONS:
+            raise ValueError(f"Moves from {source.suffix} files are not allowed in the MVP")
+        if destination.suffix and destination.suffix not in self.SAFE_EXTENSIONS:
+            raise ValueError(f"Moves to {destination.suffix} files are not allowed in the MVP")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        source.rename(destination)
+        return str(destination.relative_to(self.repo_root).as_posix())
+
     def replace_text(
         self,
         relative_path: str,
@@ -154,6 +178,13 @@ class RepoWorkspaceAdapter:
             )
         if mode == "copy_file":
             return self.copy_file(
+                str(payload.get("source_path", "")),
+                relative_path,
+            )
+        if mode == "delete_file":
+            return self.delete_file(relative_path)
+        if mode == "move_file":
+            return self.move_file(
                 str(payload.get("source_path", "")),
                 relative_path,
             )

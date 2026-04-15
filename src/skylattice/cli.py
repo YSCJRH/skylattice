@@ -7,11 +7,13 @@ import json
 import sys
 from typing import Sequence
 
+from skylattice.governance import PermissionTier
 from skylattice.memory.interfaces import MemoryLayer, RecordStatus
 from skylattice.runtime import TaskAgentService
 
 MEMORY_LAYER_CHOICES = [layer.value for layer in MemoryLayer]
 MEMORY_STATUS_CHOICES = [status.value for status in RecordStatus]
+TASK_ALLOW_CHOICES = ["repo-write", PermissionTier.DESTRUCTIVE_REPO_WRITE.value, "external-write"]
 
 
 def build_doctor_report() -> dict[str, object]:
@@ -47,14 +49,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     run_parser = task_subparsers.add_parser("run", help="Create and execute a new task run.")
     run_parser.add_argument("--goal", required=True, help="Inline goal text or a path to a goal file.")
-    run_parser.add_argument("--allow", action="append", default=[], choices=["repo-write", "external-write"])
+    run_parser.add_argument("--allow", action="append", default=[], choices=TASK_ALLOW_CHOICES)
 
     status_parser = task_subparsers.add_parser("status", help="Show run status.")
     status_parser.add_argument("run_id")
 
     resume_parser = task_subparsers.add_parser("resume", help="Resume a paused task run.")
     resume_parser.add_argument("run_id")
-    resume_parser.add_argument("--allow", action="append", default=[], choices=["repo-write", "external-write"])
+    resume_parser.add_argument("--allow", action="append", default=[], choices=TASK_ALLOW_CHOICES)
 
     inspect_parser = task_subparsers.add_parser("inspect", help="Show full run details.")
     inspect_parser.add_argument("run_id")
@@ -143,6 +145,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 run = service.run_task(
                     goal_input=args.goal,
                     allow_repo_write="repo-write" in allows,
+                    allow_destructive_repo_write=PermissionTier.DESTRUCTIVE_REPO_WRITE.value in allows,
                     allow_external_write="external-write" in allows,
                 )
                 _dump(service.inspect_run(run.run_id))
@@ -159,6 +162,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 run = service.resume_task(
                     run_id=args.run_id,
                     allow_repo_write="repo-write" in allows,
+                    allow_destructive_repo_write=PermissionTier.DESTRUCTIVE_REPO_WRITE.value in allows,
                     allow_external_write="external-write" in allows,
                 )
                 _dump(service.inspect_run(run.run_id))

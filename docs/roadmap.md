@@ -55,19 +55,15 @@ Delivered so far:
 - branch-scoped PR reuse and deduplicated issue-comment sync on resume
 - tracked validation command ids, profiles, and richer expectation checks shared by runtime and CI
 - explicit non-destructive repo ops for tracked file creation and template copying
+- explicit destructive repo ops for tracked file move/delete with separate operator approval
 - bounded GitHub issue and PR planning context plus issue-comment preflight checks
-
-Recommended first slice:
-
-- harden halted-run recovery, retry safety, and GitHub sync idempotency before widening task actions further
-- expose clearer recovery diagnostics through inspect, CLI, and ledger surfaces
 
 Next goals:
 
 - richer repo operations beyond full-file rewrites
-- safer command execution envelopes and richer verification steps
 - better GitHub issue and PR synchronization behavior
-- stronger halted-run recovery and diagnostics
+- clearer destructive approval ergonomics and action-specific recovery guidance
+- stronger halted-run recovery and diagnostics for the remaining high-side-effect actions
 
 ## Phase 5: Scheduler And Broader Radar Sources
 

@@ -362,6 +362,35 @@ def build_repo_primitives_plan(validation_ref: str) -> dict[str, object]:
     }
 
 
+def build_destructive_repo_plan(validation_ref: str) -> dict[str, object]:
+    return {
+        "summary": "Clean up tracked docs by deleting obsolete content and moving a file to a better path.",
+        "branch_name": "destructive-repo-ops",
+        "file_operations": [
+            {
+                "path": "docs/obsolete.md",
+                "mode": "delete_file",
+                "create_if_missing": False,
+                "instructions": "Delete the obsolete tracked doc now that it is replaced elsewhere.",
+            },
+            {
+                "path": "docs/renamed.md",
+                "mode": "move_file",
+                "source_path": "docs/rename-me.md",
+                "create_if_missing": False,
+                "instructions": "Move the tracked doc to its canonical destination path.",
+            },
+        ],
+        "validation_commands": [validation_ref],
+        "commit_message": "docs: clean up tracked docs",
+        "pull_request": {
+            "title": "docs: clean up tracked docs",
+            "body": "This exercises destructive tracked repo ops with explicit approval.",
+            "base_branch": "main",
+        },
+    }
+
+
 def test_health_and_doctor_reports() -> None:
     report = build_doctor_report()
     client = TestClient(app)
@@ -440,6 +469,28 @@ def test_governance_requires_approval_for_repo_write() -> None:
     assert denied.decision is GovernanceDecision.DENIED
     assert approved.decision is GovernanceDecision.APPROVED
 
+    destructive_denied = gate.evaluate(
+        GovernanceRequest(
+            tier=PermissionTier.REPO_WRITE,
+            summary="delete tracked README",
+            destructive=True,
+            user_approved=True,
+        )
+    )
+    destructive_approved = gate.evaluate(
+        GovernanceRequest(
+            tier=PermissionTier.REPO_WRITE,
+            summary="delete tracked README",
+            destructive=True,
+            user_approved=True,
+            destructive_approved=True,
+        )
+    )
+
+    assert destructive_denied.decision is GovernanceDecision.DENIED
+    assert "destructive-repo-write" in destructive_denied.reason
+    assert destructive_approved.decision is GovernanceDecision.APPROVED
+
 
 def test_memory_policy_covers_all_layers() -> None:
     policies = default_memory_policies()
@@ -487,6 +538,17 @@ def test_repo_workspace_supports_deterministic_edit_primitives(tmp_path: Path) -
         workspace.create_file("docs/created.md", "# Exists\n")
     with pytest.raises(ValueError, match="Destination already exists"):
         workspace.copy_file("docs/created.md", "docs/copied.md")
+    _write(repo / "docs" / "delete-me.md", "# Delete me\n")
+    _write(repo / "docs" / "move-me.md", "# Move me\n")
+    deleted = workspace.delete_file("docs/delete-me.md")
+    moved = workspace.move_file("docs/move-me.md", "docs/moved.md")
+    assert deleted == "docs/delete-me.md"
+    assert moved == "docs/moved.md"
+    assert not (repo / "docs" / "delete-me.md").exists()
+    assert not (repo / "docs" / "move-me.md").exists()
+    assert (repo / "docs" / "moved.md").read_text(encoding="utf-8") == "# Move me\n"
+    with pytest.raises(ValueError, match="Destination already exists"):
+        workspace.move_file("docs/copied.md", "docs/moved.md")
 
 
 def test_task_run_waits_for_approval(tmp_path: Path) -> None:
@@ -824,6 +886,43 @@ def test_task_validation_commands_come_from_tracked_config(tmp_path: Path) -> No
     assert service.workspace.run_check("git diff --stat")["returncode"] == 0
     with pytest.raises(ValueError, match="Command not allowed"):
         service.workspace.run_check("git status --short")
+
+
+def test_destructive_repo_steps_require_separate_approval_and_resume(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path, validation_commands=("git status --short",))
+    _write(repo / "docs" / "obsolete.md", "# Obsolete\n")
+    _write(repo / "docs" / "rename-me.md", "# Rename me\n")
+    provider = FakeProvider(plan=build_destructive_repo_plan("git status --short"))
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=FakeGitHubAdapter())
+    service.git = LocalPushGitAdapter(repo)
+
+    blocked = service.run_task(
+        goal_input="Clean up tracked docs with explicit destructive approval.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    blocked_details = service.inspect_run(blocked.run_id)
+
+    assert blocked.status.value == "waiting_approval"
+    assert blocked_details["recovery"]["next_step_id"] == "edit-1"
+    assert blocked_details["recovery"]["destructive"] is True
+    assert PermissionTier.DESTRUCTIVE_REPO_WRITE.value in blocked_details["recovery"]["recommended_allows"]
+    assert blocked_details["steps"][1]["action_name"] == "workspace.delete_file"
+    assert blocked_details["steps"][1]["status"] == "blocked"
+    assert (repo / "docs" / "obsolete.md").exists()
+    assert (repo / "docs" / "rename-me.md").exists()
+
+    resumed = service.resume_task(
+        run_id=blocked.run_id,
+        allow_destructive_repo_write=True,
+    )
+    resumed_details = service.inspect_run(resumed.run_id)
+
+    assert resumed.status.value == "completed"
+    assert resumed_details["recovery"]["status"] == "completed"
+    assert not (repo / "docs" / "obsolete.md").exists()
+    assert not (repo / "docs" / "rename-me.md").exists()
+    assert (repo / "docs" / "renamed.md").read_text(encoding="utf-8") == "# Rename me\n"
 
 
 def test_api_returns_run_events_and_memory(tmp_path: Path) -> None:

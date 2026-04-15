@@ -7,6 +7,7 @@ Skylattice stays proactive by making permission and promotion boundaries explici
 - `observe`: local read-only activity
 - `local-safe-write`: reversible writes under approved `.local/` roots
 - `repo-write`: tracked repository writes initiated by task runs
+- `destructive-repo-write`: explicit companion approval for destructive tracked repo lifecycle steps
 - `external-read`: GitHub discovery for the technology radar
 - `external-write`: remote GitHub writes for task runs
 - `radar-experiment-write`: internal gate for radar spike artifacts on whitelisted paths
@@ -28,6 +29,10 @@ Explicit approval required:
 - `repo-write`
 - `external-write`
 - `self-modify`
+
+Additional operator gate:
+
+- `destructive-repo-write` is not a general policy tier for routine planning; it is a second explicit approval that must accompany destructive tracked repo actions such as `move_file` and `delete_file`
 
 ## Task-Agent Validation Guard
 
@@ -53,8 +58,9 @@ Recovery is explicit rather than automatic.
 Richer repo operations are still intentionally narrow.
 
 - non-destructive tracked file creation and template copying are allowed through explicit task primitives
-- destructive file lifecycle actions such as delete or move remain out of scope for the current runtime slice
-- this keeps repo automation useful for scaffolding work without weakening the default destructive guard
+- destructive tracked file lifecycle actions now exist as explicit task primitives: `move_file` and `delete_file`
+- destructive repo ops require both `repo-write` and `destructive-repo-write`
+- destructive repo ops stay text-first and file-scoped: no directory delete/move support and no reset/rebase/force-push paths
 
 ## Radar-Specific Guards
 
@@ -68,7 +74,7 @@ Auto-approved does not mean unbounded. Radar writes still pass extra gates in co
 
 ## Destructive Action Handling
 
-Destructive intent keywords still force denial unless the operator explicitly intervenes. Automatic radar behavior does not include reset, delete, purge, force-push, merge, or rebase paths.
+Destructive intent keywords still force denial unless the operator explicitly grants the separate destructive approval. Automatic radar behavior still does not include reset, purge, force-push, merge, or rebase paths.
 
 ## Memory Rules
 

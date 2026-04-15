@@ -30,6 +30,16 @@ from .task_config import TaskValidationPolicy, load_task_validation_policy
 
 class TaskAgentService:
     MEMORY_CONTEXT_LIMIT = 3
+    SUPPORTED_EDIT_MODES = (
+        "rewrite",
+        "replace_text",
+        "insert_after",
+        "append_text",
+        "create_file",
+        "copy_file",
+        "move_file",
+        "delete_file",
+    )
 
     def __init__(
         self,
@@ -149,6 +159,12 @@ class TaskAgentService:
                     name: list(values) for name, values in self.task_validation_policy.profiles.items()
                 },
                 "default_validation_profile": self.task_validation_policy.default_profile,
+                "supported_edit_modes": list(self.SUPPORTED_EDIT_MODES),
+                "task_allow_flags": [
+                    "repo-write",
+                    PermissionTier.DESTRUCTIVE_REPO_WRITE.value,
+                    "external-write",
+                ],
             },
             "radar": self.radar.state_snapshot(),
         }
@@ -158,6 +174,7 @@ class TaskAgentService:
         *,
         goal_input: str,
         allow_repo_write: bool = False,
+        allow_destructive_repo_write: bool = False,
         allow_external_write: bool = False,
     ) -> TaskRun:
         if self.planner is None:
@@ -211,7 +228,11 @@ class TaskAgentService:
         )
         self.run_repository.grant_approvals(
             run_id,
-            self._build_approvals(allow_repo_write=allow_repo_write, allow_external_write=allow_external_write),
+            self._build_approvals(
+                allow_repo_write=allow_repo_write,
+                allow_destructive_repo_write=allow_destructive_repo_write,
+                allow_external_write=allow_external_write,
+            ),
         )
         return self._execute_until_blocked(run_id)
 
@@ -220,13 +241,18 @@ class TaskAgentService:
         *,
         run_id: str,
         allow_repo_write: bool = False,
+        allow_destructive_repo_write: bool = False,
         allow_external_write: bool = False,
     ) -> TaskRun:
         run = self.run_repository.get_run(run_id)
         recovery = self._build_recovery_summary(run, self.run_repository.list_steps(run_id))
         self.run_repository.grant_approvals(
             run_id,
-            self._build_approvals(allow_repo_write=allow_repo_write, allow_external_write=allow_external_write),
+            self._build_approvals(
+                allow_repo_write=allow_repo_write,
+                allow_destructive_repo_write=allow_destructive_repo_write,
+                allow_external_write=allow_external_write,
+            ),
         )
         self.ledger.append(
             run_id=run_id,
@@ -235,6 +261,7 @@ class TaskAgentService:
             actor="operator",
             payload={
                 "repo_write": allow_repo_write,
+                "destructive_repo_write": allow_destructive_repo_write,
                 "external_write": allow_external_write,
             },
         )
@@ -470,13 +497,16 @@ class TaskAgentService:
             if step.status is RunStepStatus.VERIFIED:
                 continue
             approved = approval_map.get(step.required_tier)
+            destructive = self._step_is_destructive(step)
+            destructive_approved = approval_map.get(PermissionTier.DESTRUCTIVE_REPO_WRITE)
             outcome = self.governance.evaluate(
                 GovernanceRequest(
                     tier=step.required_tier,
                     summary=step.summary,
                     target_path=str(step.action_args.get("path", "")) or None,
-                    destructive=False,
+                    destructive=destructive,
                     user_approved=bool(approved and approved.granted),
+                    destructive_approved=bool(destructive_approved and destructive_approved.granted),
                 )
             )
             if outcome.decision is GovernanceDecision.DENIED:
@@ -498,7 +528,11 @@ class TaskAgentService:
                     kind=EventKind.APPROVAL,
                     summary=f"Run paused before step {step.step_id}",
                     actor="governance",
-                    payload={"reason": outcome.reason, "required_tier": step.required_tier.value},
+                    payload={
+                        "reason": outcome.reason,
+                        "required_tier": step.required_tier.value,
+                        "destructive": destructive,
+                    },
                 )
                 return self.run_repository.get_run(run_id)
 
@@ -601,6 +635,12 @@ class TaskAgentService:
 
         if step.action_name == "workspace.copy_file":
             return self._execute_copy_step(step)
+
+        if step.action_name == "workspace.move_file":
+            return self._execute_move_step(step)
+
+        if step.action_name == "workspace.delete_file":
+            return self._execute_delete_step(step)
 
         if step.action_name in {"workspace.replace_text", "workspace.insert_after", "workspace.append_text"}:
             return self._execute_materialized_edit_step(run, step)
@@ -750,6 +790,37 @@ class TaskAgentService:
             },
         }
 
+    def _execute_move_step(self, step: RunStep) -> dict[str, object]:
+        source_path = str(step.action_args["source_path"])
+        destination_path = str(step.action_args["path"])
+        written = self.workspace.move_file(source_path, destination_path)
+        payload = {
+            "mode": "move_file",
+            "source_path": source_path,
+        }
+        return {
+            "path": written,
+            "source_path": source_path,
+            "artifact_refs": [written],
+            "materialized_edit": payload,
+            "verification_metadata": {
+                "content_length": len(self.workspace.read_text(destination_path)),
+            },
+        }
+
+    def _execute_delete_step(self, step: RunStep) -> dict[str, object]:
+        target_path = str(step.action_args["path"])
+        deleted = self.workspace.delete_file(target_path)
+        payload = {"mode": "delete_file"}
+        return {
+            "path": deleted,
+            "artifact_refs": [],
+            "materialized_edit": payload,
+            "verification_metadata": {
+                "deleted": True,
+            },
+        }
+
     def _verify_step(self, step: RunStep, result: dict[str, object]) -> bool:
         if step.action_name in {"workspace.run_check", "workspace.run_validation"}:
             expected_returncode = int(step.verification.get("expected_returncode", 0))
@@ -766,6 +837,23 @@ class TaskAgentService:
             for expected in step.verification.get("stderr_contains", []):
                 if str(expected) not in stderr:
                     raise RuntimeError(f"Check failed: stderr missing expected text {expected!r}")
+            return True
+        if step.action_name == "workspace.delete_file":
+            path = self.repo_root / str(step.action_args["path"])
+            if path.exists():
+                raise RuntimeError(f"Deleted file still exists: {step.action_args['path']}")
+            if "materialized_edit" not in result:
+                raise RuntimeError(f"Delete step did not record a materialized payload: {step.action_args['path']}")
+            return True
+        if step.action_name == "workspace.move_file":
+            path = self.repo_root / str(step.action_args["path"])
+            source_path = self.repo_root / str(step.action_args["source_path"])
+            if source_path.exists():
+                raise RuntimeError(f"Moved source still exists: {step.action_args['source_path']}")
+            if not path.exists():
+                raise RuntimeError(f"Moved destination is missing: {step.action_args['path']}")
+            if "materialized_edit" not in result:
+                raise RuntimeError(f"Move step did not record a materialized payload: {step.action_args['path']}")
             return True
         if step.action_name in {
             "workspace.edit_file",
@@ -820,7 +908,8 @@ class TaskAgentService:
                 name: list(values) for name, values in self.task_validation_policy.profiles.items()
             },
             "validation_catalog": self.task_validation_policy.command_catalog(),
-            "supported_edit_modes": ["rewrite", "replace_text", "insert_after", "append_text", "create_file", "copy_file"],
+            "supported_edit_modes": list(self.SUPPORTED_EDIT_MODES),
+            "destructive_edit_modes": ["move_file", "delete_file"],
             "memory_context": self._memory_context_for_goal(goal_text),
         }
         if self.github is not None:
@@ -902,6 +991,7 @@ class TaskAgentService:
                 "required_tier": None,
                 "recommended_allows": [],
                 "side_effect_risk": "none",
+                "destructive": False,
                 "attempt_count": 0,
                 "last_error": run.error,
                 "dedupe_key": None,
@@ -922,6 +1012,7 @@ class TaskAgentService:
             "required_tier": step.required_tier.value,
             "recommended_allows": recovery.get("recommended_allows", []),
             "side_effect_risk": recovery.get("side_effect_risk", "low"),
+            "destructive": bool(recovery.get("destructive", False)),
             "attempt_count": self._step_attempt_count(step),
             "last_error": step.result.get("last_error", run.error),
             "dedupe_key": recovery.get("dedupe_key"),
@@ -996,14 +1087,19 @@ class TaskAgentService:
         return list(dict.fromkeys(history))
 
     def _required_allows_for_step(self, step: RunStep) -> list[str]:
+        allows: list[str] = []
         if step.required_tier is PermissionTier.REPO_WRITE:
-            return ["repo-write"]
+            allows.append("repo-write")
+        if self._step_is_destructive(step):
+            allows.append(PermissionTier.DESTRUCTIVE_REPO_WRITE.value)
         if step.required_tier is PermissionTier.EXTERNAL_WRITE:
-            return ["external-write"]
-        return []
+            allows.append("external-write")
+        return allows
 
     @staticmethod
     def _side_effect_risk(action_name: str) -> str:
+        if action_name in {"workspace.delete_file", "workspace.move_file"}:
+            return "high"
         if action_name == "github.add_issue_comment":
             return "medium"
         if action_name in {"github.sync_pull_request", "git.push_branch"}:
@@ -1011,6 +1107,16 @@ class TaskAgentService:
         if action_name.startswith("workspace.") or action_name == "git.commit_all":
             return "low"
         return "none"
+
+    @staticmethod
+    def _step_is_destructive(step: RunStep) -> bool:
+        return step.action_name in {"workspace.delete_file", "workspace.move_file"} or bool(
+            step.action_args.get("destructive", False)
+        )
+
+    @staticmethod
+    def _format_allow_flags(allows: list[str]) -> str:
+        return " ".join(f"--allow {value}" for value in allows)
 
     def _dedupe_key_for_step(self, step: RunStep) -> str | None:
         if step.action_name == "github.sync_pull_request":
@@ -1037,7 +1143,9 @@ class TaskAgentService:
             status_label = "awaiting_approval"
             resumable = True
             if recommended_allows:
-                guidance.append(f"Resume with --allow {' '.join(recommended_allows)} once you approve this step.")
+                guidance.append(
+                    f"Resume with {self._format_allow_flags(recommended_allows)} once you approve this step."
+                )
             else:
                 guidance.append("This step is waiting for approval before execution can continue.")
         elif run_status is RunStatus.HALTED:
@@ -1047,7 +1155,9 @@ class TaskAgentService:
             if step.required_tier is PermissionTier.EXTERNAL_WRITE:
                 guidance.append("Check whether the previous external write partially succeeded before resuming.")
             if recommended_allows:
-                guidance.append(f"Resume with --allow {' '.join(recommended_allows)} after verifying side effects.")
+                guidance.append(
+                    f"Resume with {self._format_allow_flags(recommended_allows)} after verifying side effects."
+                )
         elif run_status is RunStatus.FAILED:
             status_label = "not_resumable"
             guidance.append("Fix the underlying issue and start a new run once the repo is ready.")
@@ -1061,6 +1171,7 @@ class TaskAgentService:
             "resumable": resumable,
             "recommended_allows": recommended_allows,
             "side_effect_risk": self._side_effect_risk(step.action_name),
+            "destructive": self._step_is_destructive(step),
             "dedupe_key": self._dedupe_key_for_step(step),
             "guidance": guidance,
             "reason": reason,
@@ -1291,6 +1402,8 @@ class TaskAgentService:
                 "append_text": "workspace.append_text",
                 "create_file": "workspace.create_file",
                 "copy_file": "workspace.copy_file",
+                "move_file": "workspace.move_file",
+                "delete_file": "workspace.delete_file",
             }[mode]
             steps.append(
                 RunStep(
@@ -1306,6 +1419,7 @@ class TaskAgentService:
                         "create_if_missing": bool(operation.get("create_if_missing", False)),
                         "source_path": str(operation.get("source_path", "")),
                         "instructions": str(operation["instructions"]),
+                        "destructive": mode in {"move_file", "delete_file"},
                     },
                     verification={"path": path, "mode": mode},
                 )
@@ -1414,10 +1528,18 @@ class TaskAgentService:
             )
         return steps
 
-    def _build_approvals(self, *, allow_repo_write: bool, allow_external_write: bool) -> list[ApprovalGrant]:
+    def _build_approvals(
+        self,
+        *,
+        allow_repo_write: bool,
+        allow_destructive_repo_write: bool,
+        allow_external_write: bool,
+    ) -> list[ApprovalGrant]:
         approvals: list[ApprovalGrant] = []
         if allow_repo_write:
             approvals.append(ApprovalGrant(tier=PermissionTier.REPO_WRITE, granted=True))
+        if allow_destructive_repo_write:
+            approvals.append(ApprovalGrant(tier=PermissionTier.DESTRUCTIVE_REPO_WRITE, granted=True))
         if allow_external_write:
             approvals.append(ApprovalGrant(tier=PermissionTier.EXTERNAL_WRITE, granted=True))
         return approvals

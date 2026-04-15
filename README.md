@@ -29,7 +29,7 @@ Public surfaces:
 - CLI commands for `doctor`, `task ...`, and `radar ...`
 - reviewed local memory commands via `skylattice memory ...` for profile proposals, search, export, and rollback
 - deterministic task edit modes: `rewrite`, `replace_text`, `insert_after`, and `append_text`
-- explicit non-destructive repo ops: `create_file` and `copy_file`
+- explicit repo ops: `create_file`, `copy_file`, `move_file`, and `delete_file`, with separate destructive approval for move/delete
 - halted task runs now expose recovery guidance, retry metadata, and resume-safe GitHub sync behavior
 - tracked validation now uses stable command ids and profiles shared by runtime and CI
 - when GitHub is configured, planning can see bounded open issue/PR context and issue comments preflight their targets
@@ -96,6 +96,8 @@ Task workflow:
 ```bash
 skylattice task run --goal "Refresh README and prepare a draft PR" --allow repo-write --allow external-write
 ```
+
+If a task plan needs destructive tracked-file lifecycle steps such as `move_file` or `delete_file`, add `--allow destructive-repo-write` when you approve or resume that run.
 
 Radar workflow:
 

@@ -7,7 +7,16 @@ from typing import Any
 from skylattice.providers import LLMProvider
 
 
-SUPPORTED_EDIT_MODES = ("rewrite", "replace_text", "insert_after", "append_text", "create_file", "copy_file")
+SUPPORTED_EDIT_MODES = (
+    "rewrite",
+    "replace_text",
+    "insert_after",
+    "append_text",
+    "create_file",
+    "copy_file",
+    "move_file",
+    "delete_file",
+)
 
 
 class TaskPlanner:
@@ -46,8 +55,8 @@ class TaskPlanner:
                 raise RuntimeError("Planner returned a file operation without a path")
             if not str(operation.get("instructions", "")).strip():
                 raise RuntimeError("Planner returned a file operation without instructions")
-            if mode == "copy_file" and not str(operation.get("source_path", "")).strip():
-                raise RuntimeError("Planner returned copy_file without a source_path")
+            if mode in {"copy_file", "move_file"} and not str(operation.get("source_path", "")).strip():
+                raise RuntimeError(f"Planner returned {mode} without a source_path")
             operation["mode"] = mode
             operation["create_if_missing"] = bool(operation.get("create_if_missing", mode == "create_file"))
 
