@@ -100,6 +100,8 @@ class RuntimeDatabase:
                     window TEXT NOT NULL,
                     status TEXT NOT NULL,
                     run_limit INTEGER NOT NULL,
+                    trigger_mode TEXT NOT NULL DEFAULT 'direct',
+                    schedule_id TEXT,
                     summary TEXT,
                     digest_json TEXT,
                     result_json TEXT,
@@ -256,6 +258,18 @@ class RuntimeDatabase:
                 connection,
                 table="radar_evidence",
                 column="provider_url",
+                definition="TEXT",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_runs",
+                column="trigger_mode",
+                definition="TEXT NOT NULL DEFAULT 'direct'",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_runs",
+                column="schedule_id",
                 definition="TEXT",
             )
 

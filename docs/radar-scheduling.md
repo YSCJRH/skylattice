@@ -83,6 +83,7 @@ Success means:
 
 - the run completes through the normal radar workflow
 - the resulting radar run uses the tracked `weekly` window and configured `limit`
+- the inspected radar run records `trigger_mode=scheduled` and `schedule_id=weekly-github`
 - no hidden scheduler state is introduced inside Skylattice
 
 ## Weekly-Cycle Validation Checklist
@@ -92,6 +93,7 @@ When validating a real scheduled weekly cycle, check:
 - the task is still registered under the tracked folder and name
 - the task starts in the repository root instead of `system32`
 - the created radar run records the expected `weekly` window
+- the created radar run records the expected `schedule_id` and `trigger_mode`
 - any promotion or failure still flows through the normal ledger, memory, and rollback surfaces
 - the repository remains clean before each scheduled run starts
 
