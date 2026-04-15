@@ -371,6 +371,8 @@ def test_radar_schedule_show_render_and_run_use_tracked_schedule(tmp_path: Path)
     schedule = service.radar.show_schedule()
     rendered = service.radar.render_schedule(target="windows-task")
     run = service.radar.run_schedule()
+    inspected = service.inspect_radar_run(run.run_id)
+    snapshot = service.radar.state_snapshot()
 
     assert schedule["default_schedule"] == "weekly-github"
     assert schedule["selected_schedule"] == "weekly-github"
@@ -392,6 +394,37 @@ def test_radar_schedule_show_render_and_run_use_tracked_schedule(tmp_path: Path)
     assert "Unregister-ScheduledTask" in rendered["windows_task"]["unregister_command"]
     assert run.window.value == "weekly"
     assert run.limit == 20
+    assert run.trigger_mode == "scheduled"
+    assert run.schedule_id == "weekly-github"
+    assert inspected["run"]["trigger_mode"] == "scheduled"
+    assert inspected["run"]["schedule_id"] == "weekly-github"
+    assert inspected["run"]["digest"]["trigger_mode"] == "scheduled"
+    assert inspected["run"]["digest"]["schedule_id"] == "weekly-github"
+    assert snapshot["latest_run_id"] == run.run_id
+    assert snapshot["latest_trigger_mode"] == "scheduled"
+    assert snapshot["latest_schedule_id"] == "weekly-github"
+
+
+def test_direct_radar_scan_records_direct_trigger_mode(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+    service.radar.git = fake_git
+
+    run = service.scan_radar(window="manual", limit=2)
+    inspected = service.inspect_radar_run(run.run_id)
+    snapshot = service.radar.state_snapshot()
+
+    assert run.trigger_mode == "direct"
+    assert run.schedule_id is None
+    assert inspected["run"]["trigger_mode"] == "direct"
+    assert inspected["run"]["schedule_id"] is None
+    assert inspected["run"]["digest"]["trigger_mode"] == "direct"
+    assert inspected["run"]["digest"]["schedule_id"] is None
+    assert snapshot["latest_run_id"] == run.run_id
+    assert snapshot["latest_trigger_mode"] == "direct"
+    assert snapshot["latest_schedule_id"] is None
 
 
 def test_radar_state_snapshot_reports_tracked_provider_contract(tmp_path: Path) -> None:

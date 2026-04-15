@@ -64,6 +64,8 @@ class RadarRun:
     window: RadarWindow
     status: RadarRunStatus
     limit: int
+    trigger_mode: str = "direct"
+    schedule_id: str | None = None
     summary: str = ""
     digest: dict[str, Any] = field(default_factory=dict)
     result: dict[str, Any] = field(default_factory=dict)

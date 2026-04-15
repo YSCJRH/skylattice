@@ -37,6 +37,7 @@ Public surfaces:
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
+- scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
 - provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
 - a Windows-first schedule runbook in [docs/radar-scheduling.md](docs/radar-scheduling.md) so operators can register and verify local radar tasks without hidden shell glue
@@ -113,7 +114,7 @@ Expected results:
 
 - `task run` creates a governed branch, records materialized edits, validates the repo, observes existing branch-scoped PR state, and can prepare or update a draft PR when GitHub write access is configured
 - `radar scan` discovers GitHub repositories, records evidence, validates bounded experiments, and can promote tracked changes through a rollbackable path
-- `radar schedule run` resolves tracked local schedule intent into the same bounded radar scan path without introducing a resident scheduler
+- `radar schedule run` resolves tracked local schedule intent into the same bounded radar scan path without introducing a resident scheduler, and preserves `schedule_id` plus `trigger_mode` for later inspection
 
 If you want to see the shape before using real tokens, compare your output to the redacted samples under `examples/redacted/`.
 

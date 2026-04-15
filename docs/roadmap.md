@@ -71,6 +71,7 @@ Delivered so far:
 - provider-neutral radar candidate and evidence identity fields alongside GitHub-shaped compatibility fields
 - tracked radar schedule intent in `configs/radar/schedule.yaml`
 - `skylattice radar schedule show`, `render`, and `run`
+- scheduled radar runs now preserve tracked schedule provenance for later inspection
 - Windows-first task registration rendering instead of a resident scheduler
 - a Windows-first schedule operator runbook plus working-directory-safe task action rendering
 - stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence

@@ -41,14 +41,16 @@ class RadarRepository:
         with self.database.connect() as connection:
             connection.execute(
                 """
-                INSERT INTO radar_runs (run_id, window, status, run_limit, summary, digest_json, result_json, error)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO radar_runs (run_id, window, status, run_limit, trigger_mode, schedule_id, summary, digest_json, result_json, error)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run.run_id,
                     run.window.value,
                     run.status.value,
                     run.limit,
+                    run.trigger_mode,
+                    run.schedule_id,
                     run.summary,
                     json.dumps(run.digest),
                     json.dumps(run.result),
@@ -440,6 +442,8 @@ class RadarRepository:
             window=RadarWindow(row["window"]),
             status=RadarRunStatus(row["status"]),
             limit=int(row["run_limit"]),
+            trigger_mode=row["trigger_mode"] or "direct",
+            schedule_id=row["schedule_id"],
             summary=row["summary"] or "",
             digest=json.loads(row["digest_json"] or "{}"),
             result=json.loads(row["result_json"] or "{}"),

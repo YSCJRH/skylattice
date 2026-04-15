@@ -166,6 +166,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-5-schedule-operator-runbook.md",
         "docs/tasks/phase-5-provider-contract.md",
         "docs/tasks/phase-5-identity-contract.md",
+        "docs/tasks/phase-5-scheduled-provenance.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -208,6 +209,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "homepageUrl",
         "docs/assets/cover-hero.svg",
         "provider-neutral radar candidate and evidence identity surfaces",
+        "scheduled radar runs now record `trigger_mode` and `schedule_id`",
     ]:
         assert phrase in readme
     assert 'version = "0.3.0"' in pyproject

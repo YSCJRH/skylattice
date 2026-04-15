@@ -108,6 +108,8 @@ class RadarService:
             "freeze_mode": state.freeze_mode,
             "consecutive_failures": state.consecutive_failures,
             "latest_run_id": latest.run_id if latest is not None else None,
+            "latest_trigger_mode": latest.trigger_mode if latest is not None else None,
+            "latest_schedule_id": latest.schedule_id if latest is not None else None,
             "default_schedule": self.config.schedule.default_schedule,
         }
 
@@ -185,9 +187,21 @@ class RadarService:
         schedule = self.config.schedule.get(schedule_id)
         if not schedule.enabled:
             raise RuntimeError(f"Radar schedule {schedule.schedule_id} is disabled.")
-        return self.scan(window=schedule.window, limit=schedule.limit)
+        return self.scan(
+            window=schedule.window,
+            limit=schedule.limit,
+            trigger_mode="scheduled",
+            schedule_id=schedule.schedule_id,
+        )
 
-    def scan(self, *, window: str = "manual", limit: int | None = None) -> RadarRun:
+    def scan(
+        self,
+        *,
+        window: str = "manual",
+        limit: int | None = None,
+        trigger_mode: str = "direct",
+        schedule_id: str | None = None,
+    ) -> RadarRun:
         if self.source is None:
             raise RuntimeError("Radar discovery is not configured. Set GITHUB_TOKEN to enable GitHub search.")
         state = self.radar_repository.get_state()
@@ -205,23 +219,45 @@ class RadarService:
         effective_limit = min(limit or window_config.candidate_limit, window_config.candidate_limit)
         run_id = f"radar-{uuid.uuid4().hex}"
         generic_goal = f"Technology radar {radar_window.value} scan"
-        self._create_shadow_run(run_id=run_id, goal=generic_goal)
+        self._create_shadow_run(
+            run_id=run_id,
+            goal=generic_goal,
+            trigger_mode=trigger_mode,
+            schedule_id=schedule_id,
+        )
         self.radar_repository.create_run(
-            RadarRun(run_id=run_id, window=radar_window, status=RadarRunStatus.CREATED, limit=effective_limit)
+            RadarRun(
+                run_id=run_id,
+                window=radar_window,
+                status=RadarRunStatus.CREATED,
+                limit=effective_limit,
+                trigger_mode=trigger_mode,
+                schedule_id=schedule_id,
+            )
         )
         self.ledger.append(
             run_id=run_id,
             kind=EventKind.RUN,
             summary="Radar run created",
             actor="radar",
-            payload={"window": radar_window.value, "limit": effective_limit},
+            payload={
+                "window": radar_window.value,
+                "limit": effective_limit,
+                "trigger_mode": trigger_mode,
+                "schedule_id": schedule_id,
+            },
         )
         self.memory.create(
             layer=MemoryLayer.WORKING,
             summary=f"Radar scan in progress: {radar_window.value}",
             run_id=run_id,
             source_refs=[radar_window.value],
-            metadata={"origin": "radar", "phase": "active"},
+            metadata={
+                "origin": "radar",
+                "phase": "active",
+                "trigger_mode": trigger_mode,
+                "schedule_id": schedule_id,
+            },
         )
 
         self._update_run_status(run_id, RadarRunStatus.SCANNING, summary="Scanning GitHub for fresh candidates")
@@ -623,8 +659,11 @@ class RadarService:
         for record in self.memory.list_for_run(run_id):
             if record.layer is MemoryLayer.WORKING and record.status.value == "active":
                 self.memory.rollback(record.record_id)
+        run = self.radar_repository.get_run(run_id)
         digest = {
             "run_id": run_id,
+            "trigger_mode": run.trigger_mode,
+            "schedule_id": run.schedule_id,
             "candidate_count": len(candidates),
             "top_candidates": [
                 {
@@ -652,7 +691,12 @@ class RadarService:
             summary=f"Radar run completed with {len(candidates)} candidates and {len(promotions)} promotions.",
             run_id=run_id,
             source_refs=[item.identity_handle for item in candidates[:3]],
-            metadata={"origin": "radar", "promoted": [item.promotion_id for item in promotions]},
+            metadata={
+                "origin": "radar",
+                "promoted": [item.promotion_id for item in promotions],
+                "trigger_mode": run.trigger_mode,
+                "schedule_id": run.schedule_id,
+            },
         )
         self.ledger.append(
             run_id=run_id,
@@ -682,12 +726,24 @@ class RadarService:
             confidence=max(candidate.score, 0.35),
         )
 
-    def _create_shadow_run(self, *, run_id: str, goal: str) -> None:
+    def _create_shadow_run(
+        self,
+        *,
+        run_id: str,
+        goal: str,
+        trigger_mode: str = "direct",
+        schedule_id: str | None = None,
+    ) -> None:
         self.run_repository.create_run(
             run_id=run_id,
             goal=goal,
             goal_source="radar",
-            runtime_snapshot={"service": "radar", "repo_root": str(self.repo_root)},
+            runtime_snapshot={
+                "service": "radar",
+                "repo_root": str(self.repo_root),
+                "trigger_mode": trigger_mode,
+                "schedule_id": schedule_id,
+            },
             status=RunStatus.CREATED,
         )
 
@@ -871,6 +927,8 @@ class RadarService:
             "window": run.window.value,
             "status": run.status.value,
             "limit": run.limit,
+            "trigger_mode": run.trigger_mode,
+            "schedule_id": run.schedule_id,
             "summary": run.summary,
             "digest": run.digest,
             "result": run.result,
