@@ -18,11 +18,13 @@ Current live source set:
 
 No webpage scraping, browser automation, or multi-source aggregation is in scope yet.
 The runtime now expresses this through a stable `RadarDiscoverySource` boundary so future providers can fit without rewriting `RadarService`.
+Tracked provider intent now lives in `configs/radar/providers.yaml`, so future provider rollout starts as a reviewable config change instead of a hidden runtime assumption.
 
 ## Candidate Selection
 
 Tracked source config lives in:
 
+- `configs/radar/providers.yaml`
 - `configs/radar/sources.yaml`
 - `configs/radar/scoring.yaml`
 - `configs/radar/promotion.yaml`

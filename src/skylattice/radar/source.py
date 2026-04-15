@@ -1,4 +1,4 @@
-﻿"""GitHub-backed discovery for the technology radar."""
+"""GitHub-backed discovery for the technology radar."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import uuid
 
 from skylattice.actions import GitHubAdapter
 
+from .config import RadarProviderConfig
 from .models import RadarCandidate, RadarCandidateStatus, RadarDecision, RadarEvidence
 
 
@@ -176,3 +177,19 @@ class GitHubRadarSource:
         if not isinstance(raw_topics, list):
             return ()
         return tuple(str(topic).lower() for topic in raw_topics if topic)
+
+
+def resolve_radar_source(
+    *,
+    providers: RadarProviderConfig,
+    github: GitHubAdapter | None,
+    override: RadarDiscoverySource | None = None,
+) -> RadarDiscoverySource | None:
+    if override is not None:
+        return override
+    selected = providers.get()
+    if not selected.enabled or not selected.live:
+        return None
+    if selected.kind == "github":
+        return GitHubRadarSource(github) if github is not None else None
+    return None

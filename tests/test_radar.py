@@ -118,6 +118,23 @@ manual:
 """.strip(),
     )
     _write(
+        repo / "configs" / "radar" / "providers.yaml",
+        """
+default_provider: github
+providers:
+  github:
+    kind: github
+    enabled: true
+    live: true
+    description: GitHub repository search, repository metadata, and latest release metadata.
+  future-second-provider:
+    kind: reserved
+    enabled: false
+    live: false
+    description: Reserved slot for the next radar provider contract without enabling a second live source yet.
+""".strip(),
+    )
+    _write(
         repo / "configs" / "radar" / "scoring.yaml",
         """
 weights:
@@ -353,5 +370,46 @@ def test_radar_schedule_show_render_and_run_use_tracked_schedule(tmp_path: Path)
     assert "Unregister-ScheduledTask" in rendered["windows_task"]["unregister_command"]
     assert run.window.value == "weekly"
     assert run.limit == 20
+
+
+def test_radar_state_snapshot_reports_tracked_provider_contract(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
+
+    snapshot = service.radar.state_snapshot()
+
+    assert snapshot["default_provider"] == "github"
+    assert snapshot["enabled_providers"] == ["github"]
+    assert snapshot["source_provider"] == "github"
+    assert snapshot["source_available"] is True
+
+
+def test_radar_service_respects_disabled_default_provider(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    _write(
+        repo / "configs" / "radar" / "providers.yaml",
+        """
+default_provider: future-second-provider
+providers:
+  github:
+    kind: github
+    enabled: true
+    live: true
+    description: GitHub repository search, repository metadata, and latest release metadata.
+  future-second-provider:
+    kind: reserved
+    enabled: false
+    live: false
+    description: Reserved slot for the next radar provider contract without enabling a second live source yet.
+""".strip(),
+    )
+
+    service = TaskAgentService.from_repo(repo_root=repo)
+    snapshot = service.radar.state_snapshot()
+
+    assert snapshot["default_provider"] == "future-second-provider"
+    assert snapshot["enabled_providers"] == ["github"]
+    assert snapshot["source_provider"] is None
+    assert snapshot["source_available"] is False
 
 
