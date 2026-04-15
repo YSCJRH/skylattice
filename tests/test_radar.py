@@ -432,6 +432,30 @@ def test_direct_radar_scan_records_direct_trigger_mode(tmp_path: Path) -> None:
     assert snapshot["latest_schedule_id"] is None
 
 
+def test_radar_schedule_validate_writes_local_report(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+    service.radar.git = fake_git
+
+    run = service.radar.run_schedule()
+    report = service.radar.validate_schedule_run(schedule_id="weekly-github", run_id=run.run_id)
+    report_path = repo / report["output_path"]
+
+    assert report["valid"] is True
+    assert report["run"]["run_id"] == run.run_id
+    assert report["run"]["trigger_mode"] == "scheduled"
+    assert report["run"]["schedule_id"] == "weekly-github"
+    assert report["checks"]["status_completed"] is True
+    assert report["checks"]["trigger_mode_matches"] is True
+    assert report["checks"]["schedule_id_matches"] is True
+    assert report["checks"]["window_matches"] is True
+    assert report["checks"]["limit_matches"] is True
+    assert report_path.exists()
+    assert ".local/radar/validations/" in report["output_path"].replace("\\", "/")
+
+
 def test_radar_state_snapshot_reports_tracked_provider_contract(tmp_path: Path) -> None:
     repo = create_radar_repo(tmp_path)
     service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())

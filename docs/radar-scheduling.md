@@ -86,6 +86,25 @@ Success means:
 - the inspected radar run records `trigger_mode=scheduled` and `schedule_id=weekly-github`
 - no hidden scheduler state is introduced inside Skylattice
 
+## Export A Validation Report
+
+After a scheduled or manually triggered run, write a local validation report:
+
+```bash
+python -m skylattice.cli radar schedule validate --schedule weekly-github
+```
+
+By default, Skylattice writes the report under `.local/radar/validations/`.
+
+The report records:
+
+- which tracked schedule was validated
+- which radar run was checked
+- whether `trigger_mode`, `schedule_id`, `window`, `limit`, and completion status matched expectations
+- whether the overall validation passed
+
+If you want to validate a specific run instead of the latest one, add `--run-id <run_id>`.
+
 ## Weekly-Cycle Validation Checklist
 
 When validating a real scheduled weekly cycle, check:
@@ -94,6 +113,7 @@ When validating a real scheduled weekly cycle, check:
 - the task starts in the repository root instead of `system32`
 - the created radar run records the expected `weekly` window
 - the created radar run records the expected `schedule_id` and `trigger_mode`
+- the exported validation report under `.local/radar/validations/` marks the run as valid
 - any promotion or failure still flows through the normal ledger, memory, and rollback surfaces
 - the repository remains clean before each scheduled run starts
 

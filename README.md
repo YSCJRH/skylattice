@@ -38,6 +38,7 @@ Public surfaces:
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
+- `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
 - tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
 - provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
 - adoption matching and scoring boosts now prefer provider-neutral source identity, with `repo_slug` kept as a compatibility fallback
@@ -117,6 +118,7 @@ Expected results:
 - `task run` creates a governed branch, records materialized edits, validates the repo, observes existing branch-scoped PR state, and can prepare or update a draft PR when GitHub write access is configured
 - `radar scan` discovers GitHub repositories, records evidence, validates bounded experiments, and can promote tracked changes through a rollbackable path
 - `radar schedule run` resolves tracked local schedule intent into the same bounded radar scan path without introducing a resident scheduler, and preserves `schedule_id` plus `trigger_mode` for later inspection
+- `radar schedule validate` checks the latest or named radar run against tracked schedule intent and writes a local validation report for weekly-cycle review
 
 If you want to see the shape before using real tokens, compare your output to the redacted samples under `examples/redacted/`.
 

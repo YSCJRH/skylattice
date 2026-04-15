@@ -99,6 +99,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     radar_schedule_run_parser.add_argument("--schedule")
 
+    radar_schedule_validate_parser = radar_schedule_subparsers.add_parser(
+        "validate",
+        help="Validate a radar run against tracked schedule intent and export a local report.",
+    )
+    radar_schedule_validate_parser.add_argument("--schedule")
+    radar_schedule_validate_parser.add_argument("--run-id")
+    radar_schedule_validate_parser.add_argument("--output")
+
     memory_parser = subparsers.add_parser("memory", help="Review and search local memory.")
     memory_subparsers = memory_parser.add_subparsers(dest="memory_command")
 
@@ -219,6 +227,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 if args.radar_schedule_command == "run":
                     run = service.radar.run_schedule(schedule_id=args.schedule)
                     _dump(service.inspect_radar_run(run.run_id))
+                    return 0
+                if args.radar_schedule_command == "validate":
+                    _dump(
+                        service.radar.validate_schedule_run(
+                            schedule_id=args.schedule,
+                            run_id=args.run_id,
+                            output_path=args.output,
+                        )
+                    )
                     return 0
 
         if args.command == "memory":

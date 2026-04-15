@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -193,6 +194,41 @@ class RadarService:
             trigger_mode="scheduled",
             schedule_id=schedule.schedule_id,
         )
+
+    def validate_schedule_run(
+        self,
+        *,
+        schedule_id: str | None = None,
+        run_id: str | None = None,
+        output_path: str | None = None,
+    ) -> dict[str, object]:
+        schedule = self.config.schedule.get(schedule_id)
+        run = self.radar_repository.get_run(run_id) if run_id is not None else self.radar_repository.latest_run()
+        if run is None:
+            raise RuntimeError("No radar run is available to validate.")
+
+        checks = {
+            "status_completed": run.status is RadarRunStatus.COMPLETED,
+            "trigger_mode_matches": run.trigger_mode == "scheduled",
+            "schedule_id_matches": run.schedule_id == schedule.schedule_id,
+            "window_matches": run.window.value == schedule.window,
+            "limit_matches": run.limit == (schedule.limit if schedule.limit is not None else run.limit),
+        }
+        report = {
+            "report_version": 1,
+            "generated_at": datetime.now(UTC).isoformat(),
+            "schedule": self._serialize_schedule(schedule),
+            "run": self._serialize_run(run),
+            "checks": checks,
+            "valid": all(checks.values()),
+        }
+        destination = self._resolve_schedule_validation_path(run_id=run.run_id, output_path=output_path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        return {
+            **report,
+            "output_path": self._display_path(destination),
+        }
 
     def scan(
         self,
@@ -746,6 +782,20 @@ class RadarService:
             },
             status=RunStatus.CREATED,
         )
+
+    def _resolve_schedule_validation_path(self, *, run_id: str, output_path: str | None) -> Path:
+        if output_path:
+            candidate = Path(output_path)
+            return candidate if candidate.is_absolute() else (self.repo_root / candidate)
+        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        return self.repo_root / ".local" / "radar" / "validations" / f"{timestamp}-{run_id}.json"
+
+    def _display_path(self, path: Path) -> str:
+        try:
+            relative = path.relative_to(self.repo_root)
+        except ValueError:
+            return str(path)
+        return relative.as_posix() if relative.parts else "."
 
     def _update_run_status(self, run_id: str, status: RadarRunStatus, *, summary: str | None = None) -> None:
         self.radar_repository.update_run(run_id, status=status, summary=summary)

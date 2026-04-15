@@ -169,6 +169,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-5-scheduled-provenance.md",
         "docs/tasks/phase-5-adoption-identity.md",
         "docs/tasks/phase-5-evidence-taxonomy.md",
+        "docs/tasks/phase-5-schedule-validation-report.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -216,6 +217,8 @@ def test_public_positioning_surfaces_are_present() -> None:
         "scheduled radar runs now record `trigger_mode` and `schedule_id`",
         "adoption matching and scoring boosts now prefer provider-neutral source identity",
         "normalized radar evidence taxonomy now uses provider-neutral kind names",
+        "radar schedule validate",
+        ".local/radar/validations/",
     ]:
         assert phrase in readme
     assert 'version = "0.3.0"' in pyproject

@@ -73,6 +73,7 @@ Delivered so far:
 - tracked radar schedule intent in `configs/radar/schedule.yaml`
 - `skylattice radar schedule show`, `render`, and `run`
 - scheduled radar runs now preserve tracked schedule provenance for later inspection
+- schedule validation reports now export local weekly-cycle evidence under `.local/radar/validations/`
 - Windows-first task registration rendering instead of a resident scheduler
 - a Windows-first schedule operator runbook plus working-directory-safe task action rendering
 - stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
