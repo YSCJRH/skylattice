@@ -48,10 +48,41 @@ class RadarPromotionConfig:
 
 
 @dataclass(frozen=True)
+class RadarWindowsTaskConfig:
+    folder: str
+    description: str
+    schedule_expression: str
+
+
+@dataclass(frozen=True)
+class RadarScheduleEntry:
+    schedule_id: str
+    enabled: bool
+    window: str
+    limit: int | None
+    target_command: str
+    windows_task: RadarWindowsTaskConfig
+
+
+@dataclass(frozen=True)
+class RadarScheduleConfig:
+    default_schedule: str
+    schedules: dict[str, RadarScheduleEntry]
+
+    def get(self, schedule_id: str | None = None) -> RadarScheduleEntry:
+        effective = schedule_id or self.default_schedule
+        try:
+            return self.schedules[effective]
+        except KeyError as exc:
+            raise KeyError(f"Unknown radar schedule: {effective}") from exc
+
+
+@dataclass(frozen=True)
 class RadarConfig:
     sources: RadarSourceConfig
     scoring: RadarScoringConfig
     promotion: RadarPromotionConfig
+    schedule: RadarScheduleConfig
 
 
 @dataclass(frozen=True)
@@ -68,6 +99,7 @@ def load_radar_config(repo_root: Path | None = None) -> RadarConfig:
     raw_sources = load_yaml("configs/radar/sources.yaml", root)
     raw_scoring = load_yaml("configs/radar/scoring.yaml", root)
     raw_promotion = load_yaml("configs/radar/promotion.yaml", root)
+    raw_schedule = load_yaml("configs/radar/schedule.yaml", root)
 
     return RadarConfig(
         sources=RadarSourceConfig(
@@ -96,6 +128,7 @@ def load_radar_config(repo_root: Path | None = None) -> RadarConfig:
             promotion_log_dir=str(raw_promotion.get("promotion_log_dir", "docs/radar/promotions")),
             adoption_registry=str(raw_promotion.get("adoption_registry", "configs/radar/adoptions.yaml")),
         ),
+        schedule=_load_schedule_config(raw_schedule),
     )
 
 
@@ -125,3 +158,47 @@ def _window_config(raw: object, *, candidate_limit: int, created_days: int, acti
         created_days=int(mapping.get("created_days", created_days)),
         active_days=int(mapping.get("active_days", active_days)),
     )
+
+
+def _load_schedule_config(raw: dict[str, object]) -> RadarScheduleConfig:
+    schedules_raw = raw.get("schedules", {})
+    schedules_map = schedules_raw if isinstance(schedules_raw, dict) else {}
+    schedules: dict[str, RadarScheduleEntry] = {}
+    for schedule_id, item in schedules_map.items():
+        if not isinstance(item, dict):
+            continue
+        windows_task_raw = item.get("windows_task", {})
+        windows_task = windows_task_raw if isinstance(windows_task_raw, dict) else {}
+        limit_value = item.get("limit")
+        schedules[str(schedule_id)] = RadarScheduleEntry(
+            schedule_id=str(schedule_id),
+            enabled=bool(item.get("enabled", True)),
+            window=str(item.get("window", "weekly")),
+            limit=int(limit_value) if limit_value is not None else None,
+            target_command=str(
+                item.get(
+                    "target_command",
+                    f"python -m skylattice.cli radar schedule run --schedule {schedule_id}",
+                )
+            ),
+            windows_task=RadarWindowsTaskConfig(
+                folder=str(windows_task.get("folder", "\\Skylattice")),
+                description=str(windows_task.get("description", "Run Skylattice radar scan")),
+                schedule_expression=str(windows_task.get("schedule_expression", "WEEKLY")),
+            ),
+        )
+    if not schedules:
+        schedules["weekly-github"] = RadarScheduleEntry(
+            schedule_id="weekly-github",
+            enabled=True,
+            window="weekly",
+            limit=20,
+            target_command="python -m skylattice.cli radar schedule run --schedule weekly-github",
+            windows_task=RadarWindowsTaskConfig(
+                folder="\\Skylattice",
+                description="Run Skylattice weekly GitHub radar scan",
+                schedule_expression="WEEKLY",
+            ),
+        )
+    default_schedule = str(raw.get("default_schedule", next(iter(schedules))))
+    return RadarScheduleConfig(default_schedule=default_schedule, schedules=schedules)

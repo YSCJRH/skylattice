@@ -11,7 +11,7 @@ High-value public pages:
 - https://yscjrh.github.io/skylattice/comparison/
 - https://yscjrh.github.io/skylattice/faq/
 - https://yscjrh.github.io/skylattice/proof/
-- https://yscjrh.github.io/skylattice/releases/v0-2-2/
+- https://yscjrh.github.io/skylattice/releases/v0-3-0/
 - https://yscjrh.github.io/skylattice/releases/v0-2-0/
 
 Deep system references:
@@ -33,7 +33,7 @@ Chinese mirrors:
 - https://yscjrh.github.io/skylattice/zh/comparison/
 - https://yscjrh.github.io/skylattice/zh/faq/
 - https://yscjrh.github.io/skylattice/zh/proof/
-- https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/
+- https://yscjrh.github.io/skylattice/zh/releases/v0-3-0/
 - https://yscjrh.github.io/skylattice/zh/releases/v0-2-0/
 
 Public proof artifacts:

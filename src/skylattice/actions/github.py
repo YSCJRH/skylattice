@@ -42,6 +42,52 @@ class GitHubAdapter:
     def get_repo(self) -> dict[str, Any]:
         return self._request_json("GET", f"/repos/{self.repo.slug}")
 
+    def get_issue(self, issue_number: int) -> dict[str, Any]:
+        payload = self._request_json("GET", f"/repos/{self.repo.slug}/issues/{issue_number}")
+        return payload if isinstance(payload, dict) else {}
+
+    def list_issues(
+        self,
+        *,
+        state: str = "open",
+        per_page: int = 10,
+    ) -> list[dict[str, Any]]:
+        payload = self._request_json(
+            "GET",
+            f"/repos/{self.repo.slug}/issues?{urlencode({'state': state, 'per_page': per_page})}",
+        )
+        if not isinstance(payload, list):
+            return []
+        return [item for item in payload if "pull_request" not in item]
+
+    def list_pull_requests(
+        self,
+        *,
+        state: str = "open",
+        per_page: int = 10,
+    ) -> list[dict[str, Any]]:
+        payload = self._request_json(
+            "GET",
+            f"/repos/{self.repo.slug}/pulls?{urlencode({'state': state, 'per_page': per_page})}",
+        )
+        return payload if isinstance(payload, list) else []
+
+    def get_pull_request(self, number: int) -> dict[str, Any]:
+        payload = self._request_json("GET", f"/repos/{self.repo.slug}/pulls/{number}")
+        if not isinstance(payload, dict):
+            return {}
+        return self._normalize_pull_request(payload)
+
+    def find_open_pull_request_by_head(self, head_branch: str) -> dict[str, Any] | None:
+        query = urlencode({"state": "open", "head": f"{self.repo.owner}:{head_branch}"})
+        payload = self._request_json("GET", f"/repos/{self.repo.slug}/pulls?{query}")
+        if not isinstance(payload, list) or not payload:
+            return None
+        first = payload[0]
+        if not isinstance(first, dict):
+            return None
+        return self._normalize_pull_request(first, default_head_branch=head_branch)
+
     def get_repository(self, repo_slug: str) -> dict[str, Any]:
         return self._request_json("GET", f"/repos/{self._parse_repo(repo_slug).slug}")
 
@@ -92,6 +138,35 @@ class GitHubAdapter:
             {"body": body},
         )
 
+    def list_issue_comments(self, *, issue_number: int, per_page: int = 100) -> list[dict[str, Any]]:
+        payload = self._request_json(
+            "GET",
+            f"/repos/{self.repo.slug}/issues/{issue_number}/comments?{urlencode({'per_page': per_page})}",
+        )
+        return payload if isinstance(payload, list) else []
+
+    def create_or_reuse_issue_comment(self, *, issue_number: int, body: str, dedupe_key: str) -> dict[str, Any]:
+        marker = self._comment_marker(dedupe_key)
+        for comment in self.list_issue_comments(issue_number=issue_number):
+            if marker in str(comment.get("body", "")):
+                return {
+                    **comment,
+                    "reused": True,
+                    "sync_mode": "reuse",
+                    "dedupe_key": dedupe_key,
+                }
+
+        payload = self.add_issue_comment(
+            issue_number=issue_number,
+            body=self._append_comment_marker(body, marker),
+        )
+        return {
+            **payload,
+            "reused": False,
+            "sync_mode": "create",
+            "dedupe_key": dedupe_key,
+        }
+
     def create_or_update_draft_pr(
         self,
         *,
@@ -100,16 +175,21 @@ class GitHubAdapter:
         title: str,
         body: str,
     ) -> dict[str, Any]:
-        query = urlencode({"state": "open", "head": f"{self.repo.owner}:{head_branch}"})
-        open_pulls = self._request_json("GET", f"/repos/{self.repo.slug}/pulls?{query}")
-        if isinstance(open_pulls, list) and open_pulls:
-            number = int(open_pulls[0]["number"])
-            return self._request_json(
+        existing = self.find_open_pull_request_by_head(head_branch)
+        if existing is not None:
+            number = int(existing["number"])
+            payload = self._request_json(
                 "PATCH",
                 f"/repos/{self.repo.slug}/pulls/{number}",
                 {"title": title, "body": body, "base": base_branch},
             )
-        return self._request_json(
+            return {
+                **self._normalize_pull_request(payload, default_head_branch=head_branch, default_base_branch=base_branch),
+                "reused": True,
+                "sync_mode": "update",
+                "dedupe_key": head_branch,
+            }
+        payload = self._request_json(
             "POST",
             f"/repos/{self.repo.slug}/pulls",
             {
@@ -120,6 +200,12 @@ class GitHubAdapter:
                 "draft": True,
             },
         )
+        return {
+            **self._normalize_pull_request(payload, default_head_branch=head_branch, default_base_branch=base_branch),
+            "reused": False,
+            "sync_mode": "create",
+            "dedupe_key": head_branch,
+        }
 
     def _request_json(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
@@ -159,3 +245,42 @@ class GitHubAdapter:
             raise ValueError(f"Unsupported GitHub repository value: {value}")
         owner, name = cleaned.split("/", 1)
         return GitHubRepoRef(owner=owner, name=name)
+
+    @staticmethod
+    def _comment_marker(dedupe_key: str) -> str:
+        return f"<!-- skylattice:{dedupe_key} -->"
+
+    @staticmethod
+    def _append_comment_marker(body: str, marker: str) -> str:
+        if marker in body:
+            return body
+        return f"{body.rstrip()}\n\n{marker}"
+
+    @staticmethod
+    def _normalize_pull_request(
+        payload: dict[str, Any],
+        *,
+        default_head_branch: str | None = None,
+        default_base_branch: str | None = None,
+    ) -> dict[str, Any]:
+        head = payload.get("head")
+        base = payload.get("base")
+        head_branch = (
+            str(head.get("ref"))
+            if isinstance(head, dict) and head.get("ref")
+            else str(payload.get("head_branch") or default_head_branch or "")
+        )
+        base_branch = (
+            str(base.get("ref"))
+            if isinstance(base, dict) and base.get("ref")
+            else str(payload.get("base_branch") or default_base_branch or "")
+        )
+        return {
+            **payload,
+            "number": payload.get("number"),
+            "html_url": payload.get("html_url"),
+            "state": str(payload.get("state", "open") or "open"),
+            "draft": bool(payload.get("draft", False)),
+            "head_branch": head_branch,
+            "base_branch": base_branch,
+        }

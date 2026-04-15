@@ -13,6 +13,7 @@ class PermissionTier(StrEnum):
     OBSERVE = "observe"
     LOCAL_SAFE_WRITE = "local-safe-write"
     REPO_WRITE = "repo-write"
+    DESTRUCTIVE_REPO_WRITE = "destructive-repo-write"
     EXTERNAL_READ = "external-read"
     EXTERNAL_WRITE = "external-write"
     RADAR_EXPERIMENT_WRITE = "radar-experiment-write"
@@ -32,6 +33,7 @@ class GovernanceRequest:
     target_path: str | None = None
     destructive: bool = False
     user_approved: bool = False
+    destructive_approved: bool = False
 
 
 @dataclass(frozen=True)
@@ -76,10 +78,10 @@ class GovernanceGate:
         if self.policy.freeze_mode and request.tier is not PermissionTier.OBSERVE:
             return GovernanceOutcome(GovernanceDecision.DENIED, "freeze mode is enabled")
 
-        if destructive:
+        if destructive and not request.destructive_approved:
             return GovernanceOutcome(
                 GovernanceDecision.DENIED,
-                "destructive action requires explicit operator intervention",
+                "destructive action requires explicit destructive-repo-write approval",
             )
 
         if request.user_approved:
@@ -109,6 +111,8 @@ class GovernanceGate:
             "auto_approve": [tier.value for tier in self.policy.auto_approve],
             "approval_required": [tier.value for tier in self.policy.approval_required],
             "local_safe_roots": list(self.policy.local_safe_roots),
+            "destructive_requires_operator_approval": True,
+            "destructive_approval_flag": PermissionTier.DESTRUCTIVE_REPO_WRITE.value,
         }
 
     @property

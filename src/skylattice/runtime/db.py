@@ -138,6 +138,7 @@ class RuntimeDatabase:
                     evidence_id TEXT PRIMARY KEY,
                     run_id TEXT NOT NULL,
                     candidate_id TEXT NOT NULL,
+                    provider TEXT NOT NULL DEFAULT 'github',
                     evidence_kind TEXT NOT NULL,
                     source TEXT NOT NULL,
                     summary TEXT NOT NULL,
@@ -195,3 +196,23 @@ class RuntimeDatabase:
                 );
                 """
             )
+            self._ensure_column(
+                connection,
+                table="radar_evidence",
+                column="provider",
+                definition="TEXT NOT NULL DEFAULT 'github'",
+            )
+
+    @staticmethod
+    def _ensure_column(
+        connection: sqlite3.Connection,
+        *,
+        table: str,
+        column: str,
+        definition: str,
+    ) -> None:
+        rows = connection.execute(f"PRAGMA table_info({table})").fetchall()
+        existing = {str(row["name"]) for row in rows}
+        if column in existing:
+            return
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")

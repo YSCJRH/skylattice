@@ -34,27 +34,48 @@ Delivered:
 
 ## Phase 3: Memory And Retrieval Deepening
 
-Next goals:
+Status: complete
+
+Delivered:
 
 - explicit profile memory editing and confirmation flow
 - stronger semantic compaction and retrieval ranking
 - procedural playbook deduplication and review tooling
 - export and rollback tooling for local memory artifacts
+- task-planning memory context for profile, procedural, and semantic recall
+- read-only memory inspection and search API endpoints
 
 ## Phase 4: Action Expansion And Recovery Hardening
 
+Status: complete
+
+Delivered:
+
+- resume-safe task recovery metadata for blocked and halted runs
+- branch-scoped PR reuse and deduplicated issue-comment sync on resume
+- tracked validation command ids, profiles, and richer expectation checks shared by runtime and CI
+- explicit non-destructive repo ops for tracked file creation and template copying
+- explicit destructive repo ops for tracked file move/delete with separate operator approval
+- bounded GitHub issue and PR planning context plus issue-comment preflight checks
+- observe-tier pull-request preflight before sync
+- richer PR sync payloads with remote target number, URL, state, draft status, and sync mode
+- recovery summaries that distinguish create-vs-update PR behavior and issue-comment dedupe state
+
+## Phase 5: Local Scheduler Foundation And Radar Source Abstraction
+
+Status: in progress
+
+Delivered so far:
+
+- tracked radar schedule intent in `configs/radar/schedule.yaml`
+- `skylattice radar schedule show`, `render`, and `run`
+- Windows-first task registration rendering instead of a resident scheduler
+- stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
+- GitHub remains the only live discovery provider in this slice
+
 Next goals:
 
-- richer repo operations beyond full-file rewrites
-- safer command execution envelopes and richer verification steps
-- better GitHub issue and PR synchronization behavior
-- stronger halted-run recovery and diagnostics
-
-## Phase 5: Scheduler And Broader Radar Sources
-
-Later goals:
-
-- weekly local automation for radar scans
-- optional additional external sources beyond GitHub
-- richer experiment templates beyond docs/config artifacts
-- no silent widening of autonomy
+- validate local scheduled radar runs across at least one full weekly cycle
+- add sharper schedule docs and operator runbooks for OS-level task registration
+- prepare for a second radar provider without widening autonomy or hiding provider provenance
+- keep experiment and promotion semantics stable while source inputs broaden

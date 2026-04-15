@@ -37,6 +37,9 @@ Both workflows share:
 - task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 - `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
+- `load_radar_config()` also loads tracked radar schedule intent from `configs/radar/schedule.yaml`
+- validation commands now carry stable ids, expected outputs, and profile membership instead of acting as a flat string allowlist
+- local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
 
 ### Task Agent Path
 
@@ -45,11 +48,17 @@ Both workflows share:
 Flow:
 
 1. interpret goal
-2. generate a constrained plan with declared edit modes and tracked validation commands
-3. gate repo and external writes
-4. execute deterministic text edits or full rewrites through the repo workspace adapter
-5. verify results with tracked validation commands and local edit invariants
-6. write episodic and procedural memory
+2. retrieve ranked profile, procedural, and semantic memory for the current goal
+3. generate a constrained plan with declared edit modes, tracked validation refs, and bounded GitHub sync context when available
+4. gate repo and external writes
+5. execute deterministic text edits or full rewrites through the repo workspace adapter
+6. verify results with tracked validation commands and local edit invariants
+7. expose retry diagnostics for blocked or halted steps, then resume only with explicit operator action
+8. write episodic and procedural memory
+
+The planner can see a bounded `memory_context`, but memory retrieval does not widen permissions or validation scope.
+Resume behavior is also bounded: blocked and halted steps expose structured recovery metadata, and GitHub sync steps try to reuse prior remote artifacts instead of blindly duplicating them.
+GitHub context is similarly bounded: planner prompts may see recent open issues and PRs, PR sync now performs an observe-tier preflight, and recovery summaries expose remote target state without turning GitHub into runtime truth.
 
 Current task edit modes:
 
@@ -57,6 +66,10 @@ Current task edit modes:
 - `replace_text`
 - `insert_after`
 - `append_text`
+- `create_file`
+- `copy_file`
+- `move_file`
+- `delete_file`
 
 ### Technology Radar Path
 
@@ -64,7 +77,7 @@ Current task edit modes:
 
 Flow:
 
-1. discover GitHub repositories via API
+1. discover repositories through a stable source interface
 2. score candidates against tracked topics, freshness, activity, releases, and capability gaps
 3. record semantic memory for shortlisted candidates
 4. create repo-contained spike branches under `codex/radar-*`
@@ -72,6 +85,8 @@ Flow:
 6. promote at most one candidate per run to `main` through a guarded allowlist
 7. update `configs/radar/adoptions.yaml` and promotion logs
 8. support rollback through explicit promotion records
+
+Radar now also has tracked local schedule intent plus Windows-first schedule rendering, but it still delegates actual recurring execution to the operating system instead of a resident Skylattice worker.
 
 ## Data Stores
 
@@ -96,7 +111,10 @@ Flow:
 ## Key Boundaries
 
 - GitHub is a source and audit surface, not runtime truth.
-- Task-agent validation commands are constrained to tracked config and do not grant arbitrary shell execution.
+- Task-agent validation commands are constrained to tracked config, profile membership, and declared expectations; they do not grant arbitrary shell execution.
+- Current richer repo ops are still text-first and bounded: `create_file` and `copy_file` are routine repo-write steps, while `move_file` and `delete_file` require a separate destructive approval.
+- halted repo and external write steps remain operator-resumed; there is no automatic retry worker
+- profile updates, semantic compaction, and procedural dedup stay review-driven local actions; there is no background memory mutation
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
 - The runtime does not depend on GitHub to exist, but the radar workflow depends on `GITHUB_TOKEN` for discovery.
@@ -105,7 +123,9 @@ Flow:
 
 - every task and radar run has ledger events
 - task edit steps record their materialized payloads for inspection
+- halted and blocked task steps record retry metadata and recovery guidance for `task inspect`, CLI status, and the read-only API
 - memory writes are attached to run ids when applicable
+- memory records can be listed, searched, exported, rolled back, and reviewed through the CLI without exposing a write API
 - radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`
 - `skylattice doctor` and the read-only FastAPI surface expose the current local state without enabling mutation
 

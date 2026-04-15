@@ -102,6 +102,7 @@ class RadarEvidence:
     evidence_id: str
     run_id: str
     candidate_id: str
+    provider: str
     evidence_kind: str
     source: str
     summary: str

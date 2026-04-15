@@ -1,0 +1,22 @@
+default_schedule: weekly-github
+
+schedules:
+  weekly-github:
+    enabled: true
+    window: weekly
+    limit: 20
+    target_command: python -m skylattice.cli radar schedule run --schedule weekly-github
+    windows_task:
+      folder: \Skylattice
+      description: Run Skylattice weekly GitHub radar scan
+      schedule_expression: WEEKLY
+
+  manual-github:
+    enabled: true
+    window: manual
+    limit: 10
+    target_command: python -m skylattice.cli radar schedule run --schedule manual-github
+    windows_task:
+      folder: \Skylattice
+      description: Run Skylattice manual GitHub radar scan
+      schedule_expression: ONDEMAND

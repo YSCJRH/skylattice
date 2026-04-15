@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Local-first AI agent runtime and auditable agent framework for durable memory, governed repo tasks, and Git-native reviewability.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.2.2",
+    "softwareVersion": "0.3.0",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -30,7 +30,7 @@ It combines private local memory, governed repo tasks, and Git-native review sur
 
 - Skylattice is an auditable agent framework, not a chat wrapper or a broad coding-bot platform.
 - It is strongest when you care about governed repo tasks, rollbackable changes, and durable local memory.
-- You can verify the runtime without API keys, then inspect stable release notes and public-safe sample outputs.
+- You can verify the runtime without API keys, then inspect stable release notes, scheduler surfaces, and public-safe sample outputs.
 
 ## What Makes It Different
 
@@ -57,4 +57,4 @@ It combines private local memory, governed repo tasks, and Git-native review sur
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
 - [Proof](proof.md)
-- [v0.2.2 Stable](releases/v0-2-2.md)
+- [v0.3.0 Stable](releases/v0-3-0.md)

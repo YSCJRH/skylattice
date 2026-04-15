@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.3.0 - Stable Phase 4 Closeout And Phase 5 Entry
+
+Date: 2026-04-15
+
+### Added
+
+- GitHub collaboration sync hardening with branch-scoped PR preflight, richer PR sync result payloads, and recovery summaries that surface remote target metadata
+- tracked radar schedule config plus Windows-first `radar schedule show`, `render`, and `run` operator surfaces
+- a stable radar discovery source protocol and provider-tagged radar evidence for future multi-source expansion
+- ADRs for GitHub collaboration sync hardening and local scheduler plus radar source abstraction
+- `v0.3.0 Stable` release notes and Pages release surface
+
+### Changed
+
+- the canonical stable release signal now points to `v0.3.0 Stable`
+- README, Pages landing pages, AI distribution docs, llms files, sitemap, and citation metadata now align on `v0.3.0`
+- roadmap status now treats Phase 4 as complete and Phase 5 as in progress
+
+### Notes
+
+- `v0.2.2 Stable` remains part of the public history as the external authority kit release
+- this release does not introduce a resident scheduler, daemon, or second live radar source
+- GitHub remains a collaboration and audit layer rather than runtime truth
+
 ## v0.2.2 - Stable External Authority Kit
 
 Date: 2026-04-10

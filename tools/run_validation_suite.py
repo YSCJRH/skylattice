@@ -13,10 +13,11 @@ from skylattice.runtime import load_task_validation_policy  # noqa: E402
 
 def main() -> int:
     policy = load_task_validation_policy(REPO_ROOT)
-    for command in policy.allowed_commands:
-        print(f"> {command}")
+    for command_id in policy.profile_command_ids():
+        spec = policy.resolve_command(command_id)
+        print(f"> [{spec.id}] {spec.command}")
         completed = subprocess.run(
-            [policy.runner, "-Command", command],
+            [policy.runner, "-Command", spec.command],
             cwd=REPO_ROOT,
             capture_output=True,
             text=True,
@@ -26,8 +27,27 @@ def main() -> int:
             print(completed.stdout, end="")
         if completed.stderr:
             print(completed.stderr, end="", file=sys.stderr)
-        if completed.returncode != 0:
-            return completed.returncode
+        if completed.returncode != spec.expected_returncode:
+            print(
+                f"Validation {spec.id} failed: expected return code {spec.expected_returncode}, "
+                f"got {completed.returncode}.",
+                file=sys.stderr,
+            )
+            return completed.returncode or 1
+        missing_stdout = [item for item in spec.stdout_contains if item not in completed.stdout]
+        if missing_stdout:
+            print(
+                f"Validation {spec.id} failed: stdout did not contain {missing_stdout!r}.",
+                file=sys.stderr,
+            )
+            return 1
+        missing_stderr = [item for item in spec.stderr_contains if item not in completed.stderr]
+        if missing_stderr:
+            print(
+                f"Validation {spec.id} failed: stderr did not contain {missing_stderr!r}.",
+                file=sys.stderr,
+            )
+            return 1
     return 0
 
 

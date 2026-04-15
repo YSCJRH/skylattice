@@ -42,7 +42,7 @@ If you want the shortest proof path, start with the quick start and proof page, 
 - what-is page: `https://yscjrh.github.io/skylattice/what-is-skylattice/`
 - quick start: `https://yscjrh.github.io/skylattice/quickstart/`
 - proof page: `https://yscjrh.github.io/skylattice/proof/`
-- stable release: `https://yscjrh.github.io/skylattice/releases/v0-2-2/`
+- stable release: `https://yscjrh.github.io/skylattice/releases/v0-3-0/`
 
 ## Short Abstract Version
 

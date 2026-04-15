@@ -39,7 +39,7 @@ That is why the repository looks unusual. Docs, configs, prompts, ADRs, validati
 - comparison page: `https://yscjrh.github.io/skylattice/comparison/`
 - what-is page: `https://yscjrh.github.io/skylattice/what-is-skylattice/`
 - proof page: `https://yscjrh.github.io/skylattice/proof/`
-- stable release: `https://yscjrh.github.io/skylattice/releases/v0-2-2/`
+- stable release: `https://yscjrh.github.io/skylattice/releases/v0-3-0/`
 
 ## Suggested CTA
 

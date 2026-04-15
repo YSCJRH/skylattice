@@ -37,10 +37,17 @@ class OpenAIProvider:
             f"{goal}\n\n"
             "Repository context:\n"
             f"{json.dumps(repo_context, indent=2)}\n\n"
+            "Use memory_context when it helps clarify standing preferences, reusable workflows, or durable semantic context.\n"
+            "Use github_context when it is available to keep pull request and issue-comment plans aligned with recent open collaboration state.\n"
             "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
-            "Supported edit modes: rewrite, replace_text, insert_after, append_text.\n"
+            "Supported file operation modes: rewrite, replace_text, insert_after, append_text, create_file, copy_file, move_file, delete_file.\n"
             "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
-            f"Allowed validation commands: {command_list}.\n"
+            "Prefer create_file for new tracked text files and copy_file when starting from an existing tracked-safe template.\n"
+            "Use move_file or delete_file only when the goal explicitly requires destructive tracked-file lifecycle changes.\n"
+            "Destructive repo ops require separate destructive-repo-write approval, so prefer non-destructive edits when they are sufficient.\n"
+            f"Allowed validation refs: {command_list}.\n"
+            "Use validation_catalog from the repository context as the source of truth.\n"
+            "Prefer returning validation command ids instead of raw commands when possible.\n"
             "Return one branch name, one or more file operations, zero or more validation commands,\n"
             "one commit message, one draft pull request payload, and an optional issue comment payload."
         )
@@ -61,9 +68,19 @@ class OpenAIProvider:
                                 "path": {"type": "string"},
                                 "mode": {
                                     "type": "string",
-                                    "enum": ["rewrite", "replace_text", "insert_after", "append_text"],
+                                    "enum": [
+                                        "rewrite",
+                                        "replace_text",
+                                        "insert_after",
+                                        "append_text",
+                                        "create_file",
+                                        "copy_file",
+                                        "move_file",
+                                        "delete_file",
+                                    ],
                                 },
                                 "create_if_missing": {"type": "boolean"},
+                                "source_path": {"type": "string"},
                                 "instructions": {"type": "string"},
                             },
                             "required": ["path", "mode", "create_if_missing", "instructions"],

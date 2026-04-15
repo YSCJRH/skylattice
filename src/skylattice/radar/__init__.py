@@ -1,6 +1,17 @@
 ﻿"""Technology radar exports."""
 
-from .config import AdoptionRecord, RadarConfig, RadarPromotionConfig, RadarScoringConfig, RadarSourceConfig, load_adoption_records, load_radar_config
+from .config import (
+    AdoptionRecord,
+    RadarConfig,
+    RadarPromotionConfig,
+    RadarScheduleConfig,
+    RadarScheduleEntry,
+    RadarScoringConfig,
+    RadarSourceConfig,
+    RadarWindowsTaskConfig,
+    load_adoption_records,
+    load_radar_config,
+)
 from .models import (
     RadarCandidate,
     RadarCandidateStatus,
@@ -18,11 +29,12 @@ from .models import (
 from .repositories import RadarRepository
 from .scoring import RadarScore, RadarScorer
 from .service import RadarService
-from .source import GitHubRadarSource
+from .source import GitHubRadarSource, RadarDiscoverySource
 
 __all__ = [
     "AdoptionRecord",
     "GitHubRadarSource",
+    "RadarDiscoverySource",
     "RadarCandidate",
     "RadarCandidateStatus",
     "RadarConfig",
@@ -36,6 +48,8 @@ __all__ = [
     "RadarRepository",
     "RadarRun",
     "RadarRunStatus",
+    "RadarScheduleConfig",
+    "RadarScheduleEntry",
     "RadarScore",
     "RadarScorer",
     "RadarService",
@@ -43,6 +57,7 @@ __all__ = [
     "RadarScoringConfig",
     "RadarState",
     "RadarWindow",
+    "RadarWindowsTaskConfig",
     "load_adoption_records",
     "load_radar_config",
 ]
