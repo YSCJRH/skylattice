@@ -165,6 +165,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-4-closeout-phase-5-entry.md",
         "docs/tasks/phase-5-schedule-operator-runbook.md",
         "docs/tasks/phase-5-provider-contract.md",
+        "docs/tasks/phase-5-identity-contract.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -174,6 +175,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/adrs/0011-github-collaboration-sync-hardening.md",
         "docs/adrs/0012-local-scheduler-and-radar-source-abstraction.md",
         "docs/adrs/0013-tracked-radar-provider-contract.md",
+        "docs/adrs/0014-provider-neutral-radar-identity.md",
         "configs/radar/providers.yaml",
         "configs/radar/schedule.yaml",
         "evals/ai-search/_template.md",
@@ -205,6 +207,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "python -m mkdocs build --strict",
         "homepageUrl",
         "docs/assets/cover-hero.svg",
+        "provider-neutral radar candidate and evidence identity surfaces",
     ]:
         assert phrase in readme
     assert 'version = "0.3.0"' in pyproject

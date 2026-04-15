@@ -1,4 +1,4 @@
-﻿"""SQLite runtime database helpers."""
+"""SQLite runtime database helpers."""
 
 from __future__ import annotations
 
@@ -116,6 +116,11 @@ class RuntimeDatabase:
                     repo_name TEXT NOT NULL,
                     html_url TEXT NOT NULL,
                     description TEXT,
+                    source_provider TEXT NOT NULL DEFAULT 'github',
+                    source_kind TEXT NOT NULL DEFAULT 'repository',
+                    source_handle TEXT NOT NULL DEFAULT '',
+                    source_url TEXT NOT NULL DEFAULT '',
+                    display_name TEXT NOT NULL DEFAULT '',
                     topics_json TEXT NOT NULL,
                     stars INTEGER NOT NULL,
                     forks INTEGER NOT NULL,
@@ -139,6 +144,9 @@ class RuntimeDatabase:
                     run_id TEXT NOT NULL,
                     candidate_id TEXT NOT NULL,
                     provider TEXT NOT NULL DEFAULT 'github',
+                    provider_object_type TEXT NOT NULL DEFAULT '',
+                    provider_object_id TEXT NOT NULL DEFAULT '',
+                    provider_url TEXT,
                     evidence_kind TEXT NOT NULL,
                     source TEXT NOT NULL,
                     summary TEXT NOT NULL,
@@ -201,6 +209,54 @@ class RuntimeDatabase:
                 table="radar_evidence",
                 column="provider",
                 definition="TEXT NOT NULL DEFAULT 'github'",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_candidates",
+                column="source_provider",
+                definition="TEXT NOT NULL DEFAULT 'github'",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_candidates",
+                column="source_kind",
+                definition="TEXT NOT NULL DEFAULT 'repository'",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_candidates",
+                column="source_handle",
+                definition="TEXT NOT NULL DEFAULT ''",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_candidates",
+                column="source_url",
+                definition="TEXT NOT NULL DEFAULT ''",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_candidates",
+                column="display_name",
+                definition="TEXT NOT NULL DEFAULT ''",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_evidence",
+                column="provider_object_type",
+                definition="TEXT NOT NULL DEFAULT ''",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_evidence",
+                column="provider_object_id",
+                definition="TEXT NOT NULL DEFAULT ''",
+            )
+            self._ensure_column(
+                connection,
+                table="radar_evidence",
+                column="provider_url",
+                definition="TEXT",
             )
 
     @staticmethod

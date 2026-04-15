@@ -67,7 +67,7 @@ Semantic metadata contract:
 
 Radar rule:
 
-- radar-created semantic records include `origin=radar`, `repo_slug`, `topic_tags`, `confidence`, and `evidence_refs`
+- radar-created semantic records include `origin=radar`, `repo_slug`, `source_handle`, `source_url`, `topic_tags`, `confidence`, and `evidence_refs`
 
 ## Procedural Memory
 
