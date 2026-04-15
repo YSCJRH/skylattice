@@ -40,6 +40,7 @@ Public surfaces:
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
 - provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
+- adoption matching and scoring boosts now prefer provider-neutral source identity, with `repo_slug` kept as a compatibility fallback
 - a Windows-first schedule runbook in [docs/radar-scheduling.md](docs/radar-scheduling.md) so operators can register and verify local radar tasks without hidden shell glue
 
 ## Visual Proof

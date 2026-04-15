@@ -310,6 +310,9 @@ def test_radar_scan_promotes_candidate_and_updates_registry(tmp_path: Path) -> N
     assert details["evidence"][0]["provider_url"] == "https://github.com/example/radar-kit"
     assert any(promotion["status"] == "promoted" for promotion in details["promotions"])
     assert "example/radar-kit" in adoptions
+    assert "source_provider: github" in adoptions
+    assert "source_handle: example/radar-kit" in adoptions
+    assert "source_url: https://github.com/example/radar-kit" in adoptions
     assert fake_git.push_calls[-1]["branch_name"] == "main"
     assert _run(["git", "branch", "--show-current"], repo).strip() == "main"
 
@@ -466,5 +469,42 @@ providers:
     assert snapshot["enabled_providers"] == ["github"]
     assert snapshot["source_provider"] is None
     assert snapshot["source_available"] is False
+
+
+def test_radar_scoring_prefers_provider_neutral_adoption_identity(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    _write(
+        repo / "configs" / "radar" / "adoptions.yaml",
+        """
+adopted_patterns:
+  - repo_slug: legacy/placeholder
+    source_provider: github
+    source_kind: repository
+    source_handle: example/radar-kit
+    source_url: https://github.com/example/radar-kit
+    tags:
+      - agent
+      - memory
+    preference_boost: 0.12
+    rationale: direct identity match should win even when repo_slug differs
+""".strip(),
+    )
+    from skylattice.radar import RadarScorer, load_adoption_records, load_radar_config
+
+    candidate = FakeRadarSource().discover(
+        run_id="radar-test",
+        topics=("agent", "memory"),
+        created_days=30,
+        active_days=14,
+        limit=1,
+    )[0][0]
+    scorer = RadarScorer(
+        load_radar_config(repo).scoring,
+        adoption_records=load_adoption_records(repo),
+    )
+
+    score = scorer.score(candidate, active_days=14, created_days=30)
+
+    assert score.breakdown["adoption_boost"] == 0.12
 
 

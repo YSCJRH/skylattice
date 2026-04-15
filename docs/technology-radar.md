@@ -78,7 +78,7 @@ A candidate can promote only when:
 The first behavior change is deliberately simple and auditable:
 
 - promotion writes a tracked adoption entry
-- future radar scans read that adoption registry
+- future radar scans read that adoption registry through provider-neutral identity first, with legacy `repo_slug` matching kept as a fallback
 - candidates matching adopted tags receive a small scoring boost
 
 That means the system changes future behavior through Git-reviewed config, not hidden heuristics.
