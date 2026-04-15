@@ -217,6 +217,11 @@ class FakeRadarSource:
             repo_name="radar-kit",
             html_url="https://github.com/example/radar-kit",
             description="A repo that demonstrates radar-worthy agent patterns.",
+            source_provider=self.provider,
+            source_kind="repository",
+            source_handle="example/radar-kit",
+            source_url="https://github.com/example/radar-kit",
+            display_name="radar-kit",
             topics=("agent", "memory", "evals", "github"),
             stars=9000,
             forks=300,
@@ -236,6 +241,9 @@ class FakeRadarSource:
                 run_id=run_id,
                 candidate_id=candidate.candidate_id,
                 provider=self.provider,
+                provider_object_type="repository",
+                provider_object_id="example/radar-kit",
+                provider_url="https://github.com/example/radar-kit",
                 evidence_kind="search-result",
                 source="fake-radar-source",
                 summary="Seeded candidate for radar testing.",
@@ -259,6 +267,9 @@ class FakeRadarSource:
                 run_id=candidate.run_id,
                 candidate_id=candidate.candidate_id,
                 provider=self.provider,
+                provider_object_type="repository",
+                provider_object_id="example/radar-kit",
+                provider_url="https://github.com/example/radar-kit",
                 evidence_kind="repository",
                 source="fake-radar-source/enrich",
                 summary="Enriched repository metadata for radar testing.",
@@ -283,9 +294,20 @@ def test_radar_scan_promotes_candidate_and_updates_registry(tmp_path: Path) -> N
     assert details["run"]["status"] == "completed"
     assert details["candidates"][0]["decision"] == "promote"
     assert details["candidates"][0]["metadata"]["source_provider"] == "github"
+    assert details["candidates"][0]["source_provider"] == "github"
+    assert details["candidates"][0]["source_kind"] == "repository"
+    assert details["candidates"][0]["source_handle"] == "example/radar-kit"
+    assert details["candidates"][0]["source_url"] == "https://github.com/example/radar-kit"
+    assert details["candidates"][0]["display_name"] == "radar-kit"
+    assert details["candidates"][0]["identity"]["provider"] == "github"
+    assert details["candidates"][0]["identity"]["handle"] == "example/radar-kit"
+    assert details["candidates"][0]["identity"]["url"] == "https://github.com/example/radar-kit"
     assert any(record["layer"] == "semantic" for record in details["memory"])
     assert any(record["layer"] == "procedural" for record in details["memory"])
     assert all(item["provider"] == "github" for item in details["evidence"])
+    assert details["evidence"][0]["provider_object_type"] == "repository"
+    assert details["evidence"][0]["provider_object_id"] == "example/radar-kit"
+    assert details["evidence"][0]["provider_url"] == "https://github.com/example/radar-kit"
     assert any(promotion["status"] == "promoted" for promotion in details["promotions"])
     assert "example/radar-kit" in adoptions
     assert fake_git.push_calls[-1]["branch_name"] == "main"

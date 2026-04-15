@@ -80,6 +80,9 @@ class GitHubRadarSource:
                             run_id=run_id,
                             candidate_id=discovered[repo_slug].candidate_id,
                             provider=self.provider,
+                            provider_object_type="repository",
+                            provider_object_id=repo_slug,
+                            provider_url=str(item.get("html_url", "")) or None,
                             evidence_kind="search-result",
                             source=query,
                             summary=f"GitHub search matched {repo_slug} for topic '{topic}'",
@@ -102,9 +105,19 @@ class GitHubRadarSource:
         metadata = dict(candidate.metadata)
         metadata["language"] = repo.get("language")
         metadata["license"] = (repo.get("license") or {}).get("spdx_id") if isinstance(repo.get("license"), dict) else None
+        metadata["source_provider"] = self.provider
+        metadata["source_kind"] = "repository"
+        metadata["source_handle"] = candidate.repo_slug
+        metadata["source_url"] = candidate.html_url
+        metadata["display_name"] = candidate.repo_name
         enriched = replace(
             candidate,
             description=str(repo.get("description") or candidate.description),
+            source_provider=self.provider,
+            source_kind="repository",
+            source_handle=candidate.repo_slug,
+            source_url=candidate.html_url,
+            display_name=candidate.repo_name,
             topics=topics,
             stars=int(repo.get("stargazers_count", candidate.stars)),
             forks=int(repo.get("forks_count", candidate.forks)),
@@ -120,6 +133,9 @@ class GitHubRadarSource:
                 run_id=candidate.run_id,
                 candidate_id=candidate.candidate_id,
                 provider=self.provider,
+                provider_object_type="repository",
+                provider_object_id=candidate.repo_slug,
+                provider_url=candidate.html_url,
                 evidence_kind="repository",
                 source=f"repos/{candidate.repo_slug}",
                 summary=f"Loaded repository metadata for {candidate.repo_slug}",
@@ -137,6 +153,9 @@ class GitHubRadarSource:
                     run_id=candidate.run_id,
                     candidate_id=candidate.candidate_id,
                     provider=self.provider,
+                    provider_object_type="release",
+                    provider_object_id=str(release.get("tag_name") or ""),
+                    provider_url=candidate.html_url,
                     evidence_kind="release",
                     source=f"repos/{candidate.repo_slug}/releases/latest",
                     summary=f"Loaded latest release metadata for {candidate.repo_slug}",
@@ -156,6 +175,11 @@ class GitHubRadarSource:
             repo_name=str(item.get("name", "")),
             html_url=str(item.get("html_url", "")),
             description=str(item.get("description") or ""),
+            source_provider=self.provider,
+            source_kind="repository",
+            source_handle=str(item.get("full_name", "")),
+            source_url=str(item.get("html_url", "")),
+            display_name=str(item.get("name", "")),
             topics=tuple(sorted({matched_topic.lower(), *self._extract_topics(item)})),
             stars=int(item.get("stargazers_count", 0)),
             forks=int(item.get("forks_count", 0)),
@@ -168,7 +192,14 @@ class GitHubRadarSource:
             decision=RadarDecision.OBSERVE,
             status=RadarCandidateStatus.DISCOVERED,
             reason="discovered from GitHub search",
-            metadata={"matched_topics": [matched_topic.lower()], "source_provider": self.provider},
+            metadata={
+                "matched_topics": [matched_topic.lower()],
+                "source_provider": self.provider,
+                "source_kind": "repository",
+                "source_handle": str(item.get("full_name", "")),
+                "source_url": str(item.get("html_url", "")),
+                "display_name": str(item.get("name", "")),
+            },
         )
 
     @staticmethod

@@ -1,4 +1,4 @@
-﻿"""Technology radar models."""
+"""Technology radar models."""
 
 from __future__ import annotations
 
@@ -80,6 +80,11 @@ class RadarCandidate:
     repo_name: str
     html_url: str
     description: str
+    source_provider: str = "github"
+    source_kind: str = "repository"
+    source_handle: str = ""
+    source_url: str = ""
+    display_name: str = ""
     topics: tuple[str, ...] = ()
     stars: int = 0
     forks: int = 0
@@ -96,6 +101,18 @@ class RadarCandidate:
     created_at: str | None = None
     updated_at: str | None = None
 
+    @property
+    def identity_handle(self) -> str:
+        return self.source_handle or self.repo_slug
+
+    @property
+    def identity_url(self) -> str:
+        return self.source_url or self.html_url
+
+    @property
+    def identity_name(self) -> str:
+        return self.display_name or self.repo_name or self.identity_handle
+
 
 @dataclass(frozen=True)
 class RadarEvidence:
@@ -106,6 +123,9 @@ class RadarEvidence:
     evidence_kind: str
     source: str
     summary: str
+    provider_object_type: str = ""
+    provider_object_id: str = ""
+    provider_url: str | None = None
     payload: dict[str, Any] = field(default_factory=dict)
     created_at: str | None = None
 

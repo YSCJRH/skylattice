@@ -38,6 +38,7 @@ Public surfaces:
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
+- provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
 - a Windows-first schedule runbook in [docs/radar-scheduling.md](docs/radar-scheduling.md) so operators can register and verify local radar tasks without hidden shell glue
 
 ## Visual Proof

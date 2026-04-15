@@ -1,4 +1,4 @@
-﻿"""SQLite repositories for technology radar state."""
+"""SQLite repositories for technology radar state."""
 
 from __future__ import annotations
 
@@ -117,10 +117,11 @@ class RadarRepository:
                     """
                     INSERT INTO radar_candidates (
                         candidate_id, run_id, repo_slug, repo_name, html_url, description,
+                        source_provider, source_kind, source_handle, source_url, display_name,
                         topics_json, stars, forks, watchers, created_at_remote, pushed_at_remote,
                         latest_release_at, score, score_breakdown_json, decision, status, reason,
                         metadata_json
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         candidate.candidate_id,
@@ -129,6 +130,11 @@ class RadarRepository:
                         candidate.repo_name,
                         candidate.html_url,
                         candidate.description,
+                        candidate.source_provider,
+                        candidate.source_kind,
+                        candidate.source_handle,
+                        candidate.source_url,
+                        candidate.display_name,
                         json.dumps(list(candidate.topics)),
                         candidate.stars,
                         candidate.forks,
@@ -150,7 +156,8 @@ class RadarRepository:
             connection.execute(
                 """
                 UPDATE radar_candidates
-                SET description = ?, topics_json = ?, stars = ?, forks = ?, watchers = ?,
+                SET description = ?, source_provider = ?, source_kind = ?, source_handle = ?, source_url = ?, display_name = ?,
+                    topics_json = ?, stars = ?, forks = ?, watchers = ?,
                     created_at_remote = ?, pushed_at_remote = ?, latest_release_at = ?,
                     score = ?, score_breakdown_json = ?, decision = ?, status = ?, reason = ?,
                     metadata_json = ?, updated_at = CURRENT_TIMESTAMP
@@ -158,6 +165,11 @@ class RadarRepository:
                 """,
                 (
                     candidate.description,
+                    candidate.source_provider,
+                    candidate.source_kind,
+                    candidate.source_handle,
+                    candidate.source_url,
+                    candidate.display_name,
                     json.dumps(list(candidate.topics)),
                     candidate.stars,
                     candidate.forks,
@@ -200,15 +212,19 @@ class RadarRepository:
                 connection.execute(
                     """
                     INSERT INTO radar_evidence (
-                        evidence_id, run_id, candidate_id, provider, evidence_kind, source, summary, payload_json
+                        evidence_id, run_id, candidate_id, provider, provider_object_type, provider_object_id, provider_url,
+                        evidence_kind, source, summary, payload_json
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         item.evidence_id,
                         item.run_id,
                         item.candidate_id,
                         item.provider,
+                        item.provider_object_type,
+                        item.provider_object_id,
+                        item.provider_url,
                         item.evidence_kind,
                         item.source,
                         item.summary,
@@ -441,6 +457,11 @@ class RadarRepository:
             repo_name=row["repo_name"],
             html_url=row["html_url"],
             description=row["description"] or "",
+            source_provider=row["source_provider"] or "github",
+            source_kind=row["source_kind"] or "repository",
+            source_handle=row["source_handle"] or row["repo_slug"],
+            source_url=row["source_url"] or row["html_url"],
+            display_name=row["display_name"] or row["repo_name"],
             topics=tuple(json.loads(row["topics_json"] or "[]")),
             stars=int(row["stars"]),
             forks=int(row["forks"]),
@@ -465,6 +486,9 @@ class RadarRepository:
             run_id=row["run_id"],
             candidate_id=row["candidate_id"],
             provider=row["provider"],
+            provider_object_type=row["provider_object_type"] or "repository",
+            provider_object_id=row["provider_object_id"] or row["source"],
+            provider_url=row["provider_url"],
             evidence_kind=row["evidence_kind"],
             source=row["source"],
             summary=row["summary"],

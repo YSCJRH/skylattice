@@ -311,14 +311,14 @@ class RadarService:
         original = self.radar_repository.get_candidate(candidate_id)
         self._ensure_clean_base_branch()
         run_id = f"radar-{uuid.uuid4().hex}"
-        self._create_shadow_run(run_id=run_id, goal=f"Replay radar candidate {original.repo_slug}")
+        self._create_shadow_run(run_id=run_id, goal=f"Replay radar candidate {original.identity_handle}")
         self.radar_repository.create_run(
             RadarRun(
                 run_id=run_id,
                 window=RadarWindow.MANUAL,
                 status=RadarRunStatus.CREATED,
                 limit=1,
-                summary=f"Replay {original.repo_slug}",
+                summary=f"Replay {original.identity_handle}",
             )
         )
         replayed = replace(
@@ -335,10 +335,14 @@ class RadarService:
             kind=EventKind.RUN,
             summary="Radar candidate replay created",
             actor="radar",
-            payload={"source_candidate": original.candidate_id, "repo_slug": original.repo_slug},
+            payload={
+                "source_candidate": original.candidate_id,
+                "repo_slug": original.repo_slug,
+                "source_handle": original.identity_handle,
+            },
         )
         self._record_candidate_memories(run_id, replayed)
-        self._update_run_status(run_id, RadarRunStatus.EXPERIMENTING, summary=f"Replaying candidate {original.repo_slug}")
+        self._update_run_status(run_id, RadarRunStatus.EXPERIMENTING, summary=f"Replaying candidate {original.identity_handle}")
         experiment = self._run_experiment(replayed)
         promotions: list[RadarPromotion] = []
         if experiment.status is RadarExperimentStatus.VERIFIED:
@@ -423,7 +427,7 @@ class RadarService:
             self.ledger.append(
                 run_id=run_id,
                 kind=EventKind.EVALUATION,
-                summary=f"Scored radar candidate {updated.repo_slug}",
+                summary=f"Scored radar candidate {updated.identity_handle}",
                 actor="radar",
                 payload={"score": updated.score, "decision": updated.decision.value},
             )
@@ -434,7 +438,7 @@ class RadarService:
         allowed = self._check_paths(
             tier=PermissionTier.RADAR_EXPERIMENT_WRITE,
             paths=(self._experiment_path(candidate),),
-            summary=f"Run radar experiment for {candidate.repo_slug}",
+            summary=f"Run radar experiment for {candidate.identity_handle}",
         )
         if allowed.decision is GovernanceDecision.DENIED:
             raise RuntimeError(allowed.reason)
@@ -453,7 +457,7 @@ class RadarService:
                 validation_command=validation_command,
                 status=RadarExperimentStatus.RUNNING,
                 source_commit=source_commit,
-                notes={"repo_slug": candidate.repo_slug},
+                notes={"repo_slug": candidate.repo_slug, "source_handle": candidate.identity_handle},
             )
         )
         self.git.checkout(self.config.promotion.base_branch)
@@ -464,7 +468,7 @@ class RadarService:
         content = self._render_experiment_artifact(candidate, experiment, validation, recommended)
         self.workspace.write_text(experiment.artifact_path, content, create_if_missing=True)
         self.git.add_all()
-        self.git.commit(f"radar: experiment {candidate.repo_slug}")
+        self.git.commit(f"radar: experiment {candidate.identity_handle}")
         experiment_commit = self.git.current_commit()
         self.git.checkout(self.config.promotion.base_branch)
         updated = self.radar_repository.update_experiment(
@@ -481,7 +485,7 @@ class RadarService:
         self.ledger.append(
             run_id=candidate.run_id,
             kind=EventKind.ACTION,
-            summary=f"Radar experiment executed for {candidate.repo_slug}",
+            summary=f"Radar experiment executed for {candidate.identity_handle}",
             actor="radar",
             payload={"branch_name": branch_name, "validation_passed": passed},
             artifact_refs=[experiment.artifact_path],
@@ -511,12 +515,12 @@ class RadarService:
         allowed = self._check_paths(
             tier=PermissionTier.RADAR_PROMOTE_MAIN,
             paths=promotion_paths,
-            summary=f"Promote radar candidate {candidate.repo_slug} to main",
+            summary=f"Promote radar candidate {candidate.identity_handle} to main",
         )
         if allowed.decision is GovernanceDecision.DENIED:
             raise RuntimeError(allowed.reason)
 
-        self._update_run_status(candidate.run_id, RadarRunStatus.PROMOTING, summary=f"Promoting {candidate.repo_slug} to main")
+        self._update_run_status(candidate.run_id, RadarRunStatus.PROMOTING, summary=f"Promoting {candidate.identity_handle} to main")
         promotion = self.radar_repository.create_promotion(
             RadarPromotion(
                 promotion_id=f"promo-{uuid.uuid4().hex}",
@@ -546,7 +550,7 @@ class RadarService:
             if int(validation.get("returncode", 1)) != 0:
                 raise RuntimeError(f"Promotion validation failed: {validation_command}")
             self.git.add_all()
-            self.git.commit(f"radar: promote {candidate.repo_slug}")
+            self.git.commit(f"radar: promote {candidate.identity_handle}")
             main_commit = self.git.current_commit()
             self.git.push(self.config.promotion.base_branch)
         except Exception as exc:  # noqa: BLE001
@@ -561,7 +565,7 @@ class RadarService:
             self.ledger.append(
                 run_id=candidate.run_id,
                 kind=EventKind.EVOLUTION,
-                summary=f"Radar promotion failed for {candidate.repo_slug}",
+                summary=f"Radar promotion failed for {candidate.identity_handle}",
                 actor="radar",
                 payload={"error": str(exc), "promotion_id": promotion.promotion_id},
                 reversible=False,
@@ -585,7 +589,7 @@ class RadarService:
         self.radar_repository.update_candidate(replace(candidate, status=RadarCandidateStatus.PROMOTED))
         self.memory.create(
             layer=MemoryLayer.PROCEDURAL,
-            summary=f"Adopted radar pattern from {candidate.repo_slug} into tracked behavior registry.",
+            summary=f"Adopted radar pattern from {candidate.identity_handle} into tracked behavior registry.",
             run_id=candidate.run_id,
             source_refs=[promoted.promotion_id, self.config.promotion.adoption_registry],
             metadata={
@@ -593,16 +597,18 @@ class RadarService:
                 "canonical": False,
                 "origin": "radar",
                 "repo_slug": candidate.repo_slug,
+                "source_handle": candidate.identity_handle,
+                "source_url": candidate.identity_url,
                 "topic_tags": list(candidate.topics),
                 "confidence": candidate.score,
-                "evidence_refs": [candidate.html_url],
+                "evidence_refs": [candidate.identity_url],
             },
             confidence=max(candidate.score, 0.5),
         )
         self.ledger.append(
             run_id=candidate.run_id,
             kind=EventKind.EVOLUTION,
-            summary=f"Radar candidate promoted: {candidate.repo_slug}",
+            summary=f"Radar candidate promoted: {candidate.identity_handle}",
             actor="radar",
             payload={
                 "promotion_id": promoted.promotion_id,
@@ -624,6 +630,7 @@ class RadarService:
                 {
                     "candidate_id": candidate.candidate_id,
                     "repo_slug": candidate.repo_slug,
+                    "source_handle": candidate.identity_handle,
                     "score": candidate.score,
                     "decision": candidate.decision.value,
                 }
@@ -644,7 +651,7 @@ class RadarService:
             layer=MemoryLayer.EPISODIC,
             summary=f"Radar run completed with {len(candidates)} candidates and {len(promotions)} promotions.",
             run_id=run_id,
-            source_refs=[item.repo_slug for item in candidates[:3]],
+            source_refs=[item.identity_handle for item in candidates[:3]],
             metadata={"origin": "radar", "promoted": [item.promotion_id for item in promotions]},
         )
         self.ledger.append(
@@ -658,16 +665,19 @@ class RadarService:
     def _record_candidate_memories(self, run_id: str, candidate: RadarCandidate) -> None:
         self.memory.create(
             layer=MemoryLayer.SEMANTIC,
-            summary=f"Radar candidate {candidate.repo_slug} suggests reusable patterns in {', '.join(candidate.topics[:4]) or 'general agent tooling'}.",
+            summary=f"Radar candidate {candidate.identity_handle} suggests reusable patterns in {', '.join(candidate.topics[:4]) or 'general agent tooling'}.",
             run_id=run_id,
-            source_refs=[candidate.html_url],
+            source_refs=[candidate.identity_url],
             metadata={
                 "origin": "radar",
                 "repo_slug": candidate.repo_slug,
-                "source_provider": str(candidate.metadata.get("source_provider", self.source.provider if self.source is not None else "")),
+                "source_provider": candidate.source_provider,
+                "source_kind": candidate.source_kind,
+                "source_handle": candidate.identity_handle,
+                "source_url": candidate.identity_url,
                 "topic_tags": list(candidate.topics),
                 "confidence": candidate.score,
-                "evidence_refs": [candidate.html_url],
+                "evidence_refs": [candidate.identity_url],
             },
             confidence=max(candidate.score, 0.35),
         )
@@ -751,7 +761,7 @@ class RadarService:
 
     def _build_hypothesis(self, candidate: RadarCandidate) -> str:
         topics = ", ".join(candidate.topics[:4]) or "general agent systems"
-        return f"Adopting patterns from {candidate.repo_slug} may strengthen Skylattice around {topics}."
+        return f"Adopting patterns from {candidate.identity_handle} may strengthen Skylattice around {topics}."
 
     def _render_experiment_artifact(
         self,
@@ -764,13 +774,13 @@ class RadarService:
         stderr = str(validation.get("stderr", "")).strip()
         return "\n".join(
             [
-                f"# Radar Experiment: {candidate.repo_slug}",
+                f"# Radar Experiment: {candidate.identity_handle}",
                 "",
                 f"- Run ID: `{candidate.run_id}`",
                 f"- Candidate ID: `{candidate.candidate_id}`",
                 f"- Branch: `{experiment.branch_name}`",
                 f"- Score: `{candidate.score:.4f}`",
-                f"- Source: {candidate.html_url}",
+                f"- Source: {candidate.identity_url}",
                 "",
                 "## Hypothesis",
                 experiment.hypothesis,
@@ -814,6 +824,7 @@ class RadarService:
         patterns.append(
             {
                 "repo_slug": candidate.repo_slug,
+                "source_handle": candidate.identity_handle,
                 "candidate_id": candidate.candidate_id,
                 "promotion_id": promotion.promotion_id,
                 "score": round(candidate.score, 4),
@@ -829,7 +840,7 @@ class RadarService:
     def _render_promotion_log(self, candidate: RadarCandidate, experiment: RadarExperiment, promotion: RadarPromotion) -> str:
         return "\n".join(
             [
-                f"# Radar Promotion: {candidate.repo_slug}",
+                f"# Radar Promotion: {candidate.identity_handle}",
                 "",
                 f"- Promotion ID: `{promotion.promotion_id}`",
                 f"- Run ID: `{candidate.run_id}`",
@@ -846,7 +857,7 @@ class RadarService:
                 "Future radar scans will boost repositories that match the adopted topic tags in the registry.",
                 "",
                 "## Evidence",
-                f"- Repository: {candidate.html_url}",
+                f"- Source: {candidate.identity_url}",
                 f"- Topics: {', '.join(candidate.topics) or 'n/a'}",
                 f"- Score: {candidate.score:.4f}",
                 "",
@@ -876,6 +887,18 @@ class RadarService:
             "repo_slug": candidate.repo_slug,
             "repo_name": candidate.repo_name,
             "html_url": candidate.html_url,
+            "source_provider": candidate.source_provider,
+            "source_kind": candidate.source_kind,
+            "source_handle": candidate.identity_handle,
+            "source_url": candidate.identity_url,
+            "display_name": candidate.identity_name,
+            "identity": {
+                "provider": candidate.source_provider,
+                "kind": candidate.source_kind,
+                "handle": candidate.identity_handle,
+                "url": candidate.identity_url,
+                "display_name": candidate.identity_name,
+            },
             "description": candidate.description,
             "topics": list(candidate.topics),
             "stars": candidate.stars,
@@ -933,6 +956,9 @@ class RadarService:
             "run_id": item.run_id,
             "candidate_id": item.candidate_id,
             "provider": item.provider,
+            "provider_object_type": item.provider_object_type,
+            "provider_object_id": item.provider_object_id,
+            "provider_url": item.provider_url,
             "evidence_kind": item.evidence_kind,
             "source": item.source,
             "summary": item.summary,

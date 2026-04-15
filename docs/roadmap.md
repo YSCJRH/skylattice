@@ -68,6 +68,7 @@ Status: in progress
 Delivered so far:
 
 - tracked radar provider contract in `configs/radar/providers.yaml`
+- provider-neutral radar candidate and evidence identity fields alongside GitHub-shaped compatibility fields
 - tracked radar schedule intent in `configs/radar/schedule.yaml`
 - `skylattice radar schedule show`, `render`, and `run`
 - Windows-first task registration rendering instead of a resident scheduler
