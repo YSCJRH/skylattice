@@ -22,6 +22,7 @@ from .models import (
     RadarCandidate,
     RadarCandidateStatus,
     RadarDecision,
+    RadarEvidence,
     RadarExperiment,
     RadarExperimentStatus,
     RadarPromotion,
@@ -33,7 +34,7 @@ from .models import (
 )
 from .repositories import RadarRepository
 from .scoring import RadarScorer
-from .source import GitHubRadarSource
+from .source import GitHubRadarSource, RadarDiscoverySource
 
 
 class RadarService:
@@ -49,7 +50,7 @@ class RadarService:
         workspace: RepoWorkspaceAdapter,
         git: GitAdapter,
         github: GitHubAdapter | None,
-        source: GitHubRadarSource | None,
+        source: RadarDiscoverySource | None,
         config: RadarConfig,
     ) -> None:
         self.repo_root = repo_root.resolve()
@@ -77,7 +78,7 @@ class RadarService:
         workspace: RepoWorkspaceAdapter,
         git: GitAdapter,
         github: GitHubAdapter | None,
-        source: GitHubRadarSource | None = None,
+        source: RadarDiscoverySource | None = None,
     ) -> "RadarService":
         actual_source = source or (GitHubRadarSource(github) if github is not None else None)
         return cls(
@@ -99,10 +100,54 @@ class RadarService:
         latest = self.radar_repository.latest_run()
         return {
             "source_available": self.source is not None,
+            "source_provider": self.source.provider if self.source is not None else None,
             "freeze_mode": state.freeze_mode,
             "consecutive_failures": state.consecutive_failures,
             "latest_run_id": latest.run_id if latest is not None else None,
+            "default_schedule": self.config.schedule.default_schedule,
         }
+
+    def show_schedule(self, schedule_id: str | None = None) -> dict[str, object]:
+        selected = self.config.schedule.get(schedule_id)
+        return {
+            "default_schedule": self.config.schedule.default_schedule,
+            "selected_schedule": selected.schedule_id,
+            "schedules": {
+                key: self._serialize_schedule(item)
+                for key, item in sorted(self.config.schedule.schedules.items())
+            },
+        }
+
+    def render_schedule(self, *, target: str, schedule_id: str | None = None) -> dict[str, object]:
+        if target != "windows-task":
+            raise RuntimeError(f"Unsupported radar schedule render target: {target}")
+        schedule = self.config.schedule.get(schedule_id)
+        command = schedule.target_command
+        return {
+            "target": target,
+            "schedule": self._serialize_schedule(schedule),
+            "working_directory": ".",
+            "command": command,
+            "windows_task": {
+                "task_name": f"Skylattice Radar {schedule.schedule_id}",
+                "folder": schedule.windows_task.folder,
+                "description": schedule.windows_task.description,
+                "schedule_expression": schedule.windows_task.schedule_expression,
+                "register_command": (
+                    "Register-ScheduledTask "
+                    f"-TaskName \"Skylattice Radar {schedule.schedule_id}\" "
+                    f"-TaskPath \"{schedule.windows_task.folder}\" "
+                    "-Action (New-ScheduledTaskAction "
+                    f"-Execute \"python\" -Argument \"-m skylattice.cli radar schedule run --schedule {schedule.schedule_id}\")"
+                ),
+            },
+        }
+
+    def run_schedule(self, schedule_id: str | None = None) -> RadarRun:
+        schedule = self.config.schedule.get(schedule_id)
+        if not schedule.enabled:
+            raise RuntimeError(f"Radar schedule {schedule.schedule_id} is disabled.")
+        return self.scan(window=schedule.window, limit=schedule.limit)
 
     def scan(self, *, window: str = "manual", limit: int | None = None) -> RadarRun:
         if self.source is None:
@@ -581,6 +626,7 @@ class RadarService:
             metadata={
                 "origin": "radar",
                 "repo_slug": candidate.repo_slug,
+                "source_provider": str(candidate.metadata.get("source_provider", self.source.provider if self.source is not None else "")),
                 "topic_tags": list(candidate.topics),
                 "confidence": candidate.score,
                 "evidence_refs": [candidate.html_url],
@@ -848,11 +894,27 @@ class RadarService:
             "evidence_id": item.evidence_id,
             "run_id": item.run_id,
             "candidate_id": item.candidate_id,
+            "provider": item.provider,
             "evidence_kind": item.evidence_kind,
             "source": item.source,
             "summary": item.summary,
             "payload": item.payload,
             "created_at": item.created_at,
+        }
+
+    @staticmethod
+    def _serialize_schedule(schedule: Any) -> dict[str, object]:
+        return {
+            "schedule_id": schedule.schedule_id,
+            "enabled": schedule.enabled,
+            "window": schedule.window,
+            "limit": schedule.limit,
+            "target_command": schedule.target_command,
+            "windows_task": {
+                "folder": schedule.windows_task.folder,
+                "description": schedule.windows_task.description,
+                "schedule_expression": schedule.windows_task.schedule_expression,
+            },
         }
 
     @staticmethod

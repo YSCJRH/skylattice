@@ -33,6 +33,7 @@ GitHub serves five roles in the current system:
 ## Task-Agent Use Of GitHub
 
 - push working branches
+- inspect branch-scoped PR state before PR sync
 - create or update draft PRs
 - inspect target issues before comment sync
 - add issue comments when the task plan calls for them
@@ -43,10 +44,11 @@ GitHub serves five roles in the current system:
 Task-agent GitHub sync is now recovery-aware.
 
 - draft PR sync remains branch-scoped, so a resumed run updates the existing draft PR instead of creating a fresh one for the same head branch
+- PR sync now performs an observe-tier preflight read after push so `task inspect`, `task status`, and recovery output can state whether resume will create a draft PR or update an existing open PR
 - issue comments use a stable per-run dedupe marker so resume can reuse an already-created comment if the first attempt failed after the remote write
 - planner prompts can see a bounded snapshot of recent open issues and PRs when GitHub is configured
 - issue-comment sync performs an observe-tier preflight read so closed issues are rejected before the external-write step
-- `task inspect`, CLI status, and `GET /runs/{run_id}/recovery` expose whether a run is resumable, what approval is required next, and the likely side-effect risk
+- `task inspect`, CLI status, and `GET /runs/{run_id}/recovery` expose whether a run is resumable, what approval is required next, the likely side-effect risk, and the current remote target state
 - this is still operator-triggered recovery, not autonomous retry logic
 
 ## CI Baseline

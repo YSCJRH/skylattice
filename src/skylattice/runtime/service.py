@@ -19,7 +19,7 @@ from skylattice.memory.interfaces import MemoryLayer, RecordStatus, RetrievalReq
 from skylattice.memory.repository import SQLiteMemoryRepository
 from skylattice.planning import TaskPlanner
 from skylattice.providers import OpenAIProvider
-from skylattice.radar import GitHubRadarSource, RadarRepository, RadarService
+from skylattice.radar import GitHubRadarSource, RadarDiscoverySource, RadarRepository, RadarService
 from skylattice.runtime.models import RunStatus, RunStep, RunStepStatus, TaskRun
 
 from .db import RuntimeDatabase
@@ -79,7 +79,7 @@ class TaskAgentService:
         repo_root: Path | None = None,
         provider: object | None = None,
         github_adapter: GitHubAdapter | None = None,
-        radar_source: GitHubRadarSource | None = None,
+        radar_source: RadarDiscoverySource | None = None,
         db_path: Path | None = None,
     ) -> "TaskAgentService":
         root = (repo_root or Path(__file__).resolve().parents[3]).resolve()
@@ -666,12 +666,59 @@ class TaskAgentService:
                 raise RuntimeError("GitHub adapter is not configured")
             issue_number = int(step.action_args["issue_number"])
             issue = self.github.get_issue(issue_number)
+            dedupe_key = str(step.action_args.get("dedupe_key", "")).strip()
+            dedupe_comment_exists = False
+            dedupe_comment_url = None
+            if dedupe_key and hasattr(self.github, "list_issue_comments"):
+                marker = f"<!-- skylattice:{dedupe_key} -->"
+                for comment in self.github.list_issue_comments(issue_number=issue_number):
+                    if marker in str(comment.get("body", "")):
+                        dedupe_comment_exists = True
+                        dedupe_comment_url = comment.get("html_url")
+                        break
             return {
                 "issue_number": int(issue.get("number", issue_number)),
                 "title": issue.get("title"),
                 "state": issue.get("state"),
                 "html_url": issue.get("html_url"),
+                "remote_target_kind": "issue",
+                "remote_target_state": str(issue.get("state", "") or "unknown").lower(),
+                "dedupe_comment_exists": dedupe_comment_exists,
+                "dedupe_comment_url": dedupe_comment_url,
                 "artifact_refs": [str(issue.get("html_url", ""))] if issue.get("html_url") else [],
+            }
+
+        if step.action_name == "github.inspect_pull_request":
+            if self.github is None:
+                raise RuntimeError("GitHub adapter is not configured")
+            head_branch = str(step.action_args["head_branch"])
+            base_branch = str(step.action_args.get("base_branch", ""))
+            pull_request = self.github.find_open_pull_request_by_head(head_branch)
+            if pull_request is None:
+                return {
+                    "number": None,
+                    "html_url": None,
+                    "state": "none",
+                    "draft": False,
+                    "head_branch": head_branch,
+                    "base_branch": base_branch,
+                    "remote_target_kind": "pull_request",
+                    "remote_target_state": "none",
+                    "artifact_refs": [],
+                }
+            return {
+                "number": pull_request.get("number"),
+                "html_url": pull_request.get("html_url"),
+                "state": str(pull_request.get("state", "open") or "open"),
+                "draft": bool(pull_request.get("draft", False)),
+                "head_branch": str(pull_request.get("head_branch", head_branch) or head_branch),
+                "base_branch": str(pull_request.get("base_branch", base_branch) or base_branch),
+                "remote_target_kind": "pull_request",
+                "remote_target_state": self._pull_request_remote_state(
+                    state=pull_request.get("state"),
+                    draft=pull_request.get("draft"),
+                ),
+                "artifact_refs": [str(pull_request.get("html_url", ""))] if pull_request.get("html_url") else [],
             }
 
         if step.action_name == "github.sync_pull_request":
@@ -686,9 +733,18 @@ class TaskAgentService:
             return {
                 "number": response.get("number"),
                 "html_url": response.get("html_url"),
+                "state": str(response.get("state", "open") or "open"),
+                "draft": bool(response.get("draft", False)),
+                "head_branch": str(response.get("head_branch", step.action_args["head_branch"])),
+                "base_branch": str(response.get("base_branch", step.action_args["base_branch"])),
                 "reused": bool(response.get("reused", False)),
                 "sync_mode": str(response.get("sync_mode", "create")),
                 "dedupe_key": str(response.get("dedupe_key", step.action_args["head_branch"])),
+                "remote_target_kind": "pull_request",
+                "remote_target_state": self._pull_request_remote_state(
+                    state=response.get("state"),
+                    draft=response.get("draft"),
+                ),
                 "artifact_refs": [str(response.get("html_url", ""))] if response.get("html_url") else [],
             }
 
@@ -707,10 +763,12 @@ class TaskAgentService:
             else:
                 response = self.github.add_issue_comment(issue_number=issue_number, body=body)
             return {
+                "issue_number": int(response.get("issue_number", issue_number)),
                 "html_url": response.get("html_url"),
                 "reused": bool(response.get("reused", False)),
                 "sync_mode": str(response.get("sync_mode", "create")),
                 "dedupe_key": str(response.get("dedupe_key", dedupe_key or "")),
+                "remote_target_kind": "issue",
                 "artifact_refs": [str(response.get("html_url", ""))] if response.get("html_url") else [],
             }
 
@@ -880,6 +938,11 @@ class TaskAgentService:
             if self.git.status_porcelain().strip():
                 raise RuntimeError("Worktree is still dirty after commit")
             return True
+        if step.action_name == "github.inspect_pull_request":
+            state = str(result.get("remote_target_state", "none"))
+            if state not in {"none", "open-draft", "open-ready"}:
+                raise RuntimeError(f"Unexpected pull request preflight state: {state}")
+            return True
         if step.action_name == "github.sync_pull_request":
             if not result.get("html_url"):
                 raise RuntimeError("GitHub PR sync did not return html_url")
@@ -981,6 +1044,16 @@ class TaskAgentService:
             reason = "Task run is active."
 
         if step is None:
+            latest_remote_step = next(
+                (
+                    item
+                    for item in reversed(steps)
+                    if item.action_name in {"github.sync_pull_request", "github.add_issue_comment", "github.inspect_issue"}
+                    and item.status is RunStepStatus.VERIFIED
+                ),
+                None,
+            )
+            remote_target = self._remote_target_context(latest_remote_step, steps) if latest_remote_step is not None else {}
             return {
                 "status": status_label,
                 "resumable": resumable,
@@ -995,10 +1068,16 @@ class TaskAgentService:
                 "attempt_count": 0,
                 "last_error": run.error,
                 "dedupe_key": None,
+                "remote_target_kind": remote_target.get("remote_target_kind"),
+                "remote_target_number": remote_target.get("remote_target_number"),
+                "remote_target_url": remote_target.get("remote_target_url"),
+                "remote_target_state": remote_target.get("remote_target_state"),
+                "remote_target_draft": remote_target.get("remote_target_draft"),
+                "sync_mode": remote_target.get("sync_mode"),
                 "guidance": [],
             }
 
-        recovery = self._step_recovery_metadata(step, run_status=run.status, reason=reason)
+        recovery = self._step_recovery_metadata(step, run_status=run.status, reason=reason, steps=steps)
         stored = step.result.get("recovery")
         if isinstance(stored, dict):
             recovery = {**recovery, **stored}
@@ -1016,6 +1095,12 @@ class TaskAgentService:
             "attempt_count": self._step_attempt_count(step),
             "last_error": step.result.get("last_error", run.error),
             "dedupe_key": recovery.get("dedupe_key"),
+            "remote_target_kind": recovery.get("remote_target_kind"),
+            "remote_target_number": recovery.get("remote_target_number"),
+            "remote_target_url": recovery.get("remote_target_url"),
+            "remote_target_state": recovery.get("remote_target_state"),
+            "remote_target_draft": recovery.get("remote_target_draft"),
+            "sync_mode": recovery.get("sync_mode"),
             "guidance": recovery.get("guidance", []),
         }
 
@@ -1133,11 +1218,14 @@ class TaskAgentService:
         *,
         run_status: RunStatus,
         reason: str,
+        steps: list[RunStep] | None = None,
     ) -> dict[str, object]:
         recommended_allows = self._required_allows_for_step(step)
         guidance: list[str] = []
         status_label = "not_needed"
         resumable = False
+        remote_target = self._remote_target_context(step, steps)
+        sync_mode = self._suggested_sync_mode(step, remote_target)
 
         if run_status is RunStatus.WAITING_APPROVAL:
             status_label = "awaiting_approval"
@@ -1166,6 +1254,24 @@ class TaskAgentService:
         else:
             status_label = "in_progress"
 
+        if step.action_name == "github.sync_pull_request":
+            if remote_target.get("remote_target_state") in {"open-draft", "open-ready"}:
+                guidance.append(
+                    f"Remote target is PR #{remote_target.get('remote_target_number')}; resuming will update the existing "
+                    f"{'draft' if remote_target.get('remote_target_draft') else 'open'} pull request."
+                )
+            else:
+                guidance.append("No open PR was observed for this branch; resuming will create a new draft pull request.")
+        if step.action_name == "github.add_issue_comment":
+            issue_number = remote_target.get("remote_target_number")
+            guidance.append(f"Remote target is issue #{issue_number}." if issue_number else "Remote target is a GitHub issue comment.")
+            if remote_target.get("dedupe_comment_exists"):
+                guidance.append("A matching dedupe comment was already observed, so resume should reuse it instead of posting a duplicate.")
+            else:
+                guidance.append("No matching dedupe comment was observed during preflight.")
+        if step.action_name == "github.inspect_issue" and remote_target.get("dedupe_comment_exists"):
+            guidance.append("A matching dedupe comment already exists on the target issue.")
+
         return {
             "status": status_label,
             "resumable": resumable,
@@ -1173,6 +1279,13 @@ class TaskAgentService:
             "side_effect_risk": self._side_effect_risk(step.action_name),
             "destructive": self._step_is_destructive(step),
             "dedupe_key": self._dedupe_key_for_step(step),
+            "remote_target_kind": remote_target.get("remote_target_kind"),
+            "remote_target_number": remote_target.get("remote_target_number"),
+            "remote_target_url": remote_target.get("remote_target_url"),
+            "remote_target_state": remote_target.get("remote_target_state"),
+            "remote_target_draft": remote_target.get("remote_target_draft"),
+            "sync_mode": sync_mode,
+            "dedupe_comment_exists": remote_target.get("dedupe_comment_exists"),
             "guidance": guidance,
             "reason": reason,
         }
@@ -1192,6 +1305,113 @@ class TaskAgentService:
         if previous_errors:
             payload["previous_errors"] = previous_errors
         return payload
+
+    @staticmethod
+    def _pull_request_remote_state(*, state: object, draft: object) -> str:
+        normalized = str(state or "none").lower()
+        if normalized in {"", "none", "null"}:
+            return "none"
+        if normalized != "open":
+            return normalized
+        return "open-draft" if bool(draft) else "open-ready"
+
+    def _suggested_sync_mode(self, step: RunStep, remote_target: dict[str, object]) -> str | None:
+        if step.action_name == "github.sync_pull_request":
+            if remote_target.get("remote_target_state") in {"open-draft", "open-ready"}:
+                return "update"
+            return "create"
+        return step.result.get("sync_mode") if isinstance(step.result, dict) else None
+
+    def _remote_target_context(self, step: RunStep, steps: list[RunStep] | None = None) -> dict[str, object]:
+        all_steps = steps or self.run_repository.list_steps(step.run_id)
+        base = {
+            "remote_target_kind": None,
+            "remote_target_number": None,
+            "remote_target_url": None,
+            "remote_target_state": None,
+            "remote_target_draft": None,
+            "sync_mode": step.result.get("sync_mode") if isinstance(step.result, dict) else None,
+            "dedupe_comment_exists": None,
+        }
+        if step.action_name in {"github.inspect_pull_request", "github.sync_pull_request"}:
+            payload = self._matching_step_result(
+                step=step,
+                steps=all_steps,
+                action_name="github.inspect_pull_request",
+                key="head_branch",
+            )
+            if step.action_name == "github.inspect_pull_request" or step.result.get("number") or step.result.get("html_url"):
+                payload = {**payload, **step.result}
+            elif self.github is not None:
+                observed = self.github.find_open_pull_request_by_head(str(step.action_args.get("head_branch", "")))
+                if observed is not None:
+                    payload = {**payload, **observed}
+            state = str(payload.get("remote_target_state") or "").strip()
+            if state in {"", "none"} and payload.get("state") not in {None, "", "none"}:
+                state = self._pull_request_remote_state(
+                    state=payload.get("state"),
+                    draft=payload.get("draft"),
+                )
+            elif not state:
+                state = "none"
+            return {
+                **base,
+                "remote_target_kind": "pull_request",
+                "remote_target_number": payload.get("number"),
+                "remote_target_url": payload.get("html_url"),
+                "remote_target_state": state,
+                "remote_target_draft": bool(payload.get("draft", False)) if state != "none" else False,
+                "sync_mode": step.result.get("sync_mode") or ("update" if state in {"open-draft", "open-ready"} else "create"),
+            }
+        if step.action_name in {"github.inspect_issue", "github.add_issue_comment"}:
+            payload = self._matching_step_result(
+                step=step,
+                steps=all_steps,
+                action_name="github.inspect_issue",
+                key="issue_number",
+            )
+            if step.action_name == "github.inspect_issue":
+                payload = {**payload, **step.result}
+            elif self.github is not None and hasattr(self.github, "list_issue_comments"):
+                issue_number = int(step.action_args.get("issue_number", 0))
+                dedupe_key = self._dedupe_key_for_step(step)
+                marker = f"<!-- skylattice:{dedupe_key} -->" if dedupe_key else ""
+                if marker:
+                    for comment in self.github.list_issue_comments(issue_number=issue_number):
+                        if marker in str(comment.get("body", "")):
+                            payload["dedupe_comment_exists"] = True
+                            payload["html_url"] = payload.get("html_url") or comment.get("html_url")
+                            break
+            return {
+                **base,
+                "remote_target_kind": "issue",
+                "remote_target_number": payload.get("issue_number") or step.action_args.get("issue_number"),
+                "remote_target_url": payload.get("html_url"),
+                "remote_target_state": payload.get("remote_target_state") or payload.get("state"),
+                "remote_target_draft": None,
+                "sync_mode": step.result.get("sync_mode"),
+                "dedupe_comment_exists": payload.get("dedupe_comment_exists"),
+            }
+        return base
+
+    @staticmethod
+    def _matching_step_result(
+        *,
+        step: RunStep,
+        steps: list[RunStep],
+        action_name: str,
+        key: str,
+    ) -> dict[str, object]:
+        for candidate in reversed(steps):
+            if candidate.step_index > step.step_index:
+                continue
+            if candidate.action_name != action_name:
+                continue
+            if candidate.action_args.get(key) != step.action_args.get(key):
+                continue
+            if isinstance(candidate.result, dict):
+                return dict(candidate.result)
+        return {}
 
     def _resolve_memory_export_path(self, output_path: str | None) -> Path:
         if output_path:
@@ -1479,6 +1699,22 @@ class TaskAgentService:
             RunStep(
                 run_id=run_id,
                 step_index=step_index,
+                step_id="pull-request-preflight",
+                summary="Inspect branch-scoped pull request before sync",
+                required_tier=PermissionTier.OBSERVE,
+                action_name="github.inspect_pull_request",
+                action_args={
+                    "head_branch": branch_name,
+                    "base_branch": str(pull_request["base_branch"]),
+                },
+                verification={"expects_remote_target_state": ["none", "open-draft", "open-ready"]},
+            )
+        )
+        step_index += 1
+        steps.append(
+            RunStep(
+                run_id=run_id,
+                step_index=step_index,
                 step_id="pull-request",
                 summary="Create or update draft pull request",
                 required_tier=PermissionTier.EXTERNAL_WRITE,
@@ -1506,6 +1742,7 @@ class TaskAgentService:
                     action_name="github.inspect_issue",
                     action_args={
                         "issue_number": int(issue_comment["issue_number"]),
+                        "dedupe_key": f"{run_id}:issue-comment",
                     },
                     verification={"expects_state": "open"},
                 )

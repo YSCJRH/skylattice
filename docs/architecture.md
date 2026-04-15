@@ -37,6 +37,7 @@ Both workflows share:
 - task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 - `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
+- `load_radar_config()` also loads tracked radar schedule intent from `configs/radar/schedule.yaml`
 - validation commands now carry stable ids, expected outputs, and profile membership instead of acting as a flat string allowlist
 - local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
 
@@ -57,7 +58,7 @@ Flow:
 
 The planner can see a bounded `memory_context`, but memory retrieval does not widen permissions or validation scope.
 Resume behavior is also bounded: blocked and halted steps expose structured recovery metadata, and GitHub sync steps try to reuse prior remote artifacts instead of blindly duplicating them.
-GitHub context is similarly bounded: planner prompts may see recent open issues and PRs, but GitHub remains advisory collaboration context rather than runtime truth.
+GitHub context is similarly bounded: planner prompts may see recent open issues and PRs, PR sync now performs an observe-tier preflight, and recovery summaries expose remote target state without turning GitHub into runtime truth.
 
 Current task edit modes:
 
@@ -76,7 +77,7 @@ Current task edit modes:
 
 Flow:
 
-1. discover GitHub repositories via API
+1. discover repositories through a stable source interface
 2. score candidates against tracked topics, freshness, activity, releases, and capability gaps
 3. record semantic memory for shortlisted candidates
 4. create repo-contained spike branches under `codex/radar-*`
@@ -84,6 +85,8 @@ Flow:
 6. promote at most one candidate per run to `main` through a guarded allowlist
 7. update `configs/radar/adoptions.yaml` and promotion logs
 8. support rollback through explicit promotion records
+
+Radar now also has tracked local schedule intent plus Windows-first schedule rendering, but it still delegates actual recurring execution to the operating system instead of a resident Skylattice worker.
 
 ## Data Stores
 

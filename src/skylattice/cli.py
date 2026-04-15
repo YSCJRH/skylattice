@@ -80,6 +80,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     radar_rollback_parser = radar_subparsers.add_parser("rollback", help="Roll back a radar promotion.")
     radar_rollback_parser.add_argument("promotion_id")
 
+    radar_schedule_parser = radar_subparsers.add_parser("schedule", help="Inspect and run tracked radar schedules.")
+    radar_schedule_subparsers = radar_schedule_parser.add_subparsers(dest="radar_schedule_command")
+
+    radar_schedule_show_parser = radar_schedule_subparsers.add_parser("show", help="Show tracked radar schedules.")
+    radar_schedule_show_parser.add_argument("--schedule")
+
+    radar_schedule_render_parser = radar_schedule_subparsers.add_parser(
+        "render",
+        help="Render local scheduler registration details for a tracked radar schedule.",
+    )
+    radar_schedule_render_parser.add_argument("--target", required=True, choices=["windows-task"])
+    radar_schedule_render_parser.add_argument("--schedule")
+
+    radar_schedule_run_parser = radar_schedule_subparsers.add_parser(
+        "run",
+        help="Run a tracked radar schedule through the standard radar scan path.",
+    )
+    radar_schedule_run_parser.add_argument("--schedule")
+
     memory_parser = subparsers.add_parser("memory", help="Review and search local memory.")
     memory_subparsers = memory_parser.add_subparsers(dest="memory_command")
 
@@ -190,6 +209,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                 promotion = service.rollback_radar_promotion(args.promotion_id)
                 _dump(service.radar._serialize_promotion(promotion))
                 return 0
+            if args.radar_command == "schedule":
+                if args.radar_schedule_command == "show":
+                    _dump(service.radar.show_schedule(schedule_id=args.schedule))
+                    return 0
+                if args.radar_schedule_command == "render":
+                    _dump(service.radar.render_schedule(target=args.target, schedule_id=args.schedule))
+                    return 0
+                if args.radar_schedule_command == "run":
+                    run = service.radar.run_schedule(schedule_id=args.schedule)
+                    _dump(service.inspect_radar_run(run.run_id))
+                    return 0
 
         if args.command == "memory":
             layers = _coerce_layers(getattr(args, "layer", None))

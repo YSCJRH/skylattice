@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
-from typing import Iterable
+from typing import Iterable, Protocol
 import uuid
 
 from skylattice.actions import GitHubAdapter
@@ -12,10 +12,31 @@ from skylattice.actions import GitHubAdapter
 from .models import RadarCandidate, RadarCandidateStatus, RadarDecision, RadarEvidence
 
 
+class RadarDiscoverySource(Protocol):
+    @property
+    def provider(self) -> str: ...
+
+    def discover(
+        self,
+        *,
+        run_id: str,
+        topics: Iterable[str],
+        created_days: int,
+        active_days: int,
+        limit: int,
+    ) -> tuple[list[RadarCandidate], list[RadarEvidence]]: ...
+
+    def enrich_candidate(self, candidate: RadarCandidate) -> tuple[RadarCandidate, list[RadarEvidence]]: ...
+
+
 class GitHubRadarSource:
     def __init__(self, github: GitHubAdapter, *, now: datetime | None = None) -> None:
         self.github = github
         self.now = now or datetime.now(UTC)
+
+    @property
+    def provider(self) -> str:
+        return "github"
 
     def discover(
         self,
@@ -57,6 +78,7 @@ class GitHubRadarSource:
                             evidence_id=f"evidence-{uuid.uuid4().hex}",
                             run_id=run_id,
                             candidate_id=discovered[repo_slug].candidate_id,
+                            provider=self.provider,
                             evidence_kind="search-result",
                             source=query,
                             summary=f"GitHub search matched {repo_slug} for topic '{topic}'",
@@ -96,6 +118,7 @@ class GitHubRadarSource:
                 evidence_id=f"evidence-{uuid.uuid4().hex}",
                 run_id=candidate.run_id,
                 candidate_id=candidate.candidate_id,
+                provider=self.provider,
                 evidence_kind="repository",
                 source=f"repos/{candidate.repo_slug}",
                 summary=f"Loaded repository metadata for {candidate.repo_slug}",
@@ -112,6 +135,7 @@ class GitHubRadarSource:
                     evidence_id=f"evidence-{uuid.uuid4().hex}",
                     run_id=candidate.run_id,
                     candidate_id=candidate.candidate_id,
+                    provider=self.provider,
                     evidence_kind="release",
                     source=f"repos/{candidate.repo_slug}/releases/latest",
                     summary=f"Loaded latest release metadata for {candidate.repo_slug}",
@@ -143,7 +167,7 @@ class GitHubRadarSource:
             decision=RadarDecision.OBSERVE,
             status=RadarCandidateStatus.DISCOVERED,
             reason="discovered from GitHub search",
-            metadata={"matched_topics": [matched_topic.lower()]},
+            metadata={"matched_topics": [matched_topic.lower()], "source_provider": self.provider},
         )
 
     @staticmethod

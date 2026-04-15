@@ -47,9 +47,9 @@ Delivered:
 
 ## Phase 4: Action Expansion And Recovery Hardening
 
-Status: in progress
+Status: complete
 
-Delivered so far:
+Delivered:
 
 - resume-safe task recovery metadata for blocked and halted runs
 - branch-scoped PR reuse and deduplicated issue-comment sync on resume
@@ -57,25 +57,25 @@ Delivered so far:
 - explicit non-destructive repo ops for tracked file creation and template copying
 - explicit destructive repo ops for tracked file move/delete with separate operator approval
 - bounded GitHub issue and PR planning context plus issue-comment preflight checks
+- observe-tier pull-request preflight before sync
+- richer PR sync payloads with remote target number, URL, state, draft status, and sync mode
+- recovery summaries that distinguish create-vs-update PR behavior and issue-comment dedupe state
 
-Recommended next slice:
+## Phase 5: Local Scheduler Foundation And Radar Source Abstraction
 
-- harden GitHub collaboration sync so draft PR and issue-comment steps expose clearer remote target state, sync outcomes, and resume guidance
-- keep GitHub advisory and audit-oriented rather than mirroring remote state into local runtime truth
-- close the Phase 4 operator loop before moving on to scheduler work or broader automation
+Status: in progress
+
+Delivered so far:
+
+- tracked radar schedule intent in `configs/radar/schedule.yaml`
+- `skylattice radar schedule show`, `render`, and `run`
+- Windows-first task registration rendering instead of a resident scheduler
+- stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
+- GitHub remains the only live discovery provider in this slice
 
 Next goals:
 
-- richer repo operations beyond full-file rewrites
-- better GitHub issue and PR synchronization behavior
-- clearer destructive approval ergonomics and action-specific recovery guidance
-- stronger halted-run recovery and diagnostics for the remaining high-side-effect actions
-
-## Phase 5: Scheduler And Broader Radar Sources
-
-Later goals:
-
-- weekly local automation for radar scans
-- optional additional external sources beyond GitHub
-- richer experiment templates beyond docs/config artifacts
-- no silent widening of autonomy
+- validate local scheduled radar runs across at least one full weekly cycle
+- add sharper schedule docs and operator runbooks for OS-level task registration
+- prepare for a second radar provider without widening autonomy or hiding provider provenance
+- keep experiment and promotion semantics stable while source inputs broaden

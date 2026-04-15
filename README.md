@@ -14,7 +14,7 @@ Public surfaces:
 
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
-- latest stable release: [v0.2.2 Stable](docs/releases/v0-2-2.md)
+- latest stable release: [v0.3.0 Stable](docs/releases/v0-3-0.md)
 
 ## Why Star Skylattice
 
@@ -36,6 +36,7 @@ Public surfaces:
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
+- tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 
 ## Visual Proof
 
@@ -107,8 +108,9 @@ skylattice radar scan --window weekly --limit 20
 
 Expected results:
 
-- `task run` creates a governed branch, records materialized edits, validates the repo, and can prepare a draft PR when GitHub write access is configured
+- `task run` creates a governed branch, records materialized edits, validates the repo, observes existing branch-scoped PR state, and can prepare or update a draft PR when GitHub write access is configured
 - `radar scan` discovers GitHub repositories, records evidence, validates bounded experiments, and can promote tracked changes through a rollbackable path
+- `radar schedule run` resolves tracked local schedule intent into the same bounded radar scan path without introducing a resident scheduler
 
 If you want to see the shape before using real tokens, compare your output to the redacted samples under `examples/redacted/`.
 
@@ -184,8 +186,8 @@ Not a fit yet:
 - users who want zero-config autonomous agents
 - workflows that require AST refactors, arbitrary shell automation, or hands-off production GitHub operations
 
-Release notes: [docs/releases/v0.2.2-stable.md](docs/releases/v0.2.2-stable.md)  
-Latest stable release: [docs/releases/v0-2-2.md](docs/releases/v0-2-2.md)  
+Release notes: [docs/releases/v0.3.0-stable.md](docs/releases/v0.3.0-stable.md)  
+Latest stable release: [docs/releases/v0-3-0.md](docs/releases/v0-3-0.md)  
 Changelog: [CHANGELOG.md](CHANGELOG.md)  
 Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
@@ -204,10 +206,12 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/architecture.md: runtime modules and data flow
 - docs/governance.md: approval model, budgets, freeze mode, and safety gates
 - docs/memory-model.md: memory layers, write triggers, and rollback rules
-- docs/technology-radar.md: radar workflow, scoring, promotion gates, and rollback
+- docs/technology-radar.md: radar workflow, scoring, promotion gates, rollback, schedule intent, and source abstraction
 - docs/github-workflow.md: GitHub audit, CI, Pages, and collaboration behavior
-- docs/releases/v0.2.2-stable.md: tracked GitHub release notes source for the latest stable cut
-- docs/releases/v0-2-2.md: canonical stable release page for the Pages site
+- docs/releases/v0.3.0-stable.md: tracked GitHub release notes source for the latest stable cut
+- docs/releases/v0-3-0.md: canonical stable release page for the Pages site
+- docs/releases/v0.2.2-stable.md: tracked GitHub release notes source for the previous stable follow-up
+- docs/releases/v0-2-2.md: historical stable follow-up page
 - docs/releases/v0.2.1-stable.md: tracked GitHub release notes source for the first stable baseline
 - docs/releases/v0-2-1.md: historical stable baseline page
 - docs/releases/v0.2.0-public-preview.md: historical preview release notes source

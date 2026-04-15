@@ -159,6 +159,22 @@ adoption_registry: configs/radar/adoptions.yaml
 """.strip(),
     )
     _write(repo / "configs" / "radar" / "adoptions.yaml", "adopted_patterns: []\n")
+    _write(
+        repo / "configs" / "radar" / "schedule.yaml",
+        """
+default_schedule: weekly-github
+schedules:
+  weekly-github:
+    enabled: true
+    window: weekly
+    limit: 20
+    target_command: python -m skylattice.cli radar schedule run --schedule weekly-github
+    windows_task:
+      folder: \\Skylattice
+      description: Run Skylattice weekly GitHub radar scan
+      schedule_expression: WEEKLY
+""".strip(),
+    )
     _write(repo / "tests" / "test_placeholder.py", "def test_placeholder():\n    assert True\n")
     _run(["git", "init", "-b", "main"], repo)
     _run(["git", "config", "user.email", "tests@example.com"], repo)
@@ -169,6 +185,10 @@ adoption_registry: configs/radar/adoptions.yaml
 
 
 class FakeRadarSource:
+    @property
+    def provider(self) -> str:
+        return "github"
+
     def discover(self, *, run_id: str, topics, created_days: int, active_days: int, limit: int):
         from skylattice.radar import RadarCandidate, RadarDecision, RadarEvidence
 
@@ -190,12 +210,14 @@ class FakeRadarSource:
             score_breakdown={},
             decision=RadarDecision.OBSERVE,
             reason="seed candidate",
+            metadata={"source_provider": self.provider},
         )
         evidence = [
             RadarEvidence(
                 evidence_id="evidence-seed",
                 run_id=run_id,
                 candidate_id=candidate.candidate_id,
+                provider=self.provider,
                 evidence_kind="search-result",
                 source="fake-radar-source",
                 summary="Seeded candidate for radar testing.",
@@ -218,6 +240,7 @@ class FakeRadarSource:
                 evidence_id="evidence-enriched",
                 run_id=candidate.run_id,
                 candidate_id=candidate.candidate_id,
+                provider=self.provider,
                 evidence_kind="repository",
                 source="fake-radar-source/enrich",
                 summary="Enriched repository metadata for radar testing.",
@@ -241,8 +264,10 @@ def test_radar_scan_promotes_candidate_and_updates_registry(tmp_path: Path) -> N
     assert run.status.value == "completed"
     assert details["run"]["status"] == "completed"
     assert details["candidates"][0]["decision"] == "promote"
+    assert details["candidates"][0]["metadata"]["source_provider"] == "github"
     assert any(record["layer"] == "semantic" for record in details["memory"])
     assert any(record["layer"] == "procedural" for record in details["memory"])
+    assert all(item["provider"] == "github" for item in details["evidence"])
     assert any(promotion["status"] == "promoted" for promotion in details["promotions"])
     assert "example/radar-kit" in adoptions
     assert fake_git.push_calls[-1]["branch_name"] == "main"
@@ -294,5 +319,27 @@ def test_radar_api_endpoints(tmp_path: Path) -> None:
     assert radar_promotion_response.json()["promotion_id"] == radar_promotion
     assert radar_digest_response.status_code == 200
     assert radar_digest_response.json()["run_id"] == radar_run.run_id
+
+
+def test_radar_schedule_show_render_and_run_use_tracked_schedule(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+    service.radar.git = fake_git
+
+    schedule = service.radar.show_schedule()
+    rendered = service.radar.render_schedule(target="windows-task")
+    run = service.radar.run_schedule()
+
+    assert schedule["default_schedule"] == "weekly-github"
+    assert schedule["selected_schedule"] == "weekly-github"
+    assert schedule["schedules"]["weekly-github"]["window"] == "weekly"
+    assert rendered["target"] == "windows-task"
+    assert rendered["schedule"]["schedule_id"] == "weekly-github"
+    assert "radar schedule run --schedule weekly-github" in rendered["command"]
+    assert "Register-ScheduledTask" in rendered["windows_task"]["register_command"]
+    assert run.window.value == "weekly"
+    assert run.limit == 20
 
 

@@ -72,6 +72,22 @@ class GitHubAdapter:
         )
         return payload if isinstance(payload, list) else []
 
+    def get_pull_request(self, number: int) -> dict[str, Any]:
+        payload = self._request_json("GET", f"/repos/{self.repo.slug}/pulls/{number}")
+        if not isinstance(payload, dict):
+            return {}
+        return self._normalize_pull_request(payload)
+
+    def find_open_pull_request_by_head(self, head_branch: str) -> dict[str, Any] | None:
+        query = urlencode({"state": "open", "head": f"{self.repo.owner}:{head_branch}"})
+        payload = self._request_json("GET", f"/repos/{self.repo.slug}/pulls?{query}")
+        if not isinstance(payload, list) or not payload:
+            return None
+        first = payload[0]
+        if not isinstance(first, dict):
+            return None
+        return self._normalize_pull_request(first, default_head_branch=head_branch)
+
     def get_repository(self, repo_slug: str) -> dict[str, Any]:
         return self._request_json("GET", f"/repos/{self._parse_repo(repo_slug).slug}")
 
@@ -159,17 +175,16 @@ class GitHubAdapter:
         title: str,
         body: str,
     ) -> dict[str, Any]:
-        query = urlencode({"state": "open", "head": f"{self.repo.owner}:{head_branch}"})
-        open_pulls = self._request_json("GET", f"/repos/{self.repo.slug}/pulls?{query}")
-        if isinstance(open_pulls, list) and open_pulls:
-            number = int(open_pulls[0]["number"])
+        existing = self.find_open_pull_request_by_head(head_branch)
+        if existing is not None:
+            number = int(existing["number"])
             payload = self._request_json(
                 "PATCH",
                 f"/repos/{self.repo.slug}/pulls/{number}",
                 {"title": title, "body": body, "base": base_branch},
             )
             return {
-                **payload,
+                **self._normalize_pull_request(payload, default_head_branch=head_branch, default_base_branch=base_branch),
                 "reused": True,
                 "sync_mode": "update",
                 "dedupe_key": head_branch,
@@ -186,7 +201,7 @@ class GitHubAdapter:
             },
         )
         return {
-            **payload,
+            **self._normalize_pull_request(payload, default_head_branch=head_branch, default_base_branch=base_branch),
             "reused": False,
             "sync_mode": "create",
             "dedupe_key": head_branch,
@@ -240,3 +255,32 @@ class GitHubAdapter:
         if marker in body:
             return body
         return f"{body.rstrip()}\n\n{marker}"
+
+    @staticmethod
+    def _normalize_pull_request(
+        payload: dict[str, Any],
+        *,
+        default_head_branch: str | None = None,
+        default_base_branch: str | None = None,
+    ) -> dict[str, Any]:
+        head = payload.get("head")
+        base = payload.get("base")
+        head_branch = (
+            str(head.get("ref"))
+            if isinstance(head, dict) and head.get("ref")
+            else str(payload.get("head_branch") or default_head_branch or "")
+        )
+        base_branch = (
+            str(base.get("ref"))
+            if isinstance(base, dict) and base.get("ref")
+            else str(payload.get("base_branch") or default_base_branch or "")
+        )
+        return {
+            **payload,
+            "number": payload.get("number"),
+            "html_url": payload.get("html_url"),
+            "state": str(payload.get("state", "open") or "open"),
+            "draft": bool(payload.get("draft", False)),
+            "head_branch": head_branch,
+            "base_branch": base_branch,
+        }

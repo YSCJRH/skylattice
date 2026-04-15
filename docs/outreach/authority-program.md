@@ -35,10 +35,10 @@ Skylattice is a local-first AI agent runtime for persistent memory, governed rep
 - what-is page: `https://yscjrh.github.io/skylattice/what-is-skylattice/`
 - quick start: `https://yscjrh.github.io/skylattice/quickstart/`
 - proof page: `https://yscjrh.github.io/skylattice/proof/`
-- stable release: `https://yscjrh.github.io/skylattice/releases/v0-2-2/`
+- stable release: `https://yscjrh.github.io/skylattice/releases/v0-3-0/`
 - Chinese homepage: `https://yscjrh.github.io/skylattice/zh/`
 - Chinese quick start: `https://yscjrh.github.io/skylattice/zh/quickstart/`
-- Chinese stable release: `https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/`
+- Chinese stable release: `https://yscjrh.github.io/skylattice/zh/releases/v0-3-0/`
 
 ## 30-Day Sequence
 

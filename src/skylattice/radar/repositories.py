@@ -199,13 +199,16 @@ class RadarRepository:
             for item in evidence:
                 connection.execute(
                     """
-                    INSERT INTO radar_evidence (evidence_id, run_id, candidate_id, evidence_kind, source, summary, payload_json)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO radar_evidence (
+                        evidence_id, run_id, candidate_id, provider, evidence_kind, source, summary, payload_json
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         item.evidence_id,
                         item.run_id,
                         item.candidate_id,
+                        item.provider,
                         item.evidence_kind,
                         item.source,
                         item.summary,
@@ -461,6 +464,7 @@ class RadarRepository:
             evidence_id=row["evidence_id"],
             run_id=row["run_id"],
             candidate_id=row["candidate_id"],
+            provider=row["provider"],
             evidence_kind=row["evidence_kind"],
             source=row["source"],
             summary=row["summary"],

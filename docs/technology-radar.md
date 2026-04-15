@@ -10,13 +10,14 @@ Turn GitHub open-source change into durable, reviewable local capability through
 
 ## Sources
 
-Current source set:
+Current live source set:
 
 - GitHub repository search
 - GitHub repository metadata
 - GitHub latest release metadata
 
 No webpage scraping, browser automation, or multi-source aggregation is in scope yet.
+The runtime now expresses this through a stable `RadarDiscoverySource` boundary so future providers can fit without rewriting `RadarService`.
 
 ## Candidate Selection
 
@@ -25,6 +26,7 @@ Tracked source config lives in:
 - `configs/radar/sources.yaml`
 - `configs/radar/scoring.yaml`
 - `configs/radar/promotion.yaml`
+- `configs/radar/schedule.yaml`
 
 The current defaults favor:
 
@@ -43,6 +45,17 @@ Artifacts:
 - experiment note: `docs/radar/experiments/<slug>-<runid>.md`
 - promotion log: `docs/radar/promotions/<slug>-<runid>.md`
 - behavior change registry: `configs/radar/adoptions.yaml`
+
+## Local Scheduling
+
+Skylattice does not run a resident scheduler inside the repo.
+
+- tracked schedule intent lives in `configs/radar/schedule.yaml`
+- `skylattice radar schedule show` exposes the tracked schedule view
+- `skylattice radar schedule render --target windows-task` renders Windows-first local registration details
+- `skylattice radar schedule run` resolves one tracked schedule into the same bounded `radar scan` path
+
+This keeps schedule behavior reviewable without promoting GitHub or an internal queue to runtime truth.
 
 ## Promotion Rules
 

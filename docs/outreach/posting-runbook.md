@@ -15,9 +15,9 @@ Use this runbook when Skylattice is ready for external mentions and backlinks.
    - what-is page
    - quick start
    - proof page
-   - `v0.2.2` stable release page
+   - `v0.3.0` stable release page
 2. Confirm the GitHub repository header still matches the Pages positioning.
-3. Confirm the latest release on GitHub is `v0.2.2 Stable`.
+3. Confirm the latest release on GitHub is `v0.3.0 Stable`.
 4. Confirm the social preview image is still configured on the repository.
 
 ## Launch Post Checklist

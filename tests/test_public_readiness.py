@@ -33,6 +33,7 @@ CHINESE_EXPECTATIONS = {
     "docs/zh/faq.md": "Skylattice ??????",
     "docs/zh/proof.md": "??????? Skylattice ???????",
     "docs/zh/use-cases.md": "????",
+    "docs/zh/releases/v0-3-0.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
     "docs/zh/releases/v0-2-2.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
 }
 def _tracked_files() -> list[str]:
@@ -71,6 +72,14 @@ def test_task_validation_config_defines_windows_baseline() -> None:
     ]
 
 
+def test_radar_schedule_config_defines_windows_first_baseline() -> None:
+    payload = yaml.safe_load((REPO_ROOT / "configs" / "radar" / "schedule.yaml").read_text(encoding="utf-8"))
+    assert payload["default_schedule"] == "weekly-github"
+    assert payload["schedules"]["weekly-github"]["enabled"] is True
+    assert payload["schedules"]["weekly-github"]["window"] == "weekly"
+    assert payload["schedules"]["weekly-github"]["windows_task"]["folder"] == "\\Skylattice"
+
+
 def test_public_engineering_baseline_files_exist() -> None:
     required = [
         ".github/workflows/ci.yml",
@@ -104,6 +113,8 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/outreach/category-post.md",
         "docs/outreach/distribution-targets.md",
         "docs/outreach/community-posts.md",
+        "docs/releases/v0.3.0-stable.md",
+        "docs/releases/v0-3-0.md",
         "docs/releases/v0.2.2-stable.md",
         "docs/releases/v0-2-2.md",
         "docs/releases/v0.2.1-stable.md",
@@ -128,6 +139,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/zh/comparison.md",
         "docs/zh/faq.md",
         "docs/zh/proof.md",
+        "docs/zh/releases/v0-3-0.md",
         "docs/zh/releases/v0-2-2.md",
         "docs/zh/releases/v0-2-1.md",
         "docs/zh/releases/v0-2-0.md",
@@ -139,12 +151,16 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-4-github-sync-context.md",
         "docs/tasks/phase-4-destructive-repo-ops.md",
         "docs/tasks/phase-4-github-collaboration-sync.md",
+        "docs/tasks/phase-4-closeout-phase-5-entry.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
         "docs/adrs/0008-non-destructive-repo-ops.md",
         "docs/adrs/0009-github-sync-context-and-preflight.md",
         "docs/adrs/0010-explicit-destructive-repo-approval.md",
+        "docs/adrs/0011-github-collaboration-sync-hardening.md",
+        "docs/adrs/0012-local-scheduler-and-radar-source-abstraction.md",
+        "configs/radar/schedule.yaml",
         "evals/ai-search/_template.md",
         "evals/ai-search/2026-04-09-baseline.md",
         "examples/redacted/doctor-output.json",
@@ -167,6 +183,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "Sample Outputs",
         "Public Site",
         "skylattice memory ...",
+        "skylattice radar schedule ...",
         "docs and AI-friendly landing pages",
         "latest stable release",
         "stable non-pre-release public baseline",
@@ -175,7 +192,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "docs/assets/cover-hero.svg",
     ]:
         assert phrase in readme
-    assert 'version = "0.2.2"' in pyproject
+    assert 'version = "0.3.0"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject
     assert 'Documentation = "https://yscjrh.github.io/skylattice/"' in pyproject
@@ -205,7 +222,7 @@ def test_public_site_metadata_is_tracked() -> None:
     assert mkdocs_config["repo_url"] == "https://github.com/YSCJRH/skylattice"
     assert mkdocs_config["extra"]["social_image"] == "assets/social-preview.png"
     assert citation["title"] == "Skylattice"
-    assert citation["version"] == "0.2.2"
+    assert citation["version"] == "0.3.0"
     assert citation["url"] == "https://yscjrh.github.io/skylattice/"
     assert "mkdocs>=1.6,<2.0" in pyproject
     assert "mkdocs-material>=9.6,<10.0" in pyproject
@@ -220,8 +237,8 @@ def test_ai_discovery_files_allow_public_crawlers() -> None:
     assert "User-agent: GPTBot" in robots
     assert "Allow: /" in robots
     assert "Sitemap: https://yscjrh.github.io/skylattice/sitemap.xml" in robots
-    assert "https://yscjrh.github.io/skylattice/releases/v0-2-2/" in llms
-    assert "https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/" in llms_full
+    assert "https://yscjrh.github.io/skylattice/releases/v0-3-0/" in llms
+    assert "https://yscjrh.github.io/skylattice/zh/releases/v0-3-0/" in llms_full
     assert "https://github.com/YSCJRH/skylattice" in llms
 
 
@@ -235,6 +252,7 @@ def test_sitemap_declares_core_pages_and_language_alternates() -> None:
         "https://yscjrh.github.io/skylattice/comparison/",
         "https://yscjrh.github.io/skylattice/faq/",
         "https://yscjrh.github.io/skylattice/proof/",
+        "https://yscjrh.github.io/skylattice/releases/v0-3-0/",
         "https://yscjrh.github.io/skylattice/releases/v0-2-2/",
         "https://yscjrh.github.io/skylattice/releases/v0-2-1/",
         "https://yscjrh.github.io/skylattice/releases/v0-2-0/",
@@ -242,7 +260,7 @@ def test_sitemap_declares_core_pages_and_language_alternates() -> None:
         assert f"<loc>{loc}</loc>" in sitemap
     assert 'hreflang="zh-CN"' in sitemap
     assert 'https://yscjrh.github.io/skylattice/zh/' in sitemap
-    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-2-2/' in sitemap
+    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-3-0/' in sitemap
 
 
 def test_ai_distribution_docs_cover_weekly_review_loop_and_manual_ops() -> None:
@@ -251,6 +269,7 @@ def test_ai_distribution_docs_cover_weekly_review_loop_and_manual_ops() -> None:
     baseline = _read_text("evals/ai-search/2026-04-09-baseline.md")
     for phrase in ["homepageUrl", "social preview", "tools/upload_github_social_preview.py", "Google Search Console", "Bing Webmaster Tools", "Agent A", "Agent B", "Agent C", "Agent D", ".local/discoverability/", "evals/ai-search/"]:
         assert phrase in ops
+    assert "v0.3.0" in ops
     for phrase in ["English Query Cluster", "Chinese Query Cluster", "Day 0", "Day 7", "Day 14", "Day 30", "isolated agents", "evals/ai-search/"]:
         assert phrase in benchmark
     assert "English non-brand discoverability: `3/10`" in baseline
@@ -270,7 +289,7 @@ def test_release_story_points_at_stable_surface() -> None:
             "README.md",
         ]
     )
-    assert "v0.2.2 Stable" in combined
+    assert "v0.3.0 Stable" in combined
     assert "stable non-pre-release" in combined or "stable release" in combined
 
 
@@ -279,9 +298,11 @@ def test_post_release_docs_do_not_keep_stale_release_todo_text() -> None:
         _read_text(path)
         for path in [
             "README.md",
+            "docs/releases/v0.3.0-stable.md",
+            "docs/releases/v0-3-0.md",
             "docs/releases/v0.2.2-stable.md",
-        "docs/releases/v0-2-2.md",
-        "docs/releases/v0.2.1-stable.md",
+            "docs/releases/v0-2-2.md",
+            "docs/releases/v0.2.1-stable.md",
             "docs/releases/v0.2.0-public-preview.md",
             "docs/releases/v0-2-2.md",
             "docs/releases/v0-2-1.md",

@@ -37,6 +37,18 @@ class FakeGitHubAdapter:
             }
         }
 
+    def find_open_pull_request_by_head(self, head_branch: str) -> dict[str, object] | None:
+        for payload in self.pull_requests:
+            if payload["head_branch"] == head_branch and str(payload.get("state", "open")).lower() == "open":
+                return dict(payload)
+        return None
+
+    def get_pull_request(self, number: int) -> dict[str, object]:
+        for payload in self.pull_requests:
+            if int(payload["number"]) == number:
+                return dict(payload)
+        raise RuntimeError(f"Unknown pull request: {number}")
+
     def create_or_update_draft_pr(
         self,
         *,
@@ -47,7 +59,14 @@ class FakeGitHubAdapter:
     ) -> dict[str, object]:
         for payload in self.pull_requests:
             if payload["head_branch"] == head_branch:
-                payload.update({"base_branch": base_branch, "title": title, "body": body})
+                payload.update(
+                    {
+                        "base_branch": base_branch,
+                        "title": title,
+                        "body": body,
+                        "state": payload.get("state", "open"),
+                    }
+                )
                 return {
                     **payload,
                     "reused": True,
@@ -61,6 +80,8 @@ class FakeGitHubAdapter:
             "base_branch": base_branch,
             "title": title,
             "body": body,
+            "state": "open",
+            "draft": True,
         }
         self.pull_requests.append(payload)
         return {
@@ -169,6 +190,50 @@ class ClosedIssueGitHubAdapter(FakeGitHubAdapter):
             "state": "closed",
             "html_url": "https://github.com/example/skylattice/issues/7",
         }
+
+
+class ReadyPullRequestGitHubAdapter(FakeGitHubAdapter):
+    def find_open_pull_request_by_head(self, head_branch: str) -> dict[str, object] | None:
+        existing = super().find_open_pull_request_by_head(head_branch)
+        if existing is not None:
+            return existing
+        payload = {
+            "number": 91,
+            "html_url": "https://github.com/example/skylattice/pull/91",
+            "head_branch": head_branch,
+            "base_branch": "main",
+            "title": "Existing ready PR",
+            "body": "Existing body",
+            "state": "open",
+            "draft": False,
+        }
+        self.pull_requests.append(payload)
+        return dict(payload)
+
+
+class FlakyPullRequestGitHubAdapter(FakeGitHubAdapter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.failures_remaining = 1
+
+    def create_or_update_draft_pr(
+        self,
+        *,
+        head_branch: str,
+        base_branch: str,
+        title: str,
+        body: str,
+    ) -> dict[str, object]:
+        payload = super().create_or_update_draft_pr(
+            head_branch=head_branch,
+            base_branch=base_branch,
+            title=title,
+            body=body,
+        )
+        if self.failures_remaining > 0:
+            self.failures_remaining -= 1
+            raise RuntimeError("simulated pull request sync failure")
+        return payload
 
 
 def _write(path: Path, content: str) -> None:
@@ -596,6 +661,36 @@ def test_task_resume_executes_branch_push_and_pr(tmp_path: Path) -> None:
     assert any(record["layer"] == "procedural" for record in details["memory"])
     assert any(record["layer"] == "working" and record["status"] == "tombstoned" for record in details["memory"])
     assert details["recovery"]["status"] == "completed"
+    assert details["recovery"]["remote_target_kind"] == "pull_request"
+    assert details["recovery"]["remote_target_state"] == "open-draft"
+
+
+def test_pull_request_preflight_observes_existing_ready_pr_and_sync_reuses_it(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    provider = FakeProvider(
+        plan=build_fake_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nReady PR reuse path.\n"},
+    )
+    github = ReadyPullRequestGitHubAdapter()
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    service.git = LocalPushGitAdapter(repo)
+
+    completed = service.run_task(
+        goal_input="Refresh the README and reuse an existing ready PR.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    details = service.inspect_run(completed.run_id)
+
+    assert completed.status.value == "completed"
+    assert details["steps"][5]["action_name"] == "github.inspect_pull_request"
+    assert details["steps"][5]["result"]["remote_target_state"] == "open-ready"
+    assert details["steps"][5]["result"]["number"] == 91
+    assert details["steps"][6]["action_name"] == "github.sync_pull_request"
+    assert details["steps"][6]["result"]["reused"] is True
+    assert details["steps"][6]["result"]["sync_mode"] == "update"
+    assert details["steps"][6]["result"]["remote_target_state"] == "open-ready"
+    assert details["steps"][6]["result"]["html_url"].endswith("/pull/91")
 
 
 def test_task_run_supports_mixed_edit_modes_and_records_materialized_payloads(tmp_path: Path) -> None:
@@ -822,6 +917,41 @@ def test_halted_push_reports_recovery_and_resumes(tmp_path: Path) -> None:
     assert resumed_details["recovery"]["status"] == "completed"
 
 
+def test_pull_request_sync_failure_reports_remote_target_and_resumes_update(tmp_path: Path) -> None:
+    repo = create_temp_repo(tmp_path)
+    provider = FakeProvider(
+        plan=build_fake_plan(),
+        file_outputs={"README.md": "# Temp Repo\n\nPR sync retry test.\n"},
+    )
+    github = FlakyPullRequestGitHubAdapter()
+    service = TaskAgentService.from_repo(repo_root=repo, provider=provider, github_adapter=github)
+    service.git = LocalPushGitAdapter(repo)
+
+    halted = service.run_task(
+        goal_input="Refresh the README and prepare a PR with sync retry.",
+        allow_repo_write=True,
+        allow_external_write=True,
+    )
+    halted_details = service.inspect_run(halted.run_id)
+
+    assert halted.status.value == "halted"
+    assert halted_details["recovery"]["next_step_id"] == "pull-request"
+    assert halted_details["recovery"]["remote_target_kind"] == "pull_request"
+    assert halted_details["recovery"]["remote_target_number"] == 1
+    assert halted_details["recovery"]["remote_target_url"].endswith("/pull/1")
+    assert halted_details["recovery"]["remote_target_state"] == "open-draft"
+    assert halted_details["recovery"]["sync_mode"] == "update"
+    assert any("update the existing draft pull request" in item for item in halted_details["recovery"]["guidance"])
+
+    resumed = service.resume_task(run_id=halted.run_id, allow_external_write=True)
+    resumed_details = service.inspect_run(resumed.run_id)
+
+    assert resumed.status.value == "completed"
+    assert resumed_details["steps"][6]["result"]["reused"] is True
+    assert resumed_details["steps"][6]["result"]["sync_mode"] == "update"
+    assert resumed_details["steps"][6]["result"]["attempt_count"] == 2
+
+
 def test_issue_comment_resume_reuses_existing_comment(tmp_path: Path) -> None:
     repo = create_temp_repo(tmp_path)
     provider = FakeProvider(
@@ -842,6 +972,10 @@ def test_issue_comment_resume_reuses_existing_comment(tmp_path: Path) -> None:
     assert halted.status.value == "halted"
     assert halted_details["recovery"]["next_step_id"] == "issue-comment"
     assert halted_details["recovery"]["side_effect_risk"] == "medium"
+    assert halted_details["recovery"]["remote_target_kind"] == "issue"
+    assert halted_details["recovery"]["remote_target_number"] == 7
+    assert halted_details["recovery"]["dedupe_key"] == f"{halted.run_id}:issue-comment"
+    assert any("matching dedupe comment" in item for item in halted_details["recovery"]["guidance"])
     assert len(github.comments) == 1
 
     resumed = service.resume_task(run_id=halted.run_id, allow_external_write=True)
