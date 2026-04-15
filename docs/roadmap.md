@@ -69,6 +69,7 @@ Delivered so far:
 
 - tracked radar provider contract in `configs/radar/providers.yaml`
 - provider-neutral radar candidate and evidence identity fields alongside GitHub-shaped compatibility fields
+- provider-neutral adoption matching with legacy `repo_slug` fallback
 - tracked radar schedule intent in `configs/radar/schedule.yaml`
 - `skylattice radar schedule show`, `render`, and `run`
 - scheduled radar runs now preserve tracked schedule provenance for later inspection

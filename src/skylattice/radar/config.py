@@ -118,6 +118,10 @@ class AdoptionRecord:
     tags: tuple[str, ...]
     preference_boost: float
     rationale: str
+    source_provider: str = ""
+    source_kind: str = ""
+    source_handle: str = ""
+    source_url: str = ""
     promoted_at: str | None = None
 
 
@@ -171,6 +175,10 @@ def load_adoption_records(repo_root: Path | None = None) -> tuple[AdoptionRecord
         records.append(
             AdoptionRecord(
                 repo_slug=str(item.get("repo_slug", "")),
+                source_provider=str(item.get("source_provider", "")),
+                source_kind=str(item.get("source_kind", "")),
+                source_handle=str(item.get("source_handle", "")),
+                source_url=str(item.get("source_url", "")),
                 tags=tuple(str(tag) for tag in item.get("tags", [])),
                 preference_boost=float(item.get("preference_boost", 0.0)),
                 rationale=str(item.get("rationale", "")),

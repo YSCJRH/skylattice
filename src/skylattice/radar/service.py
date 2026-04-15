@@ -880,7 +880,10 @@ class RadarService:
         patterns.append(
             {
                 "repo_slug": candidate.repo_slug,
+                "source_provider": candidate.source_provider,
+                "source_kind": candidate.source_kind,
                 "source_handle": candidate.identity_handle,
+                "source_url": candidate.identity_url,
                 "candidate_id": candidate.candidate_id,
                 "promotion_id": promotion.promotion_id,
                 "score": round(candidate.score, 4),

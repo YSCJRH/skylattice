@@ -1,4 +1,4 @@
-﻿"""Candidate scoring for the technology radar."""
+"""Candidate scoring for the technology radar."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ class RadarScorer:
         topicality_score = self._topic_overlap(topics, self.config.capability_gaps)
         release_score = self._recency_score(candidate.latest_release_at, self.config.release_days)
         gap_score = self._topic_overlap(topics, self.config.capability_gaps)
-        adoption_boost = self._adoption_boost(candidate.repo_slug, topics)
+        adoption_boost = self._adoption_boost(candidate, topics)
 
         total = (
             weights.get("stars", 0.0) * star_score
@@ -78,10 +78,18 @@ class RadarScorer:
             reason = "candidate is below the shortlist threshold"
         return RadarScore(total=total, breakdown=breakdown, decision=decision, reason=reason)
 
-    def _adoption_boost(self, repo_slug: str, topics: set[str]) -> float:
+    def _adoption_boost(self, candidate: RadarCandidate, topics: set[str]) -> float:
         boost = 0.0
         for record in self.adoption_records:
-            if record.repo_slug and record.repo_slug.lower() == repo_slug.lower():
+            if (
+                record.source_provider
+                and record.source_handle
+                and record.source_provider.lower() == candidate.source_provider.lower()
+                and record.source_handle.lower() == candidate.identity_handle.lower()
+            ):
+                boost += record.preference_boost
+                continue
+            if record.repo_slug and record.repo_slug.lower() == candidate.repo_slug.lower():
                 boost += record.preference_boost
                 continue
             overlap = topics.intersection({item.lower() for item in record.tags})
