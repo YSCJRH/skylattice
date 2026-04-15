@@ -40,6 +40,7 @@ Both workflows share:
 - `load_radar_config()` also loads tracked radar schedule intent from `configs/radar/schedule.yaml`
 - `load_radar_config()` also loads tracked radar provider intent from `configs/radar/providers.yaml`
 - radar candidates and evidence now persist provider-neutral identity fields alongside current GitHub-shaped compatibility fields
+- radar evidence kinds are normalized to provider-neutral taxonomy values on write and read
 - validation commands now carry stable ids, expected outputs, and profile membership instead of acting as a flat string allowlist
 - local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
 
