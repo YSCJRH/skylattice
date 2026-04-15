@@ -228,6 +228,8 @@ class RadarService:
         return {
             **report,
             "output_path": self._display_path(destination),
+            "tracked_record_template": "docs/ops/radar-weekly-validation-template.md",
+            "suggested_record_path": self._suggested_schedule_record_path(schedule_id=schedule.schedule_id),
         }
 
     def scan(
@@ -789,6 +791,11 @@ class RadarService:
             return candidate if candidate.is_absolute() else (self.repo_root / candidate)
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         return self.repo_root / ".local" / "radar" / "validations" / f"{timestamp}-{run_id}.json"
+
+    @staticmethod
+    def _suggested_schedule_record_path(*, schedule_id: str) -> str:
+        date_part = datetime.now(UTC).date().isoformat()
+        return f"docs/ops/radar-validations/{date_part}-{schedule_id}.md"
 
     def _display_path(self, path: Path) -> str:
         try:

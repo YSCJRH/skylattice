@@ -454,6 +454,9 @@ def test_radar_schedule_validate_writes_local_report(tmp_path: Path) -> None:
     assert report["checks"]["limit_matches"] is True
     assert report_path.exists()
     assert ".local/radar/validations/" in report["output_path"].replace("\\", "/")
+    assert report["tracked_record_template"] == "docs/ops/radar-weekly-validation-template.md"
+    assert report["suggested_record_path"].startswith("docs/ops/radar-validations/")
+    assert report["suggested_record_path"].endswith("-weekly-github.md")
 
 
 def test_radar_state_snapshot_reports_tracked_provider_contract(tmp_path: Path) -> None:
