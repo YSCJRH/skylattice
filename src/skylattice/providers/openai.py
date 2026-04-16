@@ -211,6 +211,33 @@ class OpenAIProvider:
             ),
         )
 
+    def smoke_check(self) -> dict[str, Any]:
+        schema = {
+            "type": "json_schema",
+            "name": "openai_smoke_check",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string"},
+                },
+                "required": ["status"],
+                "additionalProperties": False,
+            },
+        }
+        response = self._request_json(
+            prompt='Return {"status":"ok"} and no additional keys.',
+            schema=schema,
+            instructions="You are a read-only connectivity smoke check. Return exact JSON.",
+        )
+        if response.get("status") != "ok":
+            raise RuntimeError(f"Unexpected OpenAI smoke response: {response}")
+        return {
+            "provider": "openai",
+            "status": "ok",
+            "model": self.model,
+        }
+
     def _request_json(self, *, prompt: str, schema: dict[str, Any], instructions: str) -> dict[str, Any]:
         payload = {
             "model": self.model,

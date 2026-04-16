@@ -207,6 +207,19 @@ class GitHubAdapter:
             "dedupe_key": head_branch,
         }
 
+    def smoke_check(self) -> dict[str, Any]:
+        repo = self.get_repo()
+        issues = self.list_issues(per_page=1)
+        return {
+            "provider": "github",
+            "status": "ok",
+            "repository": self.repo.slug,
+            "default_branch": str(repo.get("default_branch", "")),
+            "visibility": "private" if bool(repo.get("private", False)) else "public",
+            "issue_sample_count": len(issues),
+            "checks": ["get_repo", "list_issues"],
+        }
+
     def _request_json(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
         request = Request(
