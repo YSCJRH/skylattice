@@ -85,3 +85,24 @@ def test_openai_provider_generate_plan_uses_tracked_instructions(tmp_path: Path)
     assert "# Core Mission" in str(captured["instructions"])
     assert "# Planner Prompt" in str(captured["instructions"])
     assert "Create a constrained task plan" in str(captured["prompt"])
+
+
+def test_openai_provider_smoke_check_uses_structured_request(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    provider = OpenAIProvider(api_key="test-key", repo_root=repo)
+    captured: dict[str, object] = {}
+
+    def fake_request_json(*, prompt: str, schema: dict[str, object], instructions: str) -> dict[str, object]:
+        captured["prompt"] = prompt
+        captured["schema"] = schema
+        captured["instructions"] = instructions
+        return {"status": "ok"}
+
+    provider._request_json = fake_request_json  # type: ignore[method-assign]
+
+    payload = provider.smoke_check()
+
+    assert payload == {"provider": "openai", "status": "ok", "model": provider.model}
+    assert 'Return {"status":"ok"}' in str(captured["prompt"])
+    assert "connectivity smoke check" in str(captured["instructions"])

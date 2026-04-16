@@ -100,6 +100,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         ".github/ISSUE_TEMPLATE/early_feedback.md",
         ".github/ISSUE_TEMPLATE/config.yml",
         "tools/run_validation_suite.py",
+        "tools/run_authenticated_smoke.py",
         "tools/upload_github_social_preview.py",
         "mkdocs.yml",
         "CITATION.cff",
@@ -222,6 +223,8 @@ def test_public_positioning_surfaces_are_present() -> None:
         "radar schedule validate",
         ".local/radar/validations/",
         "tracked note template plus a suggested record path",
+        "run_authenticated_smoke.py",
+        "read-only authenticated smoke",
     ]:
         assert phrase in readme
     assert 'version = "0.3.0"' in pyproject

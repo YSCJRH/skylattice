@@ -149,7 +149,8 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - `tests/test_memory.py`: memory record states, retrieval ranking, review flows, rollback, and export behavior
 - `tests/test_radar.py`: radar discovery contracts, scoring, scheduling, validation reports, promotion, rollback, and provider-neutral identity behavior
 - `tests/test_public_readiness.py`: public-safe tracked artifacts, release surfaces, Pages metadata, outreach files, and repo hygiene
-- current test strength is contract and boundary coverage; authenticated end-to-end validation against live OpenAI and GitHub remains intentionally lighter
+- `tools/run_authenticated_smoke.py`: opt-in read-only validation against the live GitHub and OpenAI adapters when operator credentials are present
+- current test strength is contract and boundary coverage; authenticated end-to-end validation against live OpenAI and GitHub remains intentionally narrower and operator-invoked
 
 ## Key Boundaries
 
