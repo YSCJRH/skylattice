@@ -35,7 +35,8 @@ class RepoWorkspaceAdapter:
                 break
             if not path.is_file():
                 continue
-            if any(part in self.IGNORE_PARTS for part in path.parts):
+            relative_parts = path.relative_to(self.repo_root).parts
+            if any(part in self.IGNORE_PARTS for part in relative_parts):
                 continue
             if path.suffix == ".pyc" or path.name.endswith(".egg-info"):
                 continue
@@ -238,10 +239,10 @@ class RepoWorkspaceAdapter:
     def _resolve(self, relative_path: str, *, allow_missing: bool = False) -> Path:
         candidate = (self.repo_root / relative_path).resolve()
         try:
-            candidate.relative_to(self.repo_root)
+            relative = candidate.relative_to(self.repo_root)
         except ValueError as exc:
             raise ValueError(f"Path escapes repository root: {relative_path}") from exc
-        if any(part in {".git", ".local"} for part in candidate.parts):
+        if any(part in {".git", ".local"} for part in relative.parts):
             raise ValueError(f"Path is protected: {relative_path}")
         if not allow_missing and not candidate.exists():
             raise FileNotFoundError(candidate)

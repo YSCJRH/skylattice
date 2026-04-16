@@ -616,6 +616,23 @@ def test_repo_workspace_supports_deterministic_edit_primitives(tmp_path: Path) -
         workspace.move_file("docs/copied.md", "docs/moved.md")
 
 
+def test_repo_workspace_allows_repo_root_under_local_but_still_protects_repo_internal_local(tmp_path: Path) -> None:
+    local_root = tmp_path / ".local"
+    local_root.mkdir()
+    repo = create_temp_repo(local_root)
+    workspace = RepoWorkspaceAdapter(repo, allowed_check_commands=("git status --short",))
+
+    created = workspace.create_file("docs/local-clone-safe.md", "# Safe\n")
+    listed = workspace.list_files(limit=20)
+
+    assert created == "docs/local-clone-safe.md"
+    assert "README.md" in listed
+    assert "docs/local-clone-safe.md" in listed
+
+    with pytest.raises(ValueError, match="Path is protected"):
+        workspace.create_file(".local/forbidden.md", "# Forbidden\n")
+
+
 def test_task_run_waits_for_approval(tmp_path: Path) -> None:
     repo = create_temp_repo(tmp_path)
     provider = FakeProvider(plan=build_fake_plan(), file_outputs={"README.md": "# Temp Repo\n\nTask agent MVP.\n"})

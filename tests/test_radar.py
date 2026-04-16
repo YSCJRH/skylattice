@@ -319,6 +319,25 @@ def test_radar_scan_promotes_candidate_and_updates_registry(tmp_path: Path) -> N
     assert _run(["git", "branch", "--show-current"], repo).strip() == "main"
 
 
+def test_radar_scan_allows_repo_root_under_local_workstyle_path(tmp_path: Path) -> None:
+    local_root = tmp_path / ".local"
+    local_root.mkdir()
+    repo = create_radar_repo(local_root)
+    service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+    service.radar.git = fake_git
+
+    run = service.scan_radar(window="manual", limit=3)
+    details = service.inspect_radar_run(run.run_id)
+
+    assert run.status.value == "completed"
+    assert details["run"]["status"] == "completed"
+    assert details["experiments"][0]["artifact_path"].startswith("docs/radar/experiments/")
+    assert (repo / details["experiments"][0]["artifact_path"]).exists()
+    assert fake_git.push_calls[-1]["branch_name"] == "main"
+
+
 def test_radar_rollback_reverts_promotion(tmp_path: Path) -> None:
     repo = create_radar_repo(tmp_path)
     service = TaskAgentService.from_repo(repo_root=repo, radar_source=FakeRadarSource())
