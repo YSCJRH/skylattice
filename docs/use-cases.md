@@ -21,6 +21,20 @@ If you want a local-first runtime that is legible to operators, reviewable in Gi
 - It is better as a governance-heavy reference runtime than as a broad automation platform.
 - It is especially useful when you want to inspect what happened after a run, not only whether it passed.
 
+## Fast Decision Check
+
+Choose Skylattice first when your main question sounds like one of these:
+
+- "How do I keep a personal agent's state local without hiding its behavior?"
+- "How do I let an agent touch a repo without giving it unbounded shell freedom?"
+- "How do I learn from open source and still keep every behavior change reviewable in Git?"
+
+Choose something else first when your main question sounds like one of these:
+
+- "How do I get a hosted assistant working today with minimal setup?"
+- "How do I maximize integrations, tool count, or autonomous execution breadth?"
+- "How do I run broad code refactors or arbitrary shell workflows right now?"
+
 ## 1. Keep A Personal Agent Local, Durable, And Reviewable
 
 Choose Skylattice when you want a personal agent runtime that:
@@ -33,6 +47,7 @@ Why it matters:
 
 - you can grow a long-lived agent without turning the repo into a pile of opaque hidden state
 - you can inspect what the system believes about itself before giving it more autonomy
+- you can decide whether the boundary design is good enough for you before trusting live adapters
 
 ## 2. Run Governed Repo Tasks Instead Of Unbounded Automation
 
@@ -47,6 +62,7 @@ Why it matters:
 
 - you can understand what happened after a run, not just whether it passed
 - you can use the project as a reference for reviewable AI-assisted repo operations
+- you can separate "credential wiring works" from "I want this system to write to my repo"
 
 ## 3. Learn From Open Source Without Turning The Runtime Into A Black Box
 
@@ -61,6 +77,7 @@ Why it matters:
 
 - you can experiment with bounded self-improvement without giving the runtime silent write access everywhere
 - you can inspect what the system learned, why it promoted something, and how to roll it back
+- you can keep provider rollout, schedule intent, and promotion policy visible as tracked artifacts
 
 ## Who Should Care Today
 
@@ -76,3 +93,11 @@ Skylattice is still early if you need:
 - zero-config autonomous execution
 - AST-aware refactors or arbitrary shell workflows
 - a framework that optimizes for breadth over explicit operational boundaries
+
+## Best Current Fit
+
+The strongest current fit is a builder who wants a compact, inspectable system they can verify in stages:
+
+1. prove the zero-credential local baseline
+2. verify live credentials with read-only smoke checks
+3. decide whether governed task runs or the radar workflow are worth deeper adoption
