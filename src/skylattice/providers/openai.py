@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -16,10 +17,12 @@ class OpenAIProvider:
         api_key: str | None = None,
         model: str | None = None,
         api_base: str = "https://api.openai.com/v1/responses",
+        repo_root: Path | None = None,
     ) -> None:
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         self.model = model or os.environ.get("SKYLATTICE_OPENAI_MODEL", "gpt-5")
         self.api_base = api_base
+        self.repo_root = (repo_root or Path(__file__).resolve().parents[3]).resolve()
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY is required for OpenAIProvider")
 
@@ -123,7 +126,15 @@ class OpenAIProvider:
                 "additionalProperties": False,
             },
         }
-        return self._request_json(prompt=prompt, schema=schema)
+        return self._request_json(
+            prompt=prompt,
+            schema=schema,
+            instructions=self._compose_instructions(
+                "core-mission.md",
+                "planner.md",
+                fallback="You are Skylattice's constrained execution planner. Be precise and keep changes small.",
+            ),
+        )
 
     def rewrite_file(
         self,
@@ -157,7 +168,16 @@ class OpenAIProvider:
                 "additionalProperties": False,
             },
         }
-        return str(self._request_json(prompt=prompt, schema=schema)["content"])
+        return str(
+            self._request_json(
+                prompt=prompt,
+                schema=schema,
+                instructions=self._compose_instructions(
+                    "core-mission.md",
+                    fallback="You are Skylattice's constrained execution planner. Be precise and keep changes small.",
+                ),
+            )["content"]
+        )
 
     def materialize_edit(
         self,
@@ -182,12 +202,19 @@ class OpenAIProvider:
             "Current content follows. Return only the structured payload for this edit mode.\n\n"
             f"{current_content}"
         )
-        return self._request_json(prompt=prompt, schema=self._edit_schema(mode))
+        return self._request_json(
+            prompt=prompt,
+            schema=self._edit_schema(mode),
+            instructions=self._compose_instructions(
+                "core-mission.md",
+                fallback="You are Skylattice's constrained execution planner. Be precise and keep changes small.",
+            ),
+        )
 
-    def _request_json(self, *, prompt: str, schema: dict[str, Any]) -> dict[str, Any]:
+    def _request_json(self, *, prompt: str, schema: dict[str, Any], instructions: str) -> dict[str, Any]:
         payload = {
             "model": self.model,
-            "instructions": "You are Skylattice's constrained execution planner. Be precise and keep changes small.",
+            "instructions": instructions,
             "input": prompt,
             "text": {"format": schema},
         }
@@ -217,6 +244,18 @@ class OpenAIProvider:
         if not isinstance(data, dict):
             raise RuntimeError("OpenAI structured output was not an object")
         return data
+
+    def _compose_instructions(self, *prompt_files: str, fallback: str) -> str:
+        sections = [self._load_prompt_file(name) for name in prompt_files]
+        content = "\n\n".join(section for section in sections if section).strip()
+        return content or fallback
+
+    def _load_prompt_file(self, relative_name: str) -> str:
+        path = self.repo_root / "prompts" / "system" / relative_name
+        if not path.exists():
+            return ""
+        content = path.read_text(encoding="utf-8").strip()
+        return content
 
     @staticmethod
     def _edit_schema(mode: str) -> dict[str, Any]:
