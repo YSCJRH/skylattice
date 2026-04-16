@@ -81,6 +81,6 @@ Delivered so far:
 
 Next goals:
 
-- validate local scheduled radar runs across at least one full weekly cycle
-- prepare for a second radar provider without widening autonomy or hiding provider provenance
-- keep experiment and promotion semantics stable while source inputs broaden
+- validate one full weekly scheduled radar cycle and convert the resulting local report into the first tracked weekly validation record
+- keep GitHub as the only live provider until that weekly validation loop is proven and documented, while preserving the provider-neutral contract for future expansion
+- choose and document the next post-Phase-5 wedge only after that operational proof, without widening autonomy or changing promotion semantics in the meantime

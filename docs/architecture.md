@@ -111,6 +111,46 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - `.local/logs/`
 - `.local/overrides/`
 
+## Maintainer Maps
+
+### Execution Map
+
+- CLI entry: `src/skylattice/cli.py`
+- read-only API entry: `src/skylattice/api/app.py`
+- top-level runtime facade: `src/skylattice/runtime/service.py` via `TaskAgentService.from_repo()`
+- task-agent chain: planner/provider -> workspace/git/github adapters -> validation -> ledger and memory
+- radar chain: discovery source -> scoring -> experiment -> promotion or rollback -> ledger and memory
+- shared state surface: SQLite tables in `.local/state/skylattice.sqlite3` plus tracked config under `configs/`
+
+### Truth-Source Map
+
+- tracked product and policy truth: `README.md`, `docs/*.md`, `docs/adrs/*.md`, `configs/agent/defaults.yaml`, `configs/policies/governance.yaml`, `configs/task/validation.yaml`, and `configs/radar/*.yaml`
+- tracked prompt intent: `prompts/system/`
+- runtime orchestration truth: `src/skylattice/runtime/`, `src/skylattice/radar/`, `src/skylattice/actions/`, and `src/skylattice/memory/`
+- `src/skylattice/providers/openai.py` now loads tracked mission and planner prompt text from `prompts/system/`, while keeping operation-specific scaffolding and JSON-schema constraints in runtime code
+- `prompts/system/reflector.md` remains a tracked future-facing asset until a reflection runtime path exists
+- local runtime truth: `.local/state/`, `.local/memory/`, `.local/logs/`, `.local/work/`, and local radar validation exports under `.local/radar/validations/`
+- remote advisory truth: GitHub PR, issue, repository, and release state can guide planning and recovery, but does not replace local runtime state
+
+### Write-Permission Map
+
+- `observe`: local inspection, status, read-only API access, and advisory GitHub reads
+- `local-safe-write`: reversible writes under approved `.local/` roots
+- `repo-write`: tracked repository edits, branch creation, and commit steps initiated by task runs
+- `destructive-repo-write`: required in addition to `repo-write` for tracked `move_file` and `delete_file`
+- `external-write`: push, draft PR sync, and issue-comment sync for task runs
+- `radar-experiment-write`: bounded spike writes on whitelisted tracked paths
+- `radar-promote-main`: bounded direct-to-`main` promotion writes on whitelisted tracked paths
+- `self-modify`: policy or autonomy widening, still outside normal automatic flows
+
+### Test-Coverage Map
+
+- `tests/test_smoke.py`: task-agent planning, edit materialization, approval gates, recovery, GitHub sync, and CLI/API smoke paths
+- `tests/test_memory.py`: memory record states, retrieval ranking, review flows, rollback, and export behavior
+- `tests/test_radar.py`: radar discovery contracts, scoring, scheduling, validation reports, promotion, rollback, and provider-neutral identity behavior
+- `tests/test_public_readiness.py`: public-safe tracked artifacts, release surfaces, Pages metadata, outreach files, and repo hygiene
+- current test strength is contract and boundary coverage; authenticated end-to-end validation against live OpenAI and GitHub remains intentionally lighter
+
 ## Key Boundaries
 
 - GitHub is a source and audit surface, not runtime truth.
