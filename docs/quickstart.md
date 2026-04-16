@@ -32,6 +32,18 @@ The zero-credential path proves the runtime boots, the tracked validation comman
 - You do not need `OPENAI_API_KEY` or `GITHUB_TOKEN` to verify the stable public release.
 - The expected outputs are documented, so you can compare your local results with public-safe samples.
 
+## What You Prove In Five Minutes
+
+- the local runtime boots and exposes a real state surface
+- the tracked validation commands are executable and aligned with CI
+- the repository ships public-safe proof artifacts that match the documented workflows
+
+## What You Are Not Proving Yet
+
+- live OpenAI planning or edit generation
+- live GitHub discovery, pull-request sync, or issue-comment sync
+- whether Skylattice already fits your production workflow without further configuration
+
 ## 5-Minute No-Credential Verification
 
 1. Install the project.
@@ -89,12 +101,26 @@ $env:GITHUB_TOKEN = "..."
 $env:SKYLATTICE_GITHUB_REPOSITORY = "YSCJRH/skylattice"
 ```
 
+Optional read-only smoke before real task or radar runs:
+
+```bash
+python tools/run_authenticated_smoke.py --provider github
+python tools/run_authenticated_smoke.py --provider openai
+```
+
+What that proves:
+
+- your live GitHub adapter can read repository metadata without mutating anything
+- your live OpenAI adapter can complete a minimal structured response round-trip
+
 Representative commands:
 
 ```bash
 skylattice task run --goal "Refresh README and prepare a draft PR" --allow repo-write --allow external-write
 skylattice radar scan --window weekly --limit 20
 ```
+
+Use the read-only smoke first if you want to separate credential wiring from full task or radar behavior.
 
 ## Read Next
 

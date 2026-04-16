@@ -72,6 +72,21 @@ No. Skylattice is intentionally narrower than broad agent frameworks. It trades 
 
 Follow the [quick start](quickstart.md), run `doctor`, run the smoke tests, run the validation suite, and compare your outputs with the public-safe samples under `examples/redacted/`.
 
+## What does the no-credential path actually prove?
+
+It proves the local runtime boots, the tracked validation baseline is real, and the repository ships inspectable proof artifacts. It does not prove that the live OpenAI or GitHub adapters are configured for your machine yet.
+
+## How do I check live credentials without jumping straight to repo writes?
+
+Use the optional read-only authenticated smoke:
+
+```bash
+python tools/run_authenticated_smoke.py --provider github
+python tools/run_authenticated_smoke.py --provider openai
+```
+
+This verifies live adapter connectivity without turning on repo-write or external-write task behavior.
+
 ## Does Skylattice store memory in Git?
 
 No. Private runtime memory stays under `.local/`. Tracked Git history stores docs, configs, prompts, release notes, and other reviewable system behavior.
