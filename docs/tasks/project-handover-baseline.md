@@ -1,5 +1,7 @@
 # Task Brief: Project Handover Baseline
 
+> Historical snapshot as of 2026-04-16. For the refreshed current-mainline view after branch cleanup, see [mainline-refresh-2026-04-17.md](mainline-refresh-2026-04-17.md).
+
 ## Intent
 
 - Capture a durable handover baseline for Skylattice as of 2026-04-16 after reviewing the tracked docs, core runtime code, tests, and public GitHub surfaces.

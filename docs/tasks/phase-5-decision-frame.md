@@ -2,8 +2,8 @@
 
 ## Intent
 
-- Lock Phase 5 to one primary outcome: operationally validate the technology-radar local scheduling and provider-neutral foundation without widening autonomy or broadening scope.
-- Success means a maintainer can tell what Phase 5 is trying to prove, what counts as done, and what work is intentionally secondary or deferred.
+- Lock the next release cycle to one primary outcome: Phase 5 operational closure around the technology-radar local scheduling and provider-neutral foundation.
+- Success means a maintainer can tell what the next release is trying to prove, which four exit criteria gate the release, and which work remains explicitly secondary or deferred.
 
 ## Constraints
 
@@ -27,8 +27,8 @@
 
 ### Decision
 
-- Phase 5 primary outcome: engineering closure of the radar foundation, not broad feature expansion and not growth work as the phase-defining story.
-- Recommended phase story: Skylattice proves that its tracked local radar scheduling and provider-neutral contract can survive real operator use while keeping the same governance, promotion, and rollback boundaries.
+- Next release primary outcome: engineering closure of the radar foundation, not broad feature expansion and not growth work as the release-defining story.
+- Recommended phase story: Skylattice proves that its tracked local radar scheduling and provider-neutral contract can survive repeatable operator use while keeping the same governance, promotion, and rollback boundaries.
 
 ### Why This Wins
 
@@ -38,15 +38,16 @@
 
 ### Exit Criteria
 
-- one full weekly scheduled radar cycle has been run and validated end to end, with a local report and a first tracked weekly validation note
-- tracked docs consistently describe GitHub as the only live provider in this slice and do not imply that a second provider has already shipped
-- the next wedge after Phase 5 is chosen from evidence and recorded explicitly before scope broadens
+- a second tracked weekly validation note records a follow-up operator pass after the 2026-04-16 baseline record
+- the radar scheduling runbook distinguishes safe validation mode from the live promotion-capable path, including prerequisites, working-directory expectations, and known limits
+- tracked prompt files under `prompts/system/` own the human-readable planner and editor instructions, while runtime code keeps interpolation, schemas, parsing, and enforcement only
+- the release-validation chain is recorded honestly: required checks pass, and auth-dependent checks are marked skipped or blocked when credentials are unavailable instead of being treated as passed
 
 ### Secondary Workstreams
 
 - onboarding clarity from issues `#2`, `#3`, and `#4` remains important, but it is a supporting lane rather than the phase-defining outcome
 - external authority and discoverability work should continue as maintenance, not as the criterion for Phase 5 completion
-- prompt truth-source cleanup and authenticated smoke validation remain valuable follow-ups once the radar foundation is operationally closed
+- GitHub issue and PR re-triage remains a release check once local auth is available, not a phase gate
 
 ### Explicit Deferrals
 
@@ -54,3 +55,4 @@
 - resident scheduler or daemon
 - AST-aware task edits
 - broad hosted or autonomous platform positioning
+- archived benchmark-branch resurrection as a release-scope item

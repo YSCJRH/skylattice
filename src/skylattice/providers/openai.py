@@ -34,25 +34,33 @@ class OpenAIProvider:
         allowed_validation_commands: tuple[str, ...],
     ) -> dict[str, Any]:
         command_list = ", ".join(allowed_validation_commands)
-        prompt = (
-            "Create a constrained task plan for a single-user local-first repo agent.\n"
-            "Goal:\n"
-            f"{goal}\n\n"
-            "Repository context:\n"
-            f"{json.dumps(repo_context, indent=2)}\n\n"
-            "Use memory_context when it helps clarify standing preferences, reusable workflows, or durable semantic context.\n"
-            "Use github_context when it is available to keep pull request and issue-comment plans aligned with recent open collaboration state.\n"
-            "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
-            "Supported file operation modes: rewrite, replace_text, insert_after, append_text, create_file, copy_file, move_file, delete_file.\n"
-            "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
-            "Prefer create_file for new tracked text files and copy_file when starting from an existing tracked-safe template.\n"
-            "Use move_file or delete_file only when the goal explicitly requires destructive tracked-file lifecycle changes.\n"
-            "Destructive repo ops require separate destructive-repo-write approval, so prefer non-destructive edits when they are sufficient.\n"
-            f"Allowed validation refs: {command_list}.\n"
-            "Use validation_catalog from the repository context as the source of truth.\n"
-            "Prefer returning validation command ids instead of raw commands when possible.\n"
-            "Return one branch name, one or more file operations, zero or more validation commands,\n"
-            "one commit message, one draft pull request payload, and an optional issue comment payload."
+        prompt = self._render_prompt_template(
+            "task-plan-input.md",
+            replacements={
+                "GOAL": goal,
+                "REPO_CONTEXT_JSON": json.dumps(repo_context, indent=2),
+                "ALLOWED_VALIDATION_REFS": command_list,
+            },
+            fallback=(
+                "Create a constrained task plan for a single-user local-first repo agent.\n"
+                "Goal:\n"
+                f"{goal}\n\n"
+                "Repository context:\n"
+                f"{json.dumps(repo_context, indent=2)}\n\n"
+                "Use memory_context when it helps clarify standing preferences, reusable workflows, or durable semantic context.\n"
+                "Use github_context when it is available to keep pull request and issue-comment plans aligned with recent open collaboration state.\n"
+                "The plan must stay within repo maintenance, docs, ADR, or small code-change work.\n"
+                "Supported file operation modes: rewrite, replace_text, insert_after, append_text, create_file, copy_file, move_file, delete_file.\n"
+                "Prefer replace_text, insert_after, or append_text over rewrite when a deterministic local edit is enough.\n"
+                "Prefer create_file for new tracked text files and copy_file when starting from an existing tracked-safe template.\n"
+                "Use move_file or delete_file only when the goal explicitly requires destructive tracked-file lifecycle changes.\n"
+                "Destructive repo ops require separate destructive-repo-write approval, so prefer non-destructive edits when they are sufficient.\n"
+                f"Allowed validation refs: {command_list}.\n"
+                "Use validation_catalog from the repository context as the source of truth.\n"
+                "Prefer returning validation command ids instead of raw commands when possible.\n"
+                "Return one branch name, one or more file operations, zero or more validation commands,\n"
+                "one commit message, one draft pull request payload, and an optional issue comment payload."
+            ),
         )
         schema = {
             "type": "json_schema",
@@ -146,16 +154,27 @@ class OpenAIProvider:
         plan_summary: str,
         repo_context: dict[str, Any],
     ) -> str:
-        prompt = (
-            "Rewrite the target file for a constrained repository task.\n"
-            f"Goal:\n{goal}\n\n"
-            f"Plan summary:\n{plan_summary}\n\n"
-            f"Target path: {path}\n"
-            f"Instructions: {instructions}\n\n"
-            "Repository context:\n"
-            f"{json.dumps(repo_context, indent=2)}\n\n"
-            "Current content follows. Return the full replacement file content only.\n\n"
-            f"{current_content}"
+        prompt = self._render_prompt_template(
+            "file-rewrite-input.md",
+            replacements={
+                "GOAL": goal,
+                "PLAN_SUMMARY": plan_summary,
+                "TARGET_PATH": path,
+                "INSTRUCTIONS": instructions,
+                "REPO_CONTEXT_JSON": json.dumps(repo_context, indent=2),
+                "CURRENT_CONTENT": current_content,
+            },
+            fallback=(
+                "Rewrite the target file for a constrained repository task.\n"
+                f"Goal:\n{goal}\n\n"
+                f"Plan summary:\n{plan_summary}\n\n"
+                f"Target path: {path}\n"
+                f"Instructions: {instructions}\n\n"
+                "Repository context:\n"
+                f"{json.dumps(repo_context, indent=2)}\n\n"
+                "Current content follows. Return the full replacement file content only.\n\n"
+                f"{current_content}"
+            ),
         )
         schema = {
             "type": "json_schema",
@@ -174,6 +193,7 @@ class OpenAIProvider:
                 schema=schema,
                 instructions=self._compose_instructions(
                     "core-mission.md",
+                    "editor.md",
                     fallback="You are Skylattice's constrained execution planner. Be precise and keep changes small.",
                 ),
             )["content"]
@@ -190,23 +210,36 @@ class OpenAIProvider:
         plan_summary: str,
         repo_context: dict[str, Any],
     ) -> dict[str, Any]:
-        prompt = (
-            "Convert high-level edit instructions into a deterministic text-edit payload.\n"
-            f"Goal:\n{goal}\n\n"
-            f"Plan summary:\n{plan_summary}\n\n"
-            f"Target path: {path}\n"
-            f"Edit mode: {mode}\n"
-            f"Instructions: {instructions}\n\n"
-            "Repository context:\n"
-            f"{json.dumps(repo_context, indent=2)}\n\n"
-            "Current content follows. Return only the structured payload for this edit mode.\n\n"
-            f"{current_content}"
+        prompt = self._render_prompt_template(
+            "edit-materialization-input.md",
+            replacements={
+                "GOAL": goal,
+                "PLAN_SUMMARY": plan_summary,
+                "TARGET_PATH": path,
+                "EDIT_MODE": mode,
+                "INSTRUCTIONS": instructions,
+                "REPO_CONTEXT_JSON": json.dumps(repo_context, indent=2),
+                "CURRENT_CONTENT": current_content,
+            },
+            fallback=(
+                "Convert high-level edit instructions into a deterministic text-edit payload.\n"
+                f"Goal:\n{goal}\n\n"
+                f"Plan summary:\n{plan_summary}\n\n"
+                f"Target path: {path}\n"
+                f"Edit mode: {mode}\n"
+                f"Instructions: {instructions}\n\n"
+                "Repository context:\n"
+                f"{json.dumps(repo_context, indent=2)}\n\n"
+                "Current content follows. Return only the structured payload for this edit mode.\n\n"
+                f"{current_content}"
+            ),
         )
         return self._request_json(
             prompt=prompt,
             schema=self._edit_schema(mode),
             instructions=self._compose_instructions(
                 "core-mission.md",
+                "editor.md",
                 fallback="You are Skylattice's constrained execution planner. Be precise and keep changes small.",
             ),
         )
@@ -226,9 +259,16 @@ class OpenAIProvider:
             },
         }
         response = self._request_json(
-            prompt='Return {"status":"ok"} and no additional keys.',
+            prompt=self._render_prompt_template(
+                "connectivity-smoke-input.md",
+                replacements={},
+                fallback='Return {"status":"ok"} and no additional keys.',
+            ),
             schema=schema,
-            instructions="You are a read-only connectivity smoke check. Return exact JSON.",
+            instructions=self._compose_instructions(
+                "connectivity-smoke.md",
+                fallback="You are a read-only connectivity smoke check. Return exact JSON.",
+            ),
         )
         if response.get("status") != "ok":
             raise RuntimeError(f"Unexpected OpenAI smoke response: {response}")
@@ -276,6 +316,19 @@ class OpenAIProvider:
         sections = [self._load_prompt_file(name) for name in prompt_files]
         content = "\n\n".join(section for section in sections if section).strip()
         return content or fallback
+
+    def _render_prompt_template(
+        self,
+        template_file: str,
+        *,
+        replacements: dict[str, str],
+        fallback: str,
+    ) -> str:
+        content = self._load_prompt_file(template_file).strip() or fallback
+        rendered = content
+        for key, value in replacements.items():
+            rendered = rendered.replace(f"{{{{{key}}}}}", value)
+        return rendered
 
     def _load_prompt_file(self, relative_name: str) -> str:
         path = self.repo_root / "prompts" / "system" / relative_name

@@ -74,6 +74,7 @@ Delivered so far:
 - `skylattice radar schedule show`, `render`, and `run`
 - scheduled radar runs now preserve tracked schedule provenance for later inspection
 - schedule validation reports now export local weekly-cycle evidence under `.local/radar/validations/`
+- the first tracked weekly validation record now lives under `docs/ops/radar-validations/2026-04-16-weekly-github.md`
 - Windows-first task registration rendering instead of a resident scheduler
 - a Windows-first schedule operator runbook plus working-directory-safe task action rendering
 - stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
@@ -81,6 +82,6 @@ Delivered so far:
 
 Next goals:
 
-- validate one full weekly scheduled radar cycle and convert the resulting local report into the first tracked weekly validation record
-- keep GitHub as the only live provider until that weekly validation loop is proven and documented, while preserving the provider-neutral contract for future expansion
+- operationalize the first tracked weekly validation record into a repeatable weekly review loop, including at least one follow-up operator pass beyond the isolated validation clone path
+- keep GitHub as the only live provider until that repeated weekly validation loop is exercised and documented, while preserving the provider-neutral contract for future expansion
 - choose and document the next post-Phase-5 wedge only after that operational proof, without widening autonomy or changing promotion semantics in the meantime

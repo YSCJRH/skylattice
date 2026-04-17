@@ -10,6 +10,22 @@ The schedule itself lives in `configs/radar/schedule.yaml`, while the operating 
 - render Windows Task Scheduler registration details
 - run a tracked schedule immediately without waiting for the next trigger
 - validate that a weekly schedule keeps using the normal bounded `radar scan` path
+- distinguish safe validation mode from the live promotion-capable operator path
+
+## Choose A Validation Mode
+
+Use one of these operator modes on purpose:
+
+- `safe-validation`: use a disposable validation clone, keep GitHub as the live discovery provider, and add a clone-local no-promotion override before you run the weekly schedule
+- `live-promotion-capable`: use your real working checkout with an intentional clean `main` worktree and normal promotion semantics
+
+Safe validation is the recommended path for weekly proof and runbook checks.
+
+Live promotion-capable execution is a separate operator decision and should not happen accidentally during validation review.
+
+Both modes still require `GITHUB_TOKEN`, because GitHub remains the only live radar provider in this slice.
+
+If `GITHUB_TOKEN` is not configured, stop and record the pass as not executed instead of pretending validation passed.
 
 ## Inspect The Tracked Schedule
 
@@ -67,6 +83,40 @@ If your local weekly cadence should be different, edit the tracked config first,
 
 ## Run A First Manual Check
 
+### Safe Validation Mode
+
+Recommended flow:
+
+1. create a disposable sibling or otherwise isolated clean clone
+2. edit that clone's local copy of `configs/radar/sources.yaml`
+3. set `promotion_limit: 0` before the run so the validation clone cannot promote to `main`
+4. run the tracked weekly schedule from that clone root
+5. export the validation report and promote only the report summary into a tracked weekly note
+
+This path still exercises:
+
+- tracked schedule intent
+- `trigger_mode` and `schedule_id` provenance
+- discovery, scoring, and experiment behavior
+- weekly validation reporting
+
+This path intentionally does **not** exercise:
+
+- promotion pushes
+- live adoption-registry mutation on the primary repo
+- live direct-to-`main` behavior
+
+### Live Promotion-Capable Mode
+
+Use this only when you intentionally want the normal radar path:
+
+- start from a clean `main` worktree in the operator checkout
+- keep the tracked `promotion_limit`
+- do not apply the clone-local no-promotion override
+- expect the normal promotion gates, rollback surfaces, and remote side effects to remain in play
+
+### Manual Check Command
+
 Before waiting for the next scheduled time, trigger the task once yourself:
 
 ```bash
@@ -104,6 +154,7 @@ The report records:
 - whether the overall validation passed
 - the tracked weekly record template path
 - a suggested tracked record destination if you want to promote the result into a reviewable repo note
+- whether you should carry the result forward as a safe-validation note or a live-path note
 
 If you want to validate a specific run instead of the latest one, add `--run-id <run_id>`.
 
@@ -113,11 +164,15 @@ If you want to turn the local report into a tracked weekly note, start from the 
 
 When validating a real scheduled weekly cycle, check:
 
+- which validation mode you are using
+- whether `GITHUB_TOKEN` was actually available at execution time
 - the task is still registered under the tracked folder and name
 - the task starts in the repository root instead of `system32`
 - the created radar run records the expected `weekly` window
 - the created radar run records the expected `schedule_id` and `trigger_mode`
 - the exported validation report under `.local/radar/validations/` marks the run as valid
+- safe validation runs keep promotion disabled in the disposable clone
+- live promotion-capable runs only happen from the intended operator checkout
 - any promotion or failure still flows through the normal ledger, memory, and rollback surfaces
 - the repository remains clean before each scheduled run starts
 

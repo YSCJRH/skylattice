@@ -127,7 +127,7 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - tracked product and policy truth: `README.md`, `docs/*.md`, `docs/adrs/*.md`, `configs/agent/defaults.yaml`, `configs/policies/governance.yaml`, `configs/task/validation.yaml`, and `configs/radar/*.yaml`
 - tracked prompt intent: `prompts/system/`
 - runtime orchestration truth: `src/skylattice/runtime/`, `src/skylattice/radar/`, `src/skylattice/actions/`, and `src/skylattice/memory/`
-- `src/skylattice/providers/openai.py` now loads tracked mission and planner prompt text from `prompts/system/`, while keeping operation-specific scaffolding and JSON-schema constraints in runtime code
+- `src/skylattice/providers/openai.py` now loads tracked mission, planner, editor, prompt-template, and connectivity-smoke text from `prompts/system/`, while keeping token interpolation, JSON-schema constraints, response parsing, and edit-mode enforcement in runtime code
 - `prompts/system/reflector.md` remains a tracked future-facing asset until a reflection runtime path exists
 - local runtime truth: `.local/state/`, `.local/memory/`, `.local/logs/`, `.local/work/`, and local radar validation exports under `.local/radar/validations/`
 - remote advisory truth: GitHub PR, issue, repository, and release state can guide planning and recovery, but does not replace local runtime state

@@ -11,6 +11,8 @@ This template is tracked on purpose, but Skylattice does not write into it autom
 ## Validation Window
 
 - Date:
+- Validation mode:
+- Credential availability:
 - Schedule ID:
 - Run ID:
 - Validation report path:
@@ -26,11 +28,13 @@ This template is tracked on purpose, but Skylattice does not write into it autom
 ## Observed Outcome
 
 - Overall validation result:
+- Validation report generated:
 - Promotions created:
 - Any freeze or failure signals:
 
 ## Operator Notes
 
 - Task registration still points at the repository root:
+- Safe no-promotion override used:
 - Any local environment drift noticed:
 - Follow-up action needed:
