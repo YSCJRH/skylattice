@@ -23,6 +23,8 @@
 - `python -m pytest -q`
 - `python -m compileall src/skylattice`
 - `python -m skylattice.cli doctor`
+- `python -m skylattice.cli doctor auth`
+- `python -m skylattice.cli doctor github-bridge --format json`
 - `python tools/run_validation_suite.py`
 - `python -m mkdocs build --strict`
 - `git diff --check`

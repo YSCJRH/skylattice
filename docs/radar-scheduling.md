@@ -27,6 +27,20 @@ Both modes still require `GITHUB_TOKEN`, because GitHub remains the only live ra
 
 If `GITHUB_TOKEN` is not configured, stop and record the pass as not executed instead of pretending validation passed.
 
+Recommended read-only preflight on the primary checkout:
+
+```bash
+python -m skylattice.cli doctor auth
+```
+
+If `gh auth status` is already healthy and you intentionally want copyable exports for a validation shell:
+
+```bash
+python -m skylattice.cli doctor github-bridge --format env
+```
+
+Skylattice will not consume the `gh` login state automatically. The bridge stays explicit on purpose.
+
 ## Inspect The Tracked Schedule
 
 Use the CLI to see the default schedule and every declared entry:
@@ -88,10 +102,12 @@ If your local weekly cadence should be different, edit the tracked config first,
 Recommended flow:
 
 1. create a disposable sibling or otherwise isolated clean clone
-2. edit that clone's local copy of `configs/radar/sources.yaml`
-3. set `promotion_limit: 0` before the run so the validation clone cannot promote to `main`
-4. run the tracked weekly schedule from that clone root
-5. export the validation report and promote only the report summary into a tracked weekly note
+2. bridge GitHub auth into that validation shell explicitly
+3. edit that clone's local copy of `configs/radar/sources.yaml`
+4. set `promotion_limit: 0` before the run so the validation clone cannot promote to `main`
+5. commit that clone-local override so the validation clone stays on a clean `main` worktree
+6. run the tracked weekly schedule from that clone root
+7. export the validation report and promote only the report summary into a tracked weekly note
 
 This path still exercises:
 

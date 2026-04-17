@@ -35,6 +35,7 @@ Public surfaces:
 - when GitHub is configured, planning can see bounded open issue/PR context and issue comments preflight their targets
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
+- read-only auth preflight via `skylattice doctor auth` plus an explicit `skylattice doctor github-bridge` helper for token-enabled setup
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
@@ -100,6 +101,20 @@ $env:GITHUB_TOKEN = "..."
 $env:SKYLATTICE_GITHUB_REPOSITORY = "YSCJRH/skylattice"
 ```
 
+Recommended read-only preflight before any live adapter use:
+
+```bash
+python -m skylattice.cli doctor auth
+```
+
+If `gh auth status` is already healthy and you intentionally want copyable exports for the current shell:
+
+```bash
+python -m skylattice.cli doctor github-bridge --format env
+```
+
+`gh auth login` alone does not configure Skylattice runtime access. Skylattice only uses explicit env vars or tracked config, even when the GitHub CLI is already logged in.
+
 Task workflow:
 
 ```bash
@@ -127,6 +142,7 @@ Expected results:
 - `radar scan` discovers GitHub repositories, records evidence, validates bounded experiments, and can promote tracked changes through a rollbackable path
 - `radar schedule run` resolves tracked local schedule intent into the same bounded radar scan path without introducing a resident scheduler, and preserves `schedule_id` plus `trigger_mode` for later inspection
 - `radar schedule validate` checks the latest or named radar run against tracked schedule intent and writes a local validation report for weekly-cycle review
+- `doctor auth` explains which live capabilities are still blocked by missing credentials or repo-hint setup without changing the zero-credential `doctor` surface
 - `run_authenticated_smoke.py` performs opt-in read-only checks against the live GitHub and OpenAI adapters when credentials are configured
 
 If you want to see the shape before using real tokens, compare your output to the redacted samples under `examples/redacted/`.

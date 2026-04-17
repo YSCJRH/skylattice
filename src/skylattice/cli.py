@@ -42,7 +42,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="skylattice")
     subparsers = parser.add_subparsers(dest="command")
 
-    subparsers.add_parser("doctor", help="Show kernel, governance, and runtime summary.")
+    doctor_parser = subparsers.add_parser("doctor", help="Show runtime status and read-only diagnostics.")
+    doctor_subparsers = doctor_parser.add_subparsers(dest="doctor_command")
+    doctor_subparsers.add_parser("auth", help="Show read-only auth and capability diagnostics.")
+    doctor_bridge_parser = doctor_subparsers.add_parser(
+        "github-bridge",
+        help="Show an explicit GitHub bridge suggestion without mutating the current shell.",
+    )
+    doctor_bridge_parser.add_argument("--format", choices=["json", "env"], default="json")
 
     task_parser = subparsers.add_parser("task", help="Run and inspect task-agent executions.")
     task_subparsers = task_parser.add_subparsers(dest="task_command")
@@ -163,6 +170,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.command == "doctor":
+            if args.doctor_command == "auth":
+                _dump(service.auth_preflight_report())
+                return 0
+            if args.doctor_command == "github-bridge":
+                if args.format == "env":
+                    sys.stdout.write(service.github_bridge_env_exports())
+                else:
+                    _dump(service.github_bridge_report())
+                return 0
             _dump(build_doctor_report())
             return 0
 

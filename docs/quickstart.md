@@ -101,6 +101,20 @@ $env:GITHUB_TOKEN = "..."
 $env:SKYLATTICE_GITHUB_REPOSITORY = "YSCJRH/skylattice"
 ```
 
+Read-only preflight first:
+
+```bash
+python -m skylattice.cli doctor auth
+```
+
+If `gh auth status` is already green and you want explicit exports for the current shell:
+
+```bash
+python -m skylattice.cli doctor github-bridge --format env
+```
+
+Skylattice does not silently consume `gh` login state. The runtime still expects explicit env vars or tracked config.
+
 Optional read-only smoke before real task or radar runs:
 
 ```bash
@@ -112,6 +126,7 @@ What that proves:
 
 - your live GitHub adapter can read repository metadata without mutating anything
 - your live OpenAI adapter can complete a minimal structured response round-trip
+- your preflight report can distinguish `gh` login state from runtime-ready Skylattice credentials
 
 Representative commands:
 

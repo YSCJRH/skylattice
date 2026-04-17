@@ -482,6 +482,178 @@ def test_doctor_command_outputs_runtime_json() -> None:
     assert payload["kernel"]["paths"]["repo_root"] == "."
 
 
+def test_doctor_auth_command_outputs_preflight_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeDoctorService:
+        def auth_preflight_report(self) -> dict[str, object]:
+            return {
+                "status": "ok",
+                "auth": {"gh_cli_available": True},
+                "capabilities": {"github_available": False},
+                "remediation": [],
+            }
+
+    monkeypatch.setattr("skylattice.cli.TaskAgentService.from_repo", lambda: FakeDoctorService())
+
+    buffer = StringIO()
+    with redirect_stdout(buffer):
+        exit_code = main(["doctor", "auth"])
+
+    payload = json.loads(buffer.getvalue())
+    assert exit_code == 0
+    assert payload["status"] == "ok"
+    assert payload["auth"]["gh_cli_available"] is True
+    assert payload["capabilities"]["github_available"] is False
+
+
+def test_doctor_github_bridge_env_command_outputs_explicit_exports(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeDoctorService:
+        def github_bridge_env_exports(self) -> str:
+            return "$env:GITHUB_TOKEN = 'gho_test'\n$env:SKYLATTICE_GITHUB_REPOSITORY = 'example/skylattice'\n"
+
+    monkeypatch.setattr("skylattice.cli.TaskAgentService.from_repo", lambda: FakeDoctorService())
+
+    buffer = StringIO()
+    with redirect_stdout(buffer):
+        exit_code = main(["doctor", "github-bridge", "--format", "env"])
+
+    payload = buffer.getvalue()
+    assert exit_code == 0
+    assert "$env:GITHUB_TOKEN = 'gho_test'" in payload
+    assert "$env:SKYLATTICE_GITHUB_REPOSITORY = 'example/skylattice'" in payload
+
+
+@pytest.mark.parametrize(
+    ("env_values", "github_diagnostics", "expected_codes", "expected_github_available", "expected_radar_available"),
+    [
+        (
+            {},
+            {
+                "gh_cli_available": False,
+                "gh_auth_logged_in": False,
+                "gh_auth_token_accessible": False,
+                "gh_account": None,
+                "github_token_env_present": False,
+                "repo_hint_env_present": False,
+                "repo_hint_origin_detected": None,
+                "origin_remote_url": None,
+            },
+            {"missing_openai_key", "missing_github_token", "missing_repo_hint"},
+            False,
+            False,
+        ),
+        (
+            {},
+            {
+                "gh_cli_available": True,
+                "gh_auth_logged_in": True,
+                "gh_auth_token_accessible": True,
+                "gh_account": "YSCJRH",
+                "github_token_env_present": False,
+                "repo_hint_env_present": False,
+                "repo_hint_origin_detected": None,
+                "origin_remote_url": "https://github.com/YSCJRH/skylattice.git",
+            },
+            {"missing_openai_key", "gh_logged_in_but_not_bridged", "missing_repo_hint"},
+            False,
+            False,
+        ),
+        (
+            {},
+            {
+                "gh_cli_available": True,
+                "gh_auth_logged_in": True,
+                "gh_auth_token_accessible": True,
+                "gh_account": "YSCJRH",
+                "github_token_env_present": False,
+                "repo_hint_env_present": False,
+                "repo_hint_origin_detected": "YSCJRH/skylattice",
+                "origin_remote_url": "https://github.com/YSCJRH/skylattice.git",
+            },
+            {"missing_openai_key", "gh_logged_in_but_not_bridged", "origin_repo_detected_but_not_confirmed"},
+            False,
+            False,
+        ),
+        (
+            {"GITHUB_TOKEN": "test-token"},
+            {
+                "gh_cli_available": True,
+                "gh_auth_logged_in": True,
+                "gh_auth_token_accessible": True,
+                "gh_account": "YSCJRH",
+                "github_token_env_present": True,
+                "repo_hint_env_present": False,
+                "repo_hint_origin_detected": None,
+                "origin_remote_url": None,
+            },
+            {"missing_openai_key", "missing_repo_hint"},
+            False,
+            False,
+        ),
+        (
+            {"SKYLATTICE_GITHUB_REPOSITORY": "example/skylattice"},
+            {
+                "gh_cli_available": True,
+                "gh_auth_logged_in": True,
+                "gh_auth_token_accessible": True,
+                "gh_account": "YSCJRH",
+                "github_token_env_present": False,
+                "repo_hint_env_present": True,
+                "repo_hint_origin_detected": "YSCJRH/skylattice",
+                "origin_remote_url": "https://github.com/YSCJRH/skylattice.git",
+            },
+            {"missing_openai_key", "gh_logged_in_but_not_bridged"},
+            False,
+            False,
+        ),
+        (
+            {"GITHUB_TOKEN": "test-token", "SKYLATTICE_GITHUB_REPOSITORY": "example/skylattice"},
+            {
+                "gh_cli_available": True,
+                "gh_auth_logged_in": True,
+                "gh_auth_token_accessible": True,
+                "gh_account": "YSCJRH",
+                "github_token_env_present": True,
+                "repo_hint_env_present": True,
+                "repo_hint_origin_detected": "YSCJRH/skylattice",
+                "origin_remote_url": "https://github.com/YSCJRH/skylattice.git",
+            },
+            {"missing_openai_key"},
+            True,
+            True,
+        ),
+    ],
+)
+def test_auth_preflight_report_distinguishes_github_runtime_states(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    env_values: dict[str, str],
+    github_diagnostics: dict[str, object],
+    expected_codes: set[str],
+    expected_github_available: bool,
+    expected_radar_available: bool,
+) -> None:
+    repo = create_temp_repo(tmp_path)
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.delenv("SKYLATTICE_GITHUB_REPOSITORY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    for key, value in env_values.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(
+        "skylattice.runtime.service.GitHubAdapter.inspect_local_auth",
+        lambda *args, **kwargs: github_diagnostics,
+    )
+
+    service = TaskAgentService.from_repo(repo_root=repo)
+    report = service.auth_preflight_report()
+    codes = {item["code"] for item in report["remediation"]}
+
+    assert report["auth"]["gh_auth_logged_in"] == github_diagnostics["gh_auth_logged_in"]
+    assert report["auth"]["repo_hint_origin_detected"] == github_diagnostics["repo_hint_origin_detected"]
+    assert codes == expected_codes
+    assert report["capabilities"]["github_available"] is expected_github_available
+    assert report["capabilities"]["radar_source_available"] is expected_radar_available
+
+
 def test_task_validation_policy_loads_richer_schema(tmp_path: Path) -> None:
     repo = create_temp_repo(
         tmp_path,

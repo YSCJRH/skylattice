@@ -241,7 +241,9 @@ class RadarService:
         schedule_id: str | None = None,
     ) -> RadarRun:
         if self.source is None:
-            raise RuntimeError("Radar discovery is not configured. Set GITHUB_TOKEN to enable GitHub search.")
+            raise RuntimeError(
+                "Radar discovery is not configured. Run `python -m skylattice.cli doctor auth` to inspect GitHub token and repo-hint requirements."
+            )
         state = self.radar_repository.get_state()
         if state.freeze_mode or self.governance.freeze_mode_enabled:
             raise RuntimeError("Technology radar is frozen. Resolve failures or disable freeze mode before scanning.")

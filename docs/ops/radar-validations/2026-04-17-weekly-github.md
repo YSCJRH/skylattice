@@ -4,29 +4,29 @@
 
 - Date: 2026-04-17
 - Validation mode: `safe-validation`
-- Credential availability: `GITHUB_TOKEN` unavailable in the current implementation environment
+- Credential availability: explicit bridge used in the disposable validation shell via `gh auth token` plus `SKYLATTICE_GITHUB_REPOSITORY=YSCJRH/skylattice`
 - Schedule ID: `weekly-github`
-- Run ID: not executed
-- Validation report path: not generated
+- Run ID: `radar-52677865a3c74541a91f61c30a70feb9`
+- Validation report path: `.local/radar/validations/20260417T091226Z-radar-52677865a3c74541a91f61c30a70feb9.json` in the disposable sibling validation clone
 
 ## Expected Alignment
 
-- `trigger_mode` matched tracked schedule intent: not checked
-- `schedule_id` matched tracked schedule intent: not checked
-- `window` matched tracked schedule intent: not checked
-- `limit` matched tracked schedule intent: not checked
-- run completed successfully: no
+- `trigger_mode` matched tracked schedule intent: yes
+- `schedule_id` matched tracked schedule intent: yes
+- `window` matched tracked schedule intent: yes
+- `limit` matched tracked schedule intent: yes
+- run completed successfully: yes
 
 ## Observed Outcome
 
-- Overall validation result: `not-executed`
-- Validation report generated: `no`
+- Overall validation result: `valid`
+- Validation report generated: `yes`
 - Promotions created: `0`
-- Any freeze or failure signals: the CLI stopped before run creation with `Radar discovery is not configured. Set GITHUB_TOKEN to enable GitHub search.`
+- Any freeze or failure signals: none observed
 
 ## Operator Notes
 
-- Task registration still points at the repository root: not exercised in this environment
-- Safe no-promotion override used: not applied; the follow-up pass stopped before clone-local validation setup because the live GitHub discovery credential was unavailable
-- Any local environment drift noticed: yes; this implementation environment did not expose `GITHUB_TOKEN`, so the repeatable weekly validation loop could be documented and prepared but not executed honestly
-- Follow-up action needed: rerun the safe-validation workflow from a disposable sibling clone after configuring `GITHUB_TOKEN`; keep the clone-local no-promotion override in place and replace this blocked note with a report-backed follow-up validation record
+- Task registration still points at the repository root: not exercised through Windows Task Scheduler in this record; `radar schedule render` in the disposable sibling clone pointed at the clone root as expected
+- Safe no-promotion override used: yes; the disposable sibling clone committed a local `promotion_limit: 0` override before the run so the normal direct-to-`main` promotion path could not fire
+- Any local environment drift noticed: no runtime drift after explicit bridge; the validation clone started from a clean `main` worktree, recorded `trigger_mode=scheduled` and `schedule_id=weekly-github`, and produced a valid local report
+- Follow-up action needed: optional next step is a separate live-promotion-capable operator pass; keep that distinct from the weekly safe-validation path

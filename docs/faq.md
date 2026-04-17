@@ -38,6 +38,14 @@ jsonld: |
       },
       {
         "@type": "Question",
+        "name": "Why does Skylattice still say GitHub is not configured after gh auth login?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Because Skylattice does not automatically consume the GitHub CLI login state. Run skylattice doctor auth to see the missing runtime requirements, then use skylattice doctor github-bridge --format env if you intentionally want explicit environment exports."
+        }
+      },
+      {
+        "@type": "Question",
         "name": "Does Skylattice store memory in Git?",
         "acceptedAnswer": {
           "@type": "Answer",
@@ -86,6 +94,24 @@ python tools/run_authenticated_smoke.py --provider openai
 ```
 
 This verifies live adapter connectivity without turning on repo-write or external-write task behavior.
+
+## Why does Skylattice still say GitHub is not configured after `gh auth login`?
+
+Because Skylattice does not automatically consume the GitHub CLI login state.
+
+Use:
+
+```bash
+python -m skylattice.cli doctor auth
+```
+
+If you intentionally want explicit environment exports for the current shell, use:
+
+```bash
+python -m skylattice.cli doctor github-bridge --format env
+```
+
+This keeps the bridge explicit instead of silently widening runtime auth behavior.
 
 ## Does Skylattice store memory in Git?
 

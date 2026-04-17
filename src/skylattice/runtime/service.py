@@ -169,6 +169,75 @@ class TaskAgentService:
             "radar": self.radar.state_snapshot(),
         }
 
+    def auth_preflight_report(self) -> dict[str, object]:
+        kernel = load_kernel_config(self.repo_root)
+        github_local = GitHubAdapter.inspect_local_auth(repo_root=self.repo_root)
+        repo_hint_env = str(os.environ.get("SKYLATTICE_GITHUB_REPOSITORY", "")).strip()
+        repo_hint_kernel = str(kernel.runtime.remote_ledger).strip()
+        repo_hint_effective = repo_hint_env or repo_hint_kernel or None
+        auth = {
+            "gh_cli_available": github_local["gh_cli_available"],
+            "gh_auth_logged_in": github_local["gh_auth_logged_in"],
+            "gh_auth_token_accessible": github_local["gh_auth_token_accessible"],
+            "gh_account": github_local["gh_account"],
+            "github_token_env_present": bool(str(os.environ.get("GITHUB_TOKEN", "")).strip()),
+            "openai_key_env_present": bool(str(os.environ.get("OPENAI_API_KEY", "")).strip()),
+            "repo_hint_env_present": bool(repo_hint_env),
+            "repo_hint_kernel_present": bool(repo_hint_kernel),
+            "repo_hint_effective": repo_hint_effective,
+            "repo_hint_origin_detected": github_local["repo_hint_origin_detected"],
+            "origin_remote_url": github_local["origin_remote_url"],
+            "bridge_command": "python -m skylattice.cli doctor github-bridge --format env",
+        }
+        capabilities = {
+            "planner_available": self.planner is not None,
+            "github_available": self.github is not None,
+            "radar_source_available": self.radar.source is not None,
+            "default_provider": self.radar.config.providers.default_provider,
+            "default_schedule": self.radar.config.schedule.default_schedule,
+        }
+        return {
+            "status": "ok",
+            "auth": auth,
+            "capabilities": capabilities,
+            "remediation": self._build_auth_preflight_remediation(auth, capabilities),
+        }
+
+    def github_bridge_report(self) -> dict[str, object]:
+        kernel = load_kernel_config(self.repo_root)
+        preferred_repository = (
+            str(os.environ.get("SKYLATTICE_GITHUB_REPOSITORY", "")).strip()
+            or str(kernel.runtime.remote_ledger).strip()
+            or None
+        )
+        bridge = GitHubAdapter.build_explicit_bridge(
+            repo_root=self.repo_root,
+            preferred_repository=preferred_repository,
+        )
+        return {
+            "status": "ok" if bridge["bridge_ready"] else "blocked",
+            "bridge_ready": bridge["bridge_ready"],
+            "token_source": bridge["token_source"],
+            "repo_hint_source": bridge["repo_hint_source"],
+            "repo_hint": bridge["repo_hint"],
+            "issues": list(bridge["issues"]),
+            "diagnostics": bridge["diagnostics"],
+            "recommended_command": "python -m skylattice.cli doctor github-bridge --format env",
+        }
+
+    def github_bridge_env_exports(self) -> str:
+        kernel = load_kernel_config(self.repo_root)
+        preferred_repository = (
+            str(os.environ.get("SKYLATTICE_GITHUB_REPOSITORY", "")).strip()
+            or str(kernel.runtime.remote_ledger).strip()
+            or None
+        )
+        bridge = GitHubAdapter.build_explicit_bridge(
+            repo_root=self.repo_root,
+            preferred_repository=preferred_repository,
+        )
+        return GitHubAdapter.format_explicit_bridge_env(bridge)
+
     def run_task(
         self,
         *,
@@ -663,7 +732,9 @@ class TaskAgentService:
 
         if step.action_name == "github.inspect_issue":
             if self.github is None:
-                raise RuntimeError("GitHub adapter is not configured")
+                raise RuntimeError(
+                    "GitHub adapter is not configured. Run `python -m skylattice.cli doctor auth` to inspect token and repo-hint requirements."
+                )
             issue_number = int(step.action_args["issue_number"])
             issue = self.github.get_issue(issue_number)
             dedupe_key = str(step.action_args.get("dedupe_key", "")).strip()
@@ -690,7 +761,9 @@ class TaskAgentService:
 
         if step.action_name == "github.inspect_pull_request":
             if self.github is None:
-                raise RuntimeError("GitHub adapter is not configured")
+                raise RuntimeError(
+                    "GitHub adapter is not configured. Run `python -m skylattice.cli doctor auth` to inspect token and repo-hint requirements."
+                )
             head_branch = str(step.action_args["head_branch"])
             base_branch = str(step.action_args.get("base_branch", ""))
             pull_request = self.github.find_open_pull_request_by_head(head_branch)
@@ -723,7 +796,9 @@ class TaskAgentService:
 
         if step.action_name == "github.sync_pull_request":
             if self.github is None:
-                raise RuntimeError("GitHub adapter is not configured")
+                raise RuntimeError(
+                    "GitHub adapter is not configured. Run `python -m skylattice.cli doctor auth` to inspect token and repo-hint requirements."
+                )
             response = self.github.create_or_update_draft_pr(
                 head_branch=str(step.action_args["head_branch"]),
                 base_branch=str(step.action_args["base_branch"]),
@@ -750,7 +825,9 @@ class TaskAgentService:
 
         if step.action_name == "github.add_issue_comment":
             if self.github is None:
-                raise RuntimeError("GitHub adapter is not configured")
+                raise RuntimeError(
+                    "GitHub adapter is not configured. Run `python -m skylattice.cli doctor auth` to inspect token and repo-hint requirements."
+                )
             issue_number = int(step.action_args["issue_number"])
             body = str(step.action_args["body"])
             dedupe_key = self._dedupe_key_for_step(step)
@@ -1780,6 +1857,104 @@ class TaskAgentService:
         if allow_external_write:
             approvals.append(ApprovalGrant(tier=PermissionTier.EXTERNAL_WRITE, granted=True))
         return approvals
+
+    @staticmethod
+    def _build_auth_preflight_remediation(
+        auth: dict[str, object],
+        capabilities: dict[str, object],
+    ) -> list[dict[str, object]]:
+        remediation: list[dict[str, object]] = []
+        if not bool(auth["openai_key_env_present"]):
+            remediation.append(
+                {
+                    "code": "missing_openai_key",
+                    "summary": "OPENAI_API_KEY is not configured for this shell.",
+                    "blocks": [
+                        "task planning with the live OpenAI provider",
+                        "python tools/run_authenticated_smoke.py --provider openai",
+                    ],
+                    "next_steps": [
+                        "Set OPENAI_API_KEY explicitly before task planning or OpenAI smoke checks.",
+                    ],
+                }
+            )
+        if not bool(auth["github_token_env_present"]):
+            if bool(auth["gh_auth_logged_in"]):
+                remediation.append(
+                    {
+                        "code": "gh_logged_in_but_not_bridged",
+                        "summary": "`gh` is logged in, but Skylattice does not automatically use that login state.",
+                        "blocks": [
+                            "python tools/run_authenticated_smoke.py --provider github",
+                            "python -m skylattice.cli radar scan --window weekly",
+                            "python -m skylattice.cli radar schedule run --schedule weekly-github",
+                        ],
+                        "next_steps": [
+                            "Run `python -m skylattice.cli doctor github-bridge --format json` to inspect an explicit bridge.",
+                            "Run `python -m skylattice.cli doctor github-bridge --format env` only when you intentionally want copyable env exports.",
+                        ],
+                    }
+                )
+            else:
+                remediation.append(
+                    {
+                        "code": "missing_github_token",
+                        "summary": "GITHUB_TOKEN is not configured for this shell.",
+                        "blocks": [
+                            "python tools/run_authenticated_smoke.py --provider github",
+                            "python -m skylattice.cli radar scan --window weekly",
+                            "python -m skylattice.cli radar schedule run --schedule weekly-github",
+                        ],
+                        "next_steps": [
+                            "Set GITHUB_TOKEN explicitly or run `gh auth login` and then bridge it explicitly.",
+                        ],
+                    }
+                )
+        if not bool(auth["repo_hint_effective"]):
+            detected = str(auth.get("repo_hint_origin_detected") or "").strip()
+            if detected:
+                remediation.append(
+                    {
+                        "code": "origin_repo_detected_but_not_confirmed",
+                        "summary": f"`origin` suggests `{detected}`, but Skylattice will not adopt it automatically.",
+                        "blocks": [
+                            "GitHub adapter initialization",
+                            "radar discovery after token setup",
+                        ],
+                        "next_steps": [
+                            "Export SKYLATTICE_GITHUB_REPOSITORY explicitly, or use the bridge helper to print an explicit repo hint.",
+                        ],
+                    }
+                )
+            else:
+                remediation.append(
+                    {
+                        "code": "missing_repo_hint",
+                        "summary": "No explicit GitHub repository hint is configured, and `origin` did not resolve to a GitHub slug.",
+                        "blocks": [
+                            "GitHub adapter initialization",
+                            "radar discovery after token setup",
+                        ],
+                        "next_steps": [
+                            "Set SKYLATTICE_GITHUB_REPOSITORY explicitly before running GitHub-backed features.",
+                        ],
+                    }
+                )
+        if not bool(capabilities["github_available"]) and bool(auth["github_token_env_present"]) and bool(auth["repo_hint_effective"]):
+            remediation.append(
+                {
+                    "code": "github_runtime_unavailable",
+                    "summary": "GitHub credentials look present, but the runtime still did not initialize the GitHub adapter.",
+                    "blocks": [
+                        "task GitHub sync steps",
+                        "GitHub authenticated smoke",
+                    ],
+                    "next_steps": [
+                        "Re-run `python -m skylattice.cli doctor auth` and inspect the effective repo hint and runtime capability matrix.",
+                    ],
+                }
+            )
+        return remediation
 
     def _build_branch_name(self, requested: str, run_id: str) -> str:
         slug = re.sub(r"[^a-z0-9-]+", "-", requested.lower()).strip("-") or "task"

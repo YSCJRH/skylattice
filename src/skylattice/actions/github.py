@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -32,10 +34,31 @@ class GitHubAdapter:
     ) -> None:
         self.token = token or os.environ.get("GITHUB_TOKEN")
         if not self.token:
-            raise RuntimeError("GITHUB_TOKEN is required for GitHubAdapter")
+            diagnostics = self.inspect_local_auth()
+            if diagnostics["gh_auth_logged_in"]:
+                raise RuntimeError(
+                    "GITHUB_TOKEN is required for GitHubAdapter. `gh` is logged in on this machine, "
+                    "but Skylattice does not automatically use it. Run "
+                    "`python -m skylattice.cli doctor github-bridge --format env` to export explicit env vars."
+                )
+            raise RuntimeError(
+                "GITHUB_TOKEN is required for GitHubAdapter. Set it explicitly or run "
+                "`gh auth login` first, then use `python -m skylattice.cli doctor github-bridge --format env`."
+            )
         repo_value = repository or os.environ.get("SKYLATTICE_GITHUB_REPOSITORY")
         if not repo_value:
-            raise RuntimeError("SKYLATTICE_GITHUB_REPOSITORY is required for GitHubAdapter")
+            diagnostics = self.inspect_local_auth()
+            detected = str(diagnostics.get("repo_hint_origin_detected") or "").strip()
+            if detected:
+                raise RuntimeError(
+                    "SKYLATTICE_GITHUB_REPOSITORY is required for GitHubAdapter. "
+                    f"`origin` suggests `{detected}`, but Skylattice does not adopt it automatically. Run "
+                    "`python -m skylattice.cli doctor github-bridge --format env` to export an explicit repo hint."
+                )
+            raise RuntimeError(
+                "SKYLATTICE_GITHUB_REPOSITORY is required for GitHubAdapter. Set it explicitly or run "
+                "`python -m skylattice.cli doctor auth` to inspect repo-hint requirements."
+            )
         self.repo = self._parse_repo(repo_value)
         self.api_base = api_base.rstrip("/")
 
@@ -220,6 +243,98 @@ class GitHubAdapter:
             "checks": ["get_repo", "list_issues"],
         }
 
+    @classmethod
+    def inspect_local_auth(
+        cls,
+        *,
+        repo_root: Path | None = None,
+        environ: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        env = environ or dict(os.environ)
+        gh_status = cls._run_local_command(["gh", "auth", "status"], cwd=repo_root)
+        gh_token = cls._run_local_command(["gh", "auth", "token"], cwd=repo_root) if gh_status["command_available"] else {
+            "command_available": False,
+            "returncode": 127,
+            "stdout": "",
+            "stderr": "",
+        }
+        git_origin = cls._run_local_command(["git", "remote", "get-url", "origin"], cwd=repo_root)
+        gh_output = "\n".join(
+            part for part in [str(gh_status.get("stdout", "")), str(gh_status.get("stderr", ""))] if part
+        ).strip()
+        origin_remote_url = str(git_origin.get("stdout", "")).strip() or None
+        return {
+            "gh_cli_available": bool(gh_status["command_available"]),
+            "gh_auth_logged_in": bool(gh_status["command_available"] and int(gh_status["returncode"]) == 0),
+            "gh_auth_token_accessible": bool(
+                gh_token["command_available"] and int(gh_token["returncode"]) == 0 and str(gh_token["stdout"]).strip()
+            ),
+            "gh_account": cls._extract_gh_account(gh_output),
+            "github_token_env_present": bool(str(env.get("GITHUB_TOKEN", "")).strip()),
+            "repo_hint_env_present": bool(str(env.get("SKYLATTICE_GITHUB_REPOSITORY", "")).strip()),
+            "repo_hint_origin_detected": cls._parse_repo_candidate(origin_remote_url),
+            "origin_remote_url": origin_remote_url,
+        }
+
+    @classmethod
+    def build_explicit_bridge(
+        cls,
+        *,
+        repo_root: Path | None = None,
+        preferred_repository: str | None = None,
+        environ: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        env = environ or dict(os.environ)
+        diagnostics = cls.inspect_local_auth(repo_root=repo_root, environ=env)
+        repo_hint = str(preferred_repository or env.get("SKYLATTICE_GITHUB_REPOSITORY", "")).strip()
+        repo_hint_source = "explicit" if repo_hint else ""
+        if not repo_hint:
+            detected = str(diagnostics.get("repo_hint_origin_detected") or "").strip()
+            if detected:
+                repo_hint = detected
+                repo_hint_source = "origin"
+
+        token_value = str(env.get("GITHUB_TOKEN", "")).strip()
+        token_source = "env" if token_value else ""
+        if not token_value and diagnostics["gh_auth_token_accessible"]:
+            gh_token = cls._run_local_command(["gh", "auth", "token"], cwd=repo_root)
+            token_value = str(gh_token.get("stdout", "")).strip()
+            token_source = "gh" if token_value else ""
+
+        issues: list[str] = []
+        if not token_value:
+            issues.append("No explicit or bridgeable GitHub token is available.")
+        if not repo_hint:
+            issues.append("No explicit or inferable GitHub repository slug is available.")
+
+        return {
+            "bridge_ready": not issues,
+            "token_source": token_source or None,
+            "repo_hint_source": repo_hint_source or None,
+            "repo_hint": repo_hint or None,
+            "issues": issues,
+            "token_value": token_value,
+            "diagnostics": diagnostics,
+        }
+
+    @staticmethod
+    def format_explicit_bridge_env(bridge: dict[str, Any]) -> str:
+        if not bridge["bridge_ready"]:
+            lines = [
+                "# Unable to build an explicit GitHub bridge for Skylattice.",
+                *[f"# - {issue}" for issue in bridge.get("issues", [])],
+                "# Run `python -m skylattice.cli doctor auth` for a read-only capability report.",
+            ]
+            return "\n".join(lines) + "\n"
+        token_value = str(bridge["token_value"])
+        repo_hint = str(bridge["repo_hint"])
+        return "\n".join(
+            [
+                f"$env:GITHUB_TOKEN = '{token_value}'",
+                f"$env:SKYLATTICE_GITHUB_REPOSITORY = '{repo_hint}'",
+            ]
+        ) + "\n"
+
     def _request_json(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
         request = Request(
@@ -268,6 +383,44 @@ class GitHubAdapter:
         if marker in body:
             return body
         return f"{body.rstrip()}\n\n{marker}"
+
+    @classmethod
+    def _parse_repo_candidate(cls, value: str | None) -> str | None:
+        if not value:
+            return None
+        try:
+            return cls._parse_repo(value).slug
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _extract_gh_account(output: str) -> str | None:
+        match = re.search(r"Logged in to github\.com account ([^\s]+)", output)
+        return match.group(1) if match else None
+
+    @staticmethod
+    def _run_local_command(command: list[str], *, cwd: Path | None = None) -> dict[str, Any]:
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=str(cwd) if cwd is not None else None,
+                capture_output=True,
+                text=False,
+                check=False,
+            )
+        except FileNotFoundError:
+            return {
+                "command_available": False,
+                "returncode": 127,
+                "stdout": "",
+                "stderr": "command not found",
+            }
+        return {
+            "command_available": True,
+            "returncode": completed.returncode,
+            "stdout": completed.stdout.decode("utf-8", errors="replace"),
+            "stderr": completed.stderr.decode("utf-8", errors="replace"),
+        }
 
     @staticmethod
     def _normalize_pull_request(
