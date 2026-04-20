@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -33,6 +34,10 @@ def _write(path: Path, content: str) -> None:
 def _run(command: list[str], cwd: Path) -> str:
     completed = subprocess.run(command, cwd=cwd, capture_output=True, text=True, check=True)
     return completed.stdout
+
+
+def _iso_days_ago(days: int) -> str:
+    return (datetime.now(UTC) - timedelta(days=days)).isoformat().replace("+00:00", "Z")
 
 
 def create_radar_repo(tmp_path: Path) -> Path:
@@ -227,9 +232,9 @@ class FakeRadarSource:
             stars=9000,
             forks=300,
             watchers=120,
-            created_at_remote="2026-04-01T00:00:00Z",
-            pushed_at_remote="2026-04-07T00:00:00Z",
-            latest_release_at="2026-04-06T00:00:00Z",
+            created_at_remote=_iso_days_ago(5),
+            pushed_at_remote=_iso_days_ago(1),
+            latest_release_at=_iso_days_ago(1),
             score=0.0,
             score_breakdown={},
             decision=RadarDecision.OBSERVE,
@@ -260,7 +265,7 @@ class FakeRadarSource:
             candidate,
             description="A reusable open-source pattern library for memory, evals, and GitHub-aware agents.",
             topics=("agent", "memory", "evals", "developer-tools", "github"),
-            latest_release_at="2026-04-07T00:00:00Z",
+            latest_release_at=_iso_days_ago(1),
         )
         evidence = [
             RadarEvidence(
