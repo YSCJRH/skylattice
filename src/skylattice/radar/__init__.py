@@ -31,11 +31,12 @@ from .models import (
 from .repositories import RadarRepository
 from .scoring import RadarScore, RadarScorer
 from .service import RadarService
-from .source import GitHubRadarSource, RadarDiscoverySource, resolve_radar_source
+from .source import GitHubRadarSource, GitLabRadarSource, RadarDiscoverySource, resolve_radar_source
 
 __all__ = [
     "AdoptionRecord",
     "GitHubRadarSource",
+    "GitLabRadarSource",
     "RadarDiscoverySource",
     "RadarCandidate",
     "RadarCandidateStatus",

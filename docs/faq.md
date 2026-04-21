@@ -90,6 +90,7 @@ Use the optional read-only authenticated smoke:
 
 ```bash
 python tools/run_authenticated_smoke.py --provider github
+python tools/run_authenticated_smoke.py --provider gitlab
 python tools/run_authenticated_smoke.py --provider openai
 ```
 

@@ -35,13 +35,13 @@ Public surfaces:
 - when GitHub is configured, planning can see bounded open issue/PR context and issue comments preflight their targets
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
-- read-only auth preflight via `skylattice doctor auth` plus an explicit `skylattice doctor github-bridge` helper for token-enabled setup
+- read-only auth preflight via `skylattice doctor auth` plus an explicit `skylattice doctor github-bridge` helper for GitHub token-enabled setup
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
 - weekly validation output now points to a tracked note template plus a suggested record path, without writing tracked docs automatically
-- tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub still the only live source in this slice
+- tracked radar provider selection via `configs/radar/providers.yaml`, with GitHub as the default live source and GitLab available as a second live radar provider
 - provider-neutral radar candidate and evidence identity surfaces alongside the current GitHub-shaped fields
 - adoption matching and scoring boosts now prefer provider-neutral source identity, with `repo_slug` kept as a compatibility fallback
 - normalized radar evidence taxonomy now uses provider-neutral kind names such as `discovery-hit`, `object-metadata`, and `release-metadata`
@@ -99,6 +99,7 @@ PowerShell example:
 $env:OPENAI_API_KEY = "..."
 $env:GITHUB_TOKEN = "..."
 $env:SKYLATTICE_GITHUB_REPOSITORY = "YSCJRH/skylattice"
+$env:GITLAB_TOKEN = "..."
 ```
 
 Recommended read-only preflight before any live adapter use:
@@ -133,17 +134,18 @@ Optional read-only authenticated smoke:
 
 ```bash
 python tools/run_authenticated_smoke.py --provider github
+python tools/run_authenticated_smoke.py --provider gitlab
 python tools/run_authenticated_smoke.py --provider openai
 ```
 
 Expected results:
 
 - `task run` creates a governed branch, records materialized edits, validates the repo, observes existing branch-scoped PR state, and can prepare or update a draft PR when GitHub write access is configured
-- `radar scan` discovers GitHub repositories, records evidence, validates bounded experiments, and can promote tracked changes through a rollbackable path
+- `radar scan` discovers repositories from the configured live provider, records evidence, validates bounded experiments, and can promote tracked changes through a rollbackable path
 - `radar schedule run` resolves tracked local schedule intent into the same bounded radar scan path without introducing a resident scheduler, and preserves `schedule_id` plus `trigger_mode` for later inspection
 - `radar schedule validate` checks the latest or named radar run against tracked schedule intent and writes a local validation report for weekly-cycle review
 - `doctor auth` explains which live capabilities are still blocked by missing credentials or repo-hint setup without changing the zero-credential `doctor` surface
-- `run_authenticated_smoke.py` performs opt-in read-only checks against the live GitHub and OpenAI adapters when credentials are configured
+- `run_authenticated_smoke.py` performs opt-in read-only checks against the live GitHub, GitLab, and OpenAI adapters when credentials are configured
 
 If you want to see the shape before using real tokens, compare your output to the redacted samples under `examples/redacted/`.
 

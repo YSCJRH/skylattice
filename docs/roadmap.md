@@ -81,13 +81,13 @@ Delivered so far:
 - Windows-first task registration rendering instead of a resident scheduler
 - a Windows-first schedule operator runbook plus working-directory-safe task action rendering
 - stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
-- GitHub remains the only live discovery provider in this slice
+- GitHub remains the default live discovery provider, and GitLab now exists as a second live radar provider
 - tracked prompt files under `prompts/system/` now own the human-readable OpenAI provider instructions, while runtime code keeps template interpolation, missing-prompt checks, JSON-schema constraints, response parsing, and edit-mode enforcement
 - the current closeout snapshot now lives in `docs/tasks/phase-5-operational-closure-status.md`
 
 Next goals:
 
 - keep the safe weekly validation loop repeatable and documented, while leaving any live promotion-capable operator pass as a separate deliberate exercise
-- keep GitHub as the only live provider until the repeated weekly validation loop and closure note remain stable enough to retire the current ambiguity
+- keep GitHub as the default provider until the GitLab rollout has enough operator validation to justify any default-provider change
 - record auth-dependent checks honestly: GitHub validation may run through an explicit bridge, while OpenAI validation remains blocked until `OPENAI_API_KEY` is configured
 - choose and document the next post-Phase-5 wedge only after that operational proof, without widening autonomy or changing promotion semantics in the meantime

@@ -41,7 +41,7 @@ The zero-credential path proves the runtime boots, the tracked validation comman
 ## What You Are Not Proving Yet
 
 - live OpenAI planning or edit generation
-- live GitHub discovery, pull-request sync, or issue-comment sync
+- live GitHub or GitLab discovery, or GitHub pull-request / issue-comment sync
 - whether Skylattice already fits your production workflow without further configuration
 
 ## 5-Minute No-Credential Verification
@@ -119,12 +119,14 @@ Optional read-only smoke before real task or radar runs:
 
 ```bash
 python tools/run_authenticated_smoke.py --provider github
+python tools/run_authenticated_smoke.py --provider gitlab
 python tools/run_authenticated_smoke.py --provider openai
 ```
 
 What that proves:
 
 - your live GitHub adapter can read repository metadata without mutating anything
+- your live GitLab adapter can read project metadata without mutating anything
 - your live OpenAI adapter can complete a minimal structured response round-trip
 - your preflight report can distinguish `gh` login state from runtime-ready Skylattice credentials
 

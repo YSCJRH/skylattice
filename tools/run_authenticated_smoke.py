@@ -10,17 +10,20 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
+from skylattice.actions import GitLabAdapter  # noqa: E402
 from skylattice.actions import GitHubAdapter  # noqa: E402
 from skylattice.kernel import load_kernel_config  # noqa: E402
 from skylattice.providers import OpenAIProvider  # noqa: E402
 
 
 def run_selected_smokes(*, provider: str) -> dict[str, object]:
-    selected = ("github", "openai") if provider == "all" else (provider,)
+    selected = ("github", "gitlab", "openai") if provider == "all" else (provider,)
     results: dict[str, object] = {}
     for item in selected:
         if item == "github":
             results["github"] = GitHubAdapter().smoke_check()
+        elif item == "gitlab":
+            results["gitlab"] = GitLabAdapter().smoke_check()
         elif item == "openai":
             results["openai"] = OpenAIProvider(repo_root=REPO_ROOT).smoke_check()
         else:
@@ -50,6 +53,8 @@ def _build_smoke_remediation(*, provider: str) -> list[str]:
                 )
             else:
                 remediation.append("Set SKYLATTICE_GITHUB_REPOSITORY explicitly before GitHub-backed smoke checks.")
+    if provider in {"gitlab", "all"} and not str(os.environ.get("GITLAB_TOKEN", "")).strip():
+        remediation.append("Set GITLAB_TOKEN explicitly before GitLab smoke checks.")
     if provider in {"openai", "all"} and not str(os.environ.get("OPENAI_API_KEY", "")).strip():
         remediation.append("Set OPENAI_API_KEY explicitly before OpenAI smoke checks.")
     return remediation
@@ -57,7 +62,7 @@ def _build_smoke_remediation(*, provider: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run read-only authenticated smoke checks for Skylattice adapters.")
-    parser.add_argument("--provider", choices=["github", "openai", "all"], default="all")
+    parser.add_argument("--provider", choices=["github", "gitlab", "openai", "all"], default="all")
     args = parser.parse_args()
     try:
         payload = run_selected_smokes(provider=args.provider)

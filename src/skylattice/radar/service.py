@@ -12,7 +12,7 @@ import uuid
 
 import yaml
 
-from skylattice.actions import GitAdapter, GitHubAdapter, RepoWorkspaceAdapter
+from skylattice.actions import GitAdapter, GitHubAdapter, GitLabAdapter, RepoWorkspaceAdapter
 from skylattice.governance import GovernanceDecision, GovernanceGate, GovernanceRequest, PermissionTier
 from skylattice.ledger import EventKind, LedgerStore
 from skylattice.memory import MemoryLayer, SQLiteMemoryRepository
@@ -52,6 +52,7 @@ class RadarService:
         workspace: RepoWorkspaceAdapter,
         git: GitAdapter,
         github: GitHubAdapter | None,
+        gitlab: GitLabAdapter | None,
         source: RadarDiscoverySource | None,
         config: RadarConfig,
     ) -> None:
@@ -64,6 +65,7 @@ class RadarService:
         self.workspace = workspace
         self.git = git
         self.github = github
+        self.gitlab = gitlab
         self.source = source
         self.config = config
 
@@ -80,10 +82,16 @@ class RadarService:
         workspace: RepoWorkspaceAdapter,
         git: GitAdapter,
         github: GitHubAdapter | None,
+        gitlab: GitLabAdapter | None,
         source: RadarDiscoverySource | None = None,
     ) -> "RadarService":
         config = load_radar_config(repo_root)
-        actual_source = resolve_radar_source(providers=config.providers, github=github, override=source)
+        actual_source = resolve_radar_source(
+            providers=config.providers,
+            github=github,
+            gitlab=gitlab,
+            override=source,
+        )
         return cls(
             repo_root=repo_root,
             radar_repository=radar_repository,
@@ -94,6 +102,7 @@ class RadarService:
             workspace=workspace,
             git=git,
             github=github,
+            gitlab=gitlab,
             source=actual_source,
             config=config,
         )
@@ -242,7 +251,7 @@ class RadarService:
     ) -> RadarRun:
         if self.source is None:
             raise RuntimeError(
-                "Radar discovery is not configured. Run `python -m skylattice.cli doctor auth` to inspect GitHub token and repo-hint requirements."
+                "Radar discovery is not configured. Run `python -m skylattice.cli doctor auth` to inspect the current provider's credential requirements."
             )
         state = self.radar_repository.get_state()
         if state.freeze_mode or self.governance.freeze_mode_enabled:

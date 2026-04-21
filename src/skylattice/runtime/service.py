@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from skylattice.actions import GitAdapter, GitHubAdapter, RepoWorkspaceAdapter
+from skylattice.actions import GitAdapter, GitHubAdapter, GitLabAdapter, RepoWorkspaceAdapter
 from skylattice.governance import GovernanceDecision, GovernanceGate, GovernanceRequest, PermissionTier
 from skylattice.kernel import build_kernel_summary, load_kernel_config
 from skylattice.ledger import EventKind, LedgerStore
@@ -79,6 +79,7 @@ class TaskAgentService:
         repo_root: Path | None = None,
         provider: object | None = None,
         github_adapter: GitHubAdapter | None = None,
+        gitlab_adapter: GitLabAdapter | None = None,
         radar_source: RadarDiscoverySource | None = None,
         db_path: Path | None = None,
     ) -> "TaskAgentService":
@@ -96,6 +97,9 @@ class TaskAgentService:
         repo_hint = os.environ.get("SKYLATTICE_GITHUB_REPOSITORY") or kernel.runtime.remote_ledger
         if actual_github is None and os.environ.get("GITHUB_TOKEN") and repo_hint:
             actual_github = GitHubAdapter(repository=repo_hint)
+        actual_gitlab = gitlab_adapter
+        if actual_gitlab is None and os.environ.get("GITLAB_TOKEN"):
+            actual_gitlab = GitLabAdapter()
 
         run_repository = RunRepository(database)
         ledger = LedgerStore(database)
@@ -119,6 +123,7 @@ class TaskAgentService:
             workspace=workspace,
             git=git,
             github=actual_github,
+            gitlab=actual_gitlab,
             source=radar_source,
         )
 
@@ -181,6 +186,7 @@ class TaskAgentService:
             "gh_auth_token_accessible": github_local["gh_auth_token_accessible"],
             "gh_account": github_local["gh_account"],
             "github_token_env_present": bool(str(os.environ.get("GITHUB_TOKEN", "")).strip()),
+            "gitlab_token_env_present": bool(str(os.environ.get("GITLAB_TOKEN", "")).strip()),
             "openai_key_env_present": bool(str(os.environ.get("OPENAI_API_KEY", "")).strip()),
             "repo_hint_env_present": bool(repo_hint_env),
             "repo_hint_kernel_present": bool(repo_hint_kernel),
@@ -1878,6 +1884,21 @@ class TaskAgentService:
                     ],
                 }
             )
+        if str(capabilities.get("default_provider", "")) == "gitlab" and not bool(auth["gitlab_token_env_present"]):
+            remediation.append(
+                {
+                    "code": "missing_gitlab_token",
+                    "summary": "GITLAB_TOKEN is not configured for the current default radar provider.",
+                    "blocks": [
+                        "python tools/run_authenticated_smoke.py --provider gitlab",
+                        "python -m skylattice.cli radar scan --window weekly",
+                        "python -m skylattice.cli radar schedule run --schedule weekly-github",
+                    ],
+                    "next_steps": [
+                        "Set GITLAB_TOKEN explicitly before GitLab-backed radar discovery or smoke checks.",
+                    ],
+                }
+            )
         if not bool(auth["github_token_env_present"]):
             if bool(auth["gh_auth_logged_in"]):
                 remediation.append(
@@ -1951,6 +1972,24 @@ class TaskAgentService:
                     ],
                     "next_steps": [
                         "Re-run `python -m skylattice.cli doctor auth` and inspect the effective repo hint and runtime capability matrix.",
+                    ],
+                }
+            )
+        if (
+            str(capabilities.get("default_provider", "")) == "gitlab"
+            and bool(auth["gitlab_token_env_present"])
+            and not bool(capabilities["radar_source_available"])
+        ):
+            remediation.append(
+                {
+                    "code": "gitlab_runtime_unavailable",
+                    "summary": "GITLAB_TOKEN looks present, but the runtime still did not initialize the GitLab radar source.",
+                    "blocks": [
+                        "GitLab-backed radar scans",
+                        "GitLab authenticated smoke",
+                    ],
+                    "next_steps": [
+                        "Re-run `python -m skylattice.cli doctor auth` and inspect the current default provider plus radar capability matrix.",
                     ],
                 }
             )

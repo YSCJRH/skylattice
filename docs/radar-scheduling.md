@@ -16,18 +16,21 @@ The schedule itself lives in `configs/radar/schedule.yaml`, while the operating 
 
 Use one of these operator modes on purpose:
 
-- `safe-validation`: use a disposable validation clone, keep GitHub as the live discovery provider, and add a clone-local no-promotion override before you run the weekly schedule
+- `safe-validation`: use a disposable validation clone, keep the tracked default live discovery provider in place, and add a clone-local no-promotion override before you run the weekly schedule
 - `live-promotion-capable`: use your real working checkout with an intentional clean `main` worktree and normal promotion semantics
 
 Safe validation is the recommended path for weekly proof and runbook checks.
 
 Live promotion-capable execution is a separate operator decision and should not happen accidentally during validation review.
 
-Both modes still require `GITHUB_TOKEN`, because GitHub remains the only live radar provider in this slice.
+Both modes still require credentials for the tracked default live radar provider:
+
+- `GITHUB_TOKEN` when the default provider stays `github`
+- `GITLAB_TOKEN` when an operator intentionally switches the default provider to `gitlab`
 
 Carry the chosen mode into the tracked weekly note so the record says which trigger method, runtime environment, promotion capability, credential prerequisites, and manual intervention points applied to that pass.
 
-If `GITHUB_TOKEN` is not configured, stop and record the pass as `blocked` or `not executed` instead of pretending validation passed.
+If the required token for the current default provider is not configured, stop and record the pass as `blocked` or `not executed` instead of pretending validation passed.
 
 Recommended read-only preflight on the primary checkout:
 
@@ -35,7 +38,7 @@ Recommended read-only preflight on the primary checkout:
 python -m skylattice.cli doctor auth
 ```
 
-If `gh auth status` is already healthy and you intentionally want copyable exports for a validation shell:
+If the default provider stays `github`, `gh auth status` is already healthy, and you intentionally want copyable exports for a validation shell:
 
 ```bash
 python -m skylattice.cli doctor github-bridge --format env
@@ -104,7 +107,8 @@ If your local weekly cadence should be different, edit the tracked config first,
 Recommended flow:
 
 1. create a disposable sibling or otherwise isolated clean clone
-2. bridge GitHub auth into that validation shell explicitly
+2. make the provider credentials explicit in that validation shell:
+   use the GitHub bridge helper for `github`, or set `GITLAB_TOKEN` directly for `gitlab`
 3. edit that clone's local copy of `configs/radar/sources.yaml`
 4. set `promotion_limit: 0` before the run so the validation clone cannot promote to `main`
 5. commit that clone-local override so the validation clone stays on a clean `main` worktree
@@ -186,7 +190,7 @@ Tracked examples now live under [ops/radar-validations/2026-04-16-weekly-github.
 When validating a real scheduled weekly cycle, check:
 
 - which validation mode you are using
-- whether `GITHUB_TOKEN` was actually available at execution time
+- whether the required token for the current default provider was actually available at execution time
 - the task is still registered under the tracked folder and name
 - the task starts in the repository root instead of `system32`
 - the created radar run records the expected `weekly` window

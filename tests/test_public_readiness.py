@@ -82,13 +82,13 @@ def test_radar_schedule_config_defines_windows_first_baseline() -> None:
     assert payload["schedules"]["weekly-github"]["windows_task"]["trigger_command"] == "New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 9am"
 
 
-def test_radar_provider_config_reserves_future_provider_shape() -> None:
+def test_radar_provider_config_reports_gitlab_as_second_live_provider() -> None:
     payload = yaml.safe_load((REPO_ROOT / "configs" / "radar" / "providers.yaml").read_text(encoding="utf-8"))
     assert payload["default_provider"] == "github"
     assert payload["providers"]["github"]["enabled"] is True
     assert payload["providers"]["github"]["kind"] == "github"
-    assert payload["providers"]["future-second-provider"]["enabled"] is False
-    assert payload["providers"]["future-second-provider"]["kind"] == "reserved"
+    assert payload["providers"]["gitlab"]["enabled"] is True
+    assert payload["providers"]["gitlab"]["kind"] == "gitlab"
 
 
 def test_public_engineering_baseline_files_exist() -> None:
@@ -102,6 +102,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         ".github/ISSUE_TEMPLATE/config.yml",
         "tools/run_validation_suite.py",
         "tools/run_authenticated_smoke.py",
+        "tests/test_actions_gitlab.py",
         "tools/upload_github_social_preview.py",
         "mkdocs.yml",
         "CITATION.cff",
@@ -177,6 +178,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-5-evidence-taxonomy.md",
         "docs/tasks/phase-5-schedule-validation-report.md",
         "docs/tasks/phase-5-validation-record-template.md",
+        "docs/tasks/gitlab-second-live-provider.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -189,6 +191,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/adrs/0014-provider-neutral-radar-identity.md",
         "docs/adrs/0015-provider-neutral-adoption-matching.md",
         "docs/adrs/0016-normalized-radar-evidence-taxonomy.md",
+        "docs/adrs/0017-gitlab-second-live-provider.md",
         "configs/radar/providers.yaml",
         "configs/radar/schedule.yaml",
         "evals/ai-search/_template.md",
@@ -221,6 +224,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "homepageUrl",
         "docs/assets/cover-hero.svg",
         "provider-neutral radar candidate and evidence identity surfaces",
+        "GitLab available as a second live radar provider",
         "scheduled radar runs now record `trigger_mode` and `schedule_id`",
         "adoption matching and scoring boosts now prefer provider-neutral source identity",
         "normalized radar evidence taxonomy now uses provider-neutral kind names",

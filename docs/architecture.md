@@ -149,7 +149,7 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - `tests/test_memory.py`: memory record states, retrieval ranking, review flows, rollback, and export behavior
 - `tests/test_radar.py`: radar discovery contracts, scoring, scheduling, validation reports, promotion, rollback, and provider-neutral identity behavior
 - `tests/test_public_readiness.py`: public-safe tracked artifacts, release surfaces, Pages metadata, outreach files, and repo hygiene
-- `tools/run_authenticated_smoke.py`: opt-in read-only validation against the live GitHub and OpenAI adapters when operator credentials are present
+- `tools/run_authenticated_smoke.py`: opt-in read-only validation against the live GitHub, GitLab, and OpenAI adapters when operator credentials are present
 - current test strength is contract and boundary coverage; authenticated end-to-end validation against live OpenAI and GitHub remains intentionally narrower and operator-invoked
 
 ## Key Boundaries
@@ -161,7 +161,7 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - profile updates, semantic compaction, and procedural dedup stay review-driven local actions; there is no background memory mutation
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
-- The runtime does not depend on GitHub to exist, but the radar workflow depends on `GITHUB_TOKEN` for discovery.
+- The runtime does not depend on GitHub or GitLab to exist, but live radar discovery depends on explicit provider credentials such as `GITHUB_TOKEN` or `GITLAB_TOKEN`.
 
 ## Observability
 

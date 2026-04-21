@@ -4,7 +4,7 @@ The technology radar is Skylattice's bounded external-learning workflow.
 
 ## Goal
 
-Turn GitHub open-source change into durable, reviewable local capability through this path:
+Turn GitHub and GitLab open-source change into durable, reviewable local capability through this path:
 
 `discovery -> scoring -> knowledge increment -> experiment -> promotion -> rollback`
 
@@ -15,6 +15,9 @@ Current live source set:
 - GitHub repository search
 - GitHub repository metadata
 - GitHub latest release metadata
+- GitLab project discovery
+- GitLab project metadata
+- GitLab latest release metadata
 
 No webpage scraping, browser automation, or multi-source aggregation is in scope yet.
 The runtime now expresses this through a stable `RadarDiscoverySource` boundary so future providers can fit without rewriting `RadarService`.

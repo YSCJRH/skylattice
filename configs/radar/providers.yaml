@@ -7,8 +7,8 @@ providers:
     live: true
     description: GitHub repository search, repository metadata, and latest release metadata.
 
-  future-second-provider:
-    kind: reserved
-    enabled: false
-    live: false
-    description: Reserved slot for the next radar provider contract without enabling a second live source yet.
+  gitlab:
+    kind: gitlab
+    enabled: true
+    live: true
+    description: GitLab project discovery, project metadata, and latest release metadata.

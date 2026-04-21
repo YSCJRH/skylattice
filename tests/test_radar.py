@@ -133,11 +133,11 @@ providers:
     enabled: true
     live: true
     description: GitHub repository search, repository metadata, and latest release metadata.
-  future-second-provider:
-    kind: reserved
-    enabled: false
-    live: false
-    description: Reserved slot for the next radar provider contract without enabling a second live source yet.
+  gitlab:
+    kind: gitlab
+    enabled: true
+    live: true
+    description: GitLab project discovery, project metadata, and latest release metadata.
 """.strip(),
     )
     _write(
@@ -283,6 +283,60 @@ class FakeRadarSource:
             )
         ]
         return enriched, evidence
+
+
+class FakeGitLabAdapter:
+    def list_projects(
+        self,
+        *,
+        topic: str | None = None,
+        search: str | None = None,
+        order_by: str = "last_activity_at",
+        sort: str = "desc",
+        per_page: int = 20,
+        page: int = 1,
+        visibility: str = "public",
+        simple: bool = True,
+    ):
+        return [
+            {
+                "id": 101,
+                "path_with_namespace": "example/gitlab-radar-kit",
+                "name": "gitlab-radar-kit",
+                "web_url": "https://gitlab.com/example/gitlab-radar-kit",
+                "description": "A GitLab-hosted project for radar testing.",
+                "topics": [topic or "agent", "memory", "developer-tools"],
+                "star_count": 420,
+                "forks_count": 35,
+                "created_at": _iso_days_ago(4),
+                "last_activity_at": _iso_days_ago(1),
+                "archived": False,
+                "visibility": "public",
+            }
+        ]
+
+    def get_project(self, project_id_or_path):
+        return {
+            "id": 101,
+            "path_with_namespace": "example/gitlab-radar-kit",
+            "name": "gitlab-radar-kit",
+            "web_url": "https://gitlab.com/example/gitlab-radar-kit",
+            "description": "A reusable GitLab pattern library for radar testing.",
+            "topics": ["agent", "memory", "developer-tools", "github"],
+            "star_count": 500,
+            "forks_count": 40,
+            "created_at": _iso_days_ago(4),
+            "last_activity_at": _iso_days_ago(1),
+            "visibility": "public",
+            "language": "Python",
+        }
+
+    def get_latest_release(self, project_id_or_path):
+        return {
+            "tag_name": "v1.2.3",
+            "released_at": _iso_days_ago(1),
+            "_links": {"self": "https://gitlab.com/example/gitlab-radar-kit/-/releases/v1.2.3"},
+        }
 
 
 def test_radar_scan_promotes_candidate_and_updates_registry(tmp_path: Path) -> None:
@@ -490,7 +544,7 @@ def test_radar_state_snapshot_reports_tracked_provider_contract(tmp_path: Path) 
     snapshot = service.radar.state_snapshot()
 
     assert snapshot["default_provider"] == "github"
-    assert snapshot["enabled_providers"] == ["github"]
+    assert snapshot["enabled_providers"] == ["github", "gitlab"]
     assert snapshot["source_provider"] == "github"
     assert snapshot["source_available"] is True
 
@@ -500,28 +554,123 @@ def test_radar_service_respects_disabled_default_provider(tmp_path: Path) -> Non
     _write(
         repo / "configs" / "radar" / "providers.yaml",
         """
-default_provider: future-second-provider
+default_provider: gitlab
 providers:
   github:
     kind: github
     enabled: true
     live: true
     description: GitHub repository search, repository metadata, and latest release metadata.
-  future-second-provider:
-    kind: reserved
+  gitlab:
+    kind: gitlab
     enabled: false
     live: false
-    description: Reserved slot for the next radar provider contract without enabling a second live source yet.
+    description: GitLab project discovery, project metadata, and latest release metadata.
 """.strip(),
     )
 
     service = TaskAgentService.from_repo(repo_root=repo)
     snapshot = service.radar.state_snapshot()
 
-    assert snapshot["default_provider"] == "future-second-provider"
+    assert snapshot["default_provider"] == "gitlab"
     assert snapshot["enabled_providers"] == ["github"]
     assert snapshot["source_provider"] is None
     assert snapshot["source_available"] is False
+
+
+def test_gitlab_radar_source_resolves_from_tracked_provider_contract(tmp_path: Path) -> None:
+    repo = create_radar_repo(tmp_path)
+    _write(
+        repo / "configs" / "radar" / "providers.yaml",
+        """
+default_provider: gitlab
+providers:
+  github:
+    kind: github
+    enabled: true
+    live: true
+    description: GitHub repository search, repository metadata, and latest release metadata.
+  gitlab:
+    kind: gitlab
+    enabled: true
+    live: true
+    description: GitLab project discovery, project metadata, and latest release metadata.
+""".strip(),
+    )
+    _run(["git", "add", "--all"], repo)
+    _run(["git", "commit", "-m", "switch default radar provider to gitlab"], repo)
+
+    service = TaskAgentService.from_repo(repo_root=repo, gitlab_adapter=FakeGitLabAdapter())
+    fake_git = LocalPushGitAdapter(repo)
+    service.git = fake_git
+    service.radar.git = fake_git
+
+    snapshot = service.radar.state_snapshot()
+    run = service.scan_radar(window="manual", limit=2)
+    details = service.inspect_radar_run(run.run_id)
+
+    assert snapshot["default_provider"] == "gitlab"
+    assert snapshot["enabled_providers"] == ["github", "gitlab"]
+    assert snapshot["source_provider"] == "gitlab"
+    assert snapshot["source_available"] is True
+    assert details["candidates"][0]["source_provider"] == "gitlab"
+    assert details["candidates"][0]["source_kind"] == "project"
+    assert details["candidates"][0]["source_handle"] == "example/gitlab-radar-kit"
+    assert details["candidates"][0]["source_url"] == "https://gitlab.com/example/gitlab-radar-kit"
+    assert details["candidates"][0]["identity"]["provider"] == "gitlab"
+    assert details["evidence"][0]["provider"] == "gitlab"
+    assert details["evidence"][0]["provider_object_type"] == "project"
+    assert any(item["provider_object_type"] == "release" for item in details["evidence"])
+    assert any(item["evidence_kind"] == "release-metadata" for item in details["evidence"])
+
+
+def test_gitlab_radar_source_keeps_old_but_recently_active_projects() -> None:
+    from skylattice.radar import GitLabRadarSource
+
+    class ActiveLegacyGitLabAdapter(FakeGitLabAdapter):
+        def list_projects(
+            self,
+            *,
+            topic: str | None = None,
+            search: str | None = None,
+            order_by: str = "last_activity_at",
+            sort: str = "desc",
+            per_page: int = 20,
+            page: int = 1,
+            visibility: str = "public",
+            simple: bool = True,
+        ):
+            return [
+                {
+                    "id": 202,
+                    "path_with_namespace": "example/legacy-active-kit",
+                    "name": "legacy-active-kit",
+                    "web_url": "https://gitlab.com/example/legacy-active-kit",
+                    "description": "Old project with fresh activity.",
+                    "topics": [topic or "agent", "memory"],
+                    "star_count": 120,
+                    "forks_count": 12,
+                    "created_at": _iso_days_ago(365),
+                    "last_activity_at": _iso_days_ago(2),
+                    "archived": False,
+                    "visibility": "public",
+                }
+            ]
+
+    source = GitLabRadarSource(ActiveLegacyGitLabAdapter())
+
+    candidates, evidence = source.discover(
+        run_id="radar-test",
+        topics=("agent",),
+        created_days=30,
+        active_days=14,
+        limit=5,
+    )
+
+    assert len(candidates) == 1
+    assert candidates[0].repo_slug == "example/legacy-active-kit"
+    assert evidence[0].provider == "gitlab"
+    assert evidence[0].evidence_kind == "discovery-hit"
 
 
 def test_radar_scoring_prefers_provider_neutral_adoption_identity(tmp_path: Path) -> None:
