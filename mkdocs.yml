@@ -44,6 +44,7 @@ nav:
   - FAQ: faq.md
   - Proof: proof.md
   - Release:
+      - v0.3.1 Stable: releases/v0-3-1.md
       - v0.3.0 Stable: releases/v0-3-0.md
       - v0.2.2 Stable: releases/v0-2-2.md
       - v0.2.1 Stable: releases/v0-2-1.md
@@ -77,8 +78,9 @@ nav:
       - Comparison (ZH): zh/comparison.md
       - FAQ (ZH): zh/faq.md
       - Proof (ZH): zh/proof.md
-      - Release (ZH): zh/releases/v0-3-0.md
-      - Release (ZH): zh/releases/v0-2-2.md
+      - v0.3.1 Stable (ZH): zh/releases/v0-3-1.md
+      - v0.3.0 Stable (ZH): zh/releases/v0-3-0.md
+      - v0.2.2 Stable (ZH): zh/releases/v0-2-2.md
       - Stable Baseline (ZH): zh/releases/v0-2-1.md
       - Public Preview (ZH): zh/releases/v0-2-0.md
 

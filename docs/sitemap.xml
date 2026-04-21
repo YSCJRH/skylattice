@@ -38,6 +38,11 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/proof/" />
   </url>
   <url>
+    <loc>https://yscjrh.github.io/skylattice/releases/v0-3-1/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/releases/v0-3-1/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/releases/v0-3-1/" />
+  </url>
+  <url>
     <loc>https://yscjrh.github.io/skylattice/releases/v0-3-0/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/releases/v0-3-0/" />
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/releases/v0-3-0/" />

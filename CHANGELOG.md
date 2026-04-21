@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.3.1 - Stable Phase 5 Operational Closure
+
+Date: 2026-04-21
+
+### Added
+
+- a second tracked weekly radar validation note that turns the safe-validation story into repeatable public proof instead of a single isolated pass
+- a maintainer-facing Phase 5 operational-closure status note under `docs/tasks/`
+- required prompt-file checks in the OpenAI provider so tracked prompt assets are part of the real runtime path instead of best-effort fallback text
+
+### Changed
+
+- the canonical stable release signal now points to `v0.3.1 Stable`
+- radar scheduling docs and validation templates now record trigger method, runtime environment, promotion capability, credential prerequisites, and manual intervention points
+- release-facing validation docs now distinguish the no-credential baseline from auth-dependent checks and record blocked or skipped checks honestly
+
+### Notes
+
+- `v0.3.0 Stable` remains part of the public history as the Phase 4 closeout and Phase 5 entry release
+- this release does not add a second live radar provider, a resident scheduler, AST-aware task editing, or broader autonomy
+- GitHub authenticated smoke can be bridged explicitly from `gh`, while OpenAI authenticated smoke still requires an explicit `OPENAI_API_KEY`
+
 ## v0.3.0 - Stable Phase 4 Closeout And Phase 5 Entry
 
 Date: 2026-04-15

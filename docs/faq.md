@@ -127,4 +127,4 @@ No. It is a local-first runtime and reference repository, not a managed assistan
 
 ## Where should I look for proof first?
 
-Start with [proof.md](proof.md), the [quick start](quickstart.md), and the [v0.3.0 Stable release page](releases/v0-3-0.md).
+Start with [proof.md](proof.md), the [quick start](quickstart.md), and the [v0.3.1 Stable release page](releases/v0-3-1.md).

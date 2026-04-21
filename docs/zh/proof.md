@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Skylattice ?????????????????????????CI ????? demo?",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.3.0",
+    "softwareVersion": "0.3.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "zh-CN"
   }
@@ -47,6 +47,7 @@ jsonld: |
 
 ## ???????
 
+- [v0.3.1 Stable](releases/v0-3-1.md)
 - [v0.3.0 Stable](releases/v0-3-0.md)
 - [v0.2.0 Public Preview](releases/v0-2-0.md)
 - [CHANGELOG](https://github.com/YSCJRH/skylattice/blob/main/CHANGELOG.md)

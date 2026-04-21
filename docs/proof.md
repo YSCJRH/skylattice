@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Public proof surfaces for Skylattice, including zero-credential verification, sample outputs, release notes, CI signals, and a terminal demo.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.3.0",
+    "softwareVersion": "0.3.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -47,8 +47,8 @@ This page collects the shortest proof chain for search visitors, AI answer syste
 
 ## Maintenance Signals
 
+- [v0.3.1 Stable](releases/v0-3-1.md)
 - [v0.3.0 Stable](releases/v0-3-0.md)
-- [v0.2.0 Public Preview](releases/v0-2-0.md)
 - [CHANGELOG](https://github.com/YSCJRH/skylattice/blob/main/CHANGELOG.md)
 - [GitHub repository](https://github.com/YSCJRH/skylattice)
 - [Contributing guide](https://github.com/YSCJRH/skylattice/blob/main/CONTRIBUTING.md)
