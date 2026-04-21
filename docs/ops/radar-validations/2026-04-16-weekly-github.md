@@ -4,7 +4,11 @@
 
 - Date: 2026-04-16
 - Validation mode: `safe-validation`
-- Credential availability: `GITHUB_TOKEN` present in the isolated validation clone environment
+- Trigger method: manual CLI trigger via `python -m skylattice.cli radar schedule run --schedule weekly-github`
+- Runtime environment: isolated validation clone rooted under `.local/work/` on a clean `main` checkout
+- Promotion capability during pass: disabled by a clone-local no-promotion threshold override
+- Credential prerequisites: explicit `GITHUB_TOKEN` plus an explicit repo hint for the validation shell
+- Credential availability during pass: `GITHUB_TOKEN` present in the isolated validation clone environment
 - Schedule ID: `weekly-github`
 - Run ID: `radar-9ad74e9075cb4791879c0efbfa4e2181`
 - Validation report path: `.local/radar/validations/20260416T070345Z-radar-9ad74e9075cb4791879c0efbfa4e2181.json` in the isolated validation clone
@@ -23,6 +27,7 @@
 - Validation report generated: `yes`
 - Promotions created: `0`
 - Any freeze or failure signals: none observed
+- Manual intervention points: explicit credential bridging into the validation shell, a committed clone-local no-promotion override, and a follow-up rerun after the `.local/work/` path-protection fix before carrying the summary into this tracked note
 
 ## Operator Notes
 

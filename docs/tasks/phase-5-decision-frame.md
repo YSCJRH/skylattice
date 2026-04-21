@@ -20,7 +20,7 @@
 
 ## Verification
 
-- manual doc consistency check against `README.md`, `docs/roadmap.md`, `docs/technology-radar.md`, `docs/radar-scheduling.md`, `docs/releases/v0-3-0.md`, and `docs/tasks/project-handover-baseline.md`
+- manual doc consistency check against `README.md`, `docs/roadmap.md`, `docs/technology-radar.md`, `docs/radar-scheduling.md`, `docs/github-workflow.md`, `docs/releases/v0-3-0.md`, and `docs/tasks/project-handover-baseline.md`
 - `git diff --check`
 
 ## Notes
@@ -38,7 +38,7 @@
 
 ### Exit Criteria
 
-- a second tracked weekly validation note records a follow-up operator pass after the 2026-04-16 baseline record
+- a second tracked weekly validation note records a follow-up operator pass after the 2026-04-16 baseline record, now captured in `docs/ops/radar-validations/2026-04-17-weekly-github.md`
 - the radar scheduling runbook distinguishes safe validation mode from the live promotion-capable path, including prerequisites, working-directory expectations, and known limits
 - tracked prompt files under `prompts/system/` own the human-readable planner and editor instructions, while runtime code keeps interpolation, schemas, parsing, and enforcement only
 - the release-validation chain is recorded honestly: required checks pass, and auth-dependent checks are marked skipped or blocked when credentials are unavailable instead of being treated as passed
@@ -48,6 +48,12 @@
 - onboarding clarity from issues `#2`, `#3`, and `#4` remains important, but it is a supporting lane rather than the phase-defining outcome
 - external authority and discoverability work should continue as maintenance, not as the criterion for Phase 5 completion
 - GitHub issue and PR re-triage remains a release check once local auth is available, not a phase gate
+
+### Current Closure Read
+
+- the current release-defining story remains engineering closure around repeatable safe weekly validation, prompt truth-source alignment, and honest auth-dependent verification
+- issues `#2`, `#3`, and `#4` stay open as onboarding and wording signal, not as Phase 5 closeout gates
+- the maintainer-facing closure snapshot now lives in [phase-5-operational-closure-status.md](phase-5-operational-closure-status.md)
 
 ### Explicit Deferrals
 

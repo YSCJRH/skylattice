@@ -4,7 +4,11 @@
 
 - Date: 2026-04-17
 - Validation mode: `safe-validation`
-- Credential availability: explicit bridge used in the disposable validation shell via `gh auth token` plus `SKYLATTICE_GITHUB_REPOSITORY=YSCJRH/skylattice`
+- Trigger method: manual CLI trigger via `python -m skylattice.cli radar schedule run --schedule weekly-github`
+- Runtime environment: disposable sibling validation clone on a clean `main` checkout
+- Promotion capability during pass: disabled by a clone-local `promotion_limit: 0` override
+- Credential prerequisites: GitHub token access plus an explicit `SKYLATTICE_GITHUB_REPOSITORY` hint inside the validation shell
+- Credential availability during pass: explicit bridge used in the disposable validation shell via `gh auth token` plus `SKYLATTICE_GITHUB_REPOSITORY=YSCJRH/skylattice`
 - Schedule ID: `weekly-github`
 - Run ID: `radar-52677865a3c74541a91f61c30a70feb9`
 - Validation report path: `.local/radar/validations/20260417T091226Z-radar-52677865a3c74541a91f61c30a70feb9.json` in the disposable sibling validation clone
@@ -23,6 +27,7 @@
 - Validation report generated: `yes`
 - Promotions created: `0`
 - Any freeze or failure signals: none observed
+- Manual intervention points: explicit credential bridging from `gh`, a committed clone-local `promotion_limit: 0` override, and manual carry-forward of the local report summary into this tracked note
 
 ## Operator Notes
 

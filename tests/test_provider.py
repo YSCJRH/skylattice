@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from skylattice.providers.openai import OpenAIProvider
 
 
@@ -19,7 +21,6 @@ def test_openai_provider_loads_tracked_prompt_files(tmp_path: Path) -> None:
         "core-mission.md",
         "planner.md",
         "editor.md",
-        fallback="fallback instructions",
     )
 
     assert "# Core Mission" in instructions
@@ -30,17 +31,13 @@ def test_openai_provider_loads_tracked_prompt_files(tmp_path: Path) -> None:
     assert "Return only exact edits." in instructions
 
 
-def test_openai_provider_falls_back_when_tracked_prompt_file_is_missing(tmp_path: Path) -> None:
+def test_openai_provider_raises_when_required_prompt_file_is_missing(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()
     provider = OpenAIProvider(api_key="test-key", repo_root=repo)
 
-    instructions = provider._compose_instructions(
-        "core-mission.md",
-        fallback="fallback instructions",
-    )
-
-    assert instructions == "fallback instructions"
+    with pytest.raises(RuntimeError, match="Required prompt file is missing or empty"):
+        provider._compose_instructions("core-mission.md")
 
 
 def test_openai_provider_generate_plan_uses_tracked_instructions(tmp_path: Path) -> None:

@@ -25,7 +25,9 @@ Live promotion-capable execution is a separate operator decision and should not 
 
 Both modes still require `GITHUB_TOKEN`, because GitHub remains the only live radar provider in this slice.
 
-If `GITHUB_TOKEN` is not configured, stop and record the pass as not executed instead of pretending validation passed.
+Carry the chosen mode into the tracked weekly note so the record says which trigger method, runtime environment, promotion capability, credential prerequisites, and manual intervention points applied to that pass.
+
+If `GITHUB_TOKEN` is not configured, stop and record the pass as `blocked` or `not executed` instead of pretending validation passed.
 
 Recommended read-only preflight on the primary checkout:
 
@@ -108,6 +110,7 @@ Recommended flow:
 5. commit that clone-local override so the validation clone stays on a clean `main` worktree
 6. run the tracked weekly schedule from that clone root
 7. export the validation report and promote only the report summary into a tracked weekly note
+8. record the trigger method, runtime environment, promotion capability, credential prerequisites, and any manual intervention points in that weekly note
 
 This path still exercises:
 
@@ -176,6 +179,8 @@ If you want to validate a specific run instead of the latest one, add `--run-id 
 
 If you want to turn the local report into a tracked weekly note, start from the template at [ops/radar-weekly-validation-template.md](ops/radar-weekly-validation-template.md) and copy the suggested record path from the validation output. Skylattice still keeps that promotion step manual on purpose.
 
+Tracked examples now live under [ops/radar-validations/2026-04-16-weekly-github.md](ops/radar-validations/2026-04-16-weekly-github.md) and [ops/radar-validations/2026-04-17-weekly-github.md](ops/radar-validations/2026-04-17-weekly-github.md).
+
 ## Weekly-Cycle Validation Checklist
 
 When validating a real scheduled weekly cycle, check:
@@ -187,6 +192,7 @@ When validating a real scheduled weekly cycle, check:
 - the created radar run records the expected `weekly` window
 - the created radar run records the expected `schedule_id` and `trigger_mode`
 - the exported validation report under `.local/radar/validations/` marks the run as valid
+- the tracked weekly note records the trigger method, runtime environment, promotion capability, credential prerequisites, and manual intervention points honestly
 - safe validation runs keep promotion disabled in the disposable clone
 - live promotion-capable runs only happen from the intended operator checkout
 - any promotion or failure still flows through the normal ledger, memory, and rollback surfaces

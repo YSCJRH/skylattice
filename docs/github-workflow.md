@@ -64,6 +64,16 @@ The current public CI lane is intentionally narrow.
 
 This keeps the public automation aligned with the runtime boundary while also ensuring the Pages distribution layer stays buildable.
 
+## Release-Facing Validation Reporting
+
+Phase 5 closeout keeps the validation story explicit.
+
+- the public CI lane plus `tools/run_validation_suite.py` cover the no-credential tracked baseline
+- `python -m skylattice.cli doctor auth` is a read-only operator preflight for live capability gaps, not a replacement for CI
+- `python tools/run_authenticated_smoke.py --provider github` and `--provider openai` are opt-in read-only checks outside the public CI lane
+- if a credential-dependent check is not run, record it as `skipped` or `blocked` instead of treating a green CI run as proof that the live adapter path passed
+- current onboarding-feedback issues remain a supporting signal for docs and positioning work, not a release gate for Phase 5 operational closure
+
 ## GitHub Pages As A Distribution Layer
 
 The Pages site is intentionally public-facing and read-only.

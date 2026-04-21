@@ -12,7 +12,11 @@ This template is tracked on purpose, but Skylattice does not write into it autom
 
 - Date:
 - Validation mode:
-- Credential availability:
+- Trigger method:
+- Runtime environment:
+- Promotion capability during pass:
+- Credential prerequisites:
+- Credential availability during pass:
 - Schedule ID:
 - Run ID:
 - Validation report path:
@@ -31,6 +35,7 @@ This template is tracked on purpose, but Skylattice does not write into it autom
 - Validation report generated:
 - Promotions created:
 - Any freeze or failure signals:
+- Manual intervention points:
 
 ## Operator Notes
 

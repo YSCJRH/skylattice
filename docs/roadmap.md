@@ -65,6 +65,8 @@ Delivered:
 
 Status: in progress
 
+Current release framing: operational closure around repeatable weekly validation, prompt truth-source alignment, and honest auth-dependent verification.
+
 Delivered so far:
 
 - tracked radar provider contract in `configs/radar/providers.yaml`
@@ -75,13 +77,17 @@ Delivered so far:
 - scheduled radar runs now preserve tracked schedule provenance for later inspection
 - schedule validation reports now export local weekly-cycle evidence under `.local/radar/validations/`
 - the first tracked weekly validation record now lives under `docs/ops/radar-validations/2026-04-16-weekly-github.md`
+- a follow-up safe-validation record now lives under `docs/ops/radar-validations/2026-04-17-weekly-github.md`, so the weekly proof path is no longer represented by a single isolated pass
 - Windows-first task registration rendering instead of a resident scheduler
 - a Windows-first schedule operator runbook plus working-directory-safe task action rendering
 - stable `RadarDiscoverySource` protocol plus provider-tagged radar evidence
 - GitHub remains the only live discovery provider in this slice
+- tracked prompt files under `prompts/system/` now own the human-readable OpenAI provider instructions, while runtime code keeps template interpolation, missing-prompt checks, JSON-schema constraints, response parsing, and edit-mode enforcement
+- the current closeout snapshot now lives in `docs/tasks/phase-5-operational-closure-status.md`
 
 Next goals:
 
-- operationalize the first tracked weekly validation record into a repeatable weekly review loop, including at least one follow-up operator pass beyond the isolated validation clone path
-- keep GitHub as the only live provider until that repeated weekly validation loop is exercised and documented, while preserving the provider-neutral contract for future expansion
+- keep the safe weekly validation loop repeatable and documented, while leaving any live promotion-capable operator pass as a separate deliberate exercise
+- keep GitHub as the only live provider until the repeated weekly validation loop and closure note remain stable enough to retire the current ambiguity
+- record auth-dependent checks honestly: GitHub validation may run through an explicit bridge, while OpenAI validation remains blocked until `OPENAI_API_KEY` is configured
 - choose and document the next post-Phase-5 wedge only after that operational proof, without widening autonomy or changing promotion semantics in the meantime
