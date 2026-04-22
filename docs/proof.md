@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Public proof surfaces for Skylattice, including zero-credential verification, sample outputs, release notes, CI signals, and a terminal demo.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.3.1",
+    "softwareVersion": "0.4.0",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -58,6 +58,7 @@ That surface is intentionally additive:
 
 ## Maintenance Signals
 
+- [v0.4.0 Stable](releases/v0-4-0.md)
 - [v0.3.1 Stable](releases/v0-3-1.md)
 - [v0.3.0 Stable](releases/v0-3-0.md)
 - [CHANGELOG](https://github.com/YSCJRH/skylattice/blob/main/CHANGELOG.md)

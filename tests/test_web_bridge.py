@@ -30,7 +30,7 @@ def create_temp_repo(tmp_path: Path) -> Path:
 agent:
   id: skylattice
   codename: skylattice
-  version: 0.3.1
+  version: 0.4.0
   owner: local-user
 user_model:
   user_id: local-user

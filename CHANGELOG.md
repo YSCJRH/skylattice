@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.4.0 - Stable Hosted Web Control Plane Foundation
+
+Date: 2026-04-22
+
+### Added
+
+- a same-repo `Next.js` hosted web control-plane workspace under `apps/web/` with GitHub sign-in scaffolding, pairing flows, and dedicated task, radar, memory, commands, devices, and approvals surfaces
+- an authenticated local bridge API under `/bridge/v1` for hosted-app-safe task, radar, memory, and inspection operations
+- a local web connector and CLI support through `skylattice web status`, `web pair`, and `web connector ...`
+- tracked architecture documentation, ADRs, and release notes for the hosted web control-plane direction
+
+### Changed
+
+- the canonical stable release signal now points to `v0.4.0 Stable`
+- the public docs/proof/quickstart surfaces now describe the hosted web control plane as a new product layer while preserving local-first runtime truth
+- the release and CI story now includes `npm run web:lint` and `npm run web:build` alongside the Python validation baseline
+
+### Notes
+
+- this release adds a real product-facing web surface, but it still does not ship a hosted execution runtime
+- local memory, local SQLite state, and governance enforcement remain on the paired local agent by default
+- the Postgres-ready control-plane backend is structurally present, but the current repository still treats the local-file backend as the default development path
+
 ## v0.3.1 - Stable Phase 5 Operational Closure
 
 Date: 2026-04-21

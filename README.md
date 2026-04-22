@@ -14,7 +14,7 @@ Public surfaces:
 
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
-- latest stable release: [v0.3.1 Stable](docs/releases/v0-3-1.md)
+- latest stable release: [v0.4.0 Stable](docs/releases/v0-4-0.md)
 - same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, and authenticated control-plane UX
 
 ## Why Star Skylattice
@@ -229,8 +229,8 @@ Not a fit yet:
 - users who want zero-config autonomous agents
 - workflows that require AST refactors, arbitrary shell automation, or hands-off production GitHub operations
 
-Release notes: [docs/releases/v0.3.1-stable.md](docs/releases/v0.3.1-stable.md)
-Latest stable release: [docs/releases/v0-3-1.md](docs/releases/v0-3-1.md)
+Release notes: [docs/releases/v0.4.0-stable.md](docs/releases/v0.4.0-stable.md)
+Latest stable release: [docs/releases/v0-4-0.md](docs/releases/v0-4-0.md)
 Changelog: [CHANGELOG.md](CHANGELOG.md)
 Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
@@ -252,8 +252,8 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/memory-model.md: memory layers, write triggers, and rollback rules
 - docs/technology-radar.md: radar workflow, scoring, promotion gates, rollback, schedule intent, and source abstraction
 - docs/github-workflow.md: GitHub audit, CI, Pages, and collaboration behavior
-- docs/releases/v0.3.1-stable.md: tracked GitHub release notes source for the latest stable cut
-- docs/releases/v0-3-1.md: canonical stable release page for the Pages site
+- docs/releases/v0.4.0-stable.md: tracked GitHub release notes source for the latest stable cut
+- docs/releases/v0-4-0.md: canonical stable release page for the Pages site
 - docs/releases/v0.3.0-stable.md: tracked GitHub release notes source for the previous stable cut
 - docs/releases/v0-3-0.md: historical stable release page
 - docs/releases/v0.2.2-stable.md: tracked GitHub release notes source for the previous stable follow-up

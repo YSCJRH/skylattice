@@ -1,6 +1,6 @@
 # What Skylattice Is
 
-For the canonical search-friendly overview page, start with [what-is-skylattice.md](what-is-skylattice.md). For the current stable release signal, start with [releases/v0-3-1.md](releases/v0-3-1.md).
+For the canonical search-friendly overview page, start with [what-is-skylattice.md](what-is-skylattice.md). For the current stable release signal, start with [releases/v0-4-0.md](releases/v0-4-0.md).
 
 Skylattice is a local-first AI agent runtime for people who want an agent they can inspect like software.
 

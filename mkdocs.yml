@@ -45,6 +45,7 @@ nav:
   - Proof: proof.md
   - Web Control Plane: web-control-plane.md
   - Release:
+      - v0.4.0 Stable: releases/v0-4-0.md
       - v0.3.1 Stable: releases/v0-3-1.md
       - v0.3.0 Stable: releases/v0-3-0.md
       - v0.2.2 Stable: releases/v0-2-2.md
@@ -79,6 +80,7 @@ nav:
       - Comparison (ZH): zh/comparison.md
       - FAQ (ZH): zh/faq.md
       - Proof (ZH): zh/proof.md
+      - v0.4.0 Stable (ZH): zh/releases/v0-4-0.md
       - v0.3.1 Stable (ZH): zh/releases/v0-3-1.md
       - v0.3.0 Stable (ZH): zh/releases/v0-3-0.md
       - v0.2.2 Stable (ZH): zh/releases/v0-2-2.md
