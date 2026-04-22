@@ -306,6 +306,7 @@ Local-only surface:
 - `python -m compileall src/skylattice`
 - `python -m skylattice.cli doctor`
 - `python tools/run_validation_suite.py`
+- `npm run web:preview:check`
 - `python -m mkdocs build --strict`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`

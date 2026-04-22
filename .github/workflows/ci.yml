@@ -28,6 +28,9 @@ jobs:
       - name: Install web workspace dependencies
         run: npm ci
 
+      - name: Validate hosted app preview proof data
+        run: npm run web:preview:check
+
       - name: Build hosted web app
         run: npm run web:build
 

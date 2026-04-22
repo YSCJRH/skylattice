@@ -228,6 +228,15 @@ def test_public_engineering_baseline_files_exist() -> None:
     assert all((REPO_ROOT / relative_path).exists() for relative_path in required)
 
 
+def test_ci_and_review_templates_cover_web_preview_proof_validation() -> None:
+    ci = _read_text(".github/workflows/ci.yml")
+    pr_template = _read_text(".github/PULL_REQUEST_TEMPLATE.md")
+    workflow_doc = _read_text("docs/github-workflow.md")
+    assert "npm run web:preview:check" in ci
+    assert "npm run web:preview:check" in pr_template
+    assert "npm run web:preview:check" in workflow_doc
+
+
 def test_public_positioning_surfaces_are_present() -> None:
     readme = _read_text("README.md")
     pyproject = _read_text("pyproject.toml")

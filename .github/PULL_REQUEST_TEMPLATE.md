@@ -7,6 +7,7 @@
 
 - [ ] List the validation commands you ran.
 - [ ] Confirm whether `python tools/run_validation_suite.py` passed.
+- [ ] Confirm whether `npm run web:preview:check` passed when the preview proof data or public app surfaces changed.
 - [ ] Note any manual checks that matter for review.
 
 ## Boundaries

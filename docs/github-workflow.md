@@ -61,6 +61,7 @@ The current public CI lane is intentionally narrow.
 - command source of truth: `configs/task/validation.yaml`
 - default shared profile: `baseline`
 - execution helper: `tools/run_validation_suite.py`
+- preview proof-data check: `npm run web:preview:check`
 - public-site build check: `python -m mkdocs build --strict`
 - hosted web-app build check: `npm run web:build`
 
@@ -70,7 +71,8 @@ This keeps the public automation aligned with the runtime boundary while also en
 
 Phase 5 closeout keeps the validation story explicit.
 
-- the public CI lane plus `tools/run_validation_suite.py` cover the no-credential tracked baseline
+- the public CI lane plus `tools/run_validation_suite.py` cover the no-credential tracked runtime baseline
+- `npm run web:preview:check` covers the tracked hosted-app preview proof-data sample used by the public app preview path
 - `python -m skylattice.cli doctor auth` is a read-only operator preflight for live capability gaps, not a replacement for CI
 - `python tools/run_authenticated_smoke.py --provider github` and `--provider openai` are opt-in read-only checks outside the public CI lane
 - if a credential-dependent check is not run, record it as `skipped` or `blocked` instead of treating a green CI run as proof that the live adapter path passed
