@@ -15,6 +15,7 @@ Public surfaces:
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
 - latest stable release: [v0.3.1 Stable](docs/releases/v0-3-1.md)
+- same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, and authenticated control-plane UX
 
 ## Why Star Skylattice
 
@@ -35,8 +36,11 @@ Public surfaces:
 - when GitHub is configured, planning can see bounded open issue/PR context and issue comments preflight their targets
 - append-only ledger and run inspection for task and radar workflows
 - read-only FastAPI endpoints for runtime, memory, and radar inspection
+- authenticated local bridge endpoints under `/bridge/v1` for hosted-app-safe task, radar, and memory operations
 - read-only auth preflight via `skylattice doctor auth` plus an explicit `skylattice doctor github-bridge` helper for GitHub token-enabled setup
+- `skylattice web status`, `web pair`, and `web connector ...` for pairing a local agent to the hosted control plane
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
+- same-repo `Next.js` web app foundation under `apps/web/` with Playful Geometric tokens, GitHub login scaffolding, pairing flows, and browser command queueing
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
@@ -136,6 +140,7 @@ Optional read-only authenticated smoke:
 python tools/run_authenticated_smoke.py --provider github
 python tools/run_authenticated_smoke.py --provider gitlab
 python tools/run_authenticated_smoke.py --provider openai
+python -m skylattice.cli web status
 ```
 
 Expected results:
@@ -146,6 +151,7 @@ Expected results:
 - `radar schedule validate` checks the latest or named radar run against tracked schedule intent and writes a local validation report for weekly-cycle review
 - `doctor auth` explains which live capabilities are still blocked by missing credentials or repo-hint setup without changing the zero-credential `doctor` surface
 - `run_authenticated_smoke.py` performs opt-in read-only checks against the live GitHub, GitLab, and OpenAI adapters when credentials are configured
+- `web status` reports whether the local machine is paired to a hosted control plane, whether local bridge auth is configured, and which local runtime capabilities remain available to the connector
 
 If you want to see the shape before using real tokens, compare your output to the redacted samples under `examples/redacted/`.
 
@@ -161,6 +167,8 @@ If you want to see the shape before using real tokens, compare your output to th
 ## Public Site
 
 - [Docs and AI-friendly landing pages](https://yscjrh.github.io/skylattice/)
+- [Web Control Plane](docs/web-control-plane.md)
+- [Hosted web app foundation](apps/web/README.md)
 - [What Is Skylattice?](docs/what-is-skylattice.md)
 - [Quick Start](docs/quickstart.md)
 - [FAQ](docs/faq.md)
@@ -235,6 +243,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/quickstart.md: canonical no-credential and token-enabled quick start
 - docs/faq.md: query-aligned public FAQ
 - docs/proof.md: proof surfaces, demo, and sample outputs
+- docs/web-control-plane.md: hosted app, pairing, connector, and local-first browser architecture
 - docs/overview.md: product narrative and positioning
 - docs/use-cases.md: who should care and what Skylattice is good for
 - docs/comparison.md: category-level comparison and positioning boundaries
@@ -266,6 +275,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 Tracked surface:
 
 - `docs/`: architecture, governance, task briefs, comparison pages, release notes, and ADRs
+- `apps/web/`: hosted web control plane, design system tokens, app routes, and pairing UX
 - `configs/`: tracked defaults, governance baselines, task validation, and radar scoring and promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions
@@ -275,6 +285,7 @@ Tracked surface:
 - `src/`: runtime code, adapters, providers, radar services, and repositories
 - `tests/`: smoke, radar, and public-readiness coverage
 - `tools/`: repo-local utility scripts such as tracked validation runners
+- `package.json`: workspace-level scripts for the hosted web app
 
 Local-only surface:
 

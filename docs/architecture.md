@@ -2,16 +2,21 @@
 
 ![Skylattice runtime architecture](assets/runtime-architecture.svg)
 
-Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface. If you want the operator-facing quick start and public-safe sample outputs first, start from [the landing page](index.md) and [proof.md](proof.md).
+Skylattice is a local-first runtime with a new dual-surface product shape. If you want the operator-facing quick start and public-safe sample outputs first, start from [the landing page](index.md) and [proof.md](proof.md).
 
 ## Current Shape
 
-Skylattice is a single-process, local-first runtime with two executable workflows sharing the same local state surface:
+Skylattice now has two cooperating product surfaces:
+
+- local runtime: the authoritative task-agent and technology-radar executor
+- hosted web control plane: sign-in, pairing, command intent, onboarding, and lightweight mirrored summaries
+
+The local runtime still owns the executable workflows:
 
 - `task-agent`: constrained repo work and GitHub triage
 - `technology-radar`: GitHub open-source discovery, bounded experimentation, guarded promotion, and rollback
 
-Both workflows share:
+Those workflows still share:
 
 - local SQLite state in `.local/state/skylattice.sqlite3`
 - append-only ledger events
@@ -34,6 +39,7 @@ Both workflows share:
 `src/skylattice/runtime/`
 
 - `TaskAgentService` is the top-level facade used by CLI and API
+- the same service facade now also supports an authenticated local web-bridge API plus a local hosted-app connector path
 - task runs and radar runs both create shadow entries in the generic `runs` table so ledger and memory can reference one shared run id surface
 - `RuntimeDatabase` owns the tracked schema for task, ledger, memory, and radar tables
 - `load_task_validation_policy()` loads tracked validation commands from `configs/task/validation.yaml`
@@ -42,7 +48,7 @@ Both workflows share:
 - radar candidates and evidence now persist provider-neutral identity fields alongside current GitHub-shaped compatibility fields
 - radar evidence kinds are normalized to provider-neutral taxonomy values on write and read
 - validation commands now carry stable ids, expected outputs, and profile membership instead of acting as a flat string allowlist
-- local memory review, export, and retrieval ranking stay CLI-first; FastAPI only exposes read surfaces for record inspection and search
+- local memory review, export, and retrieval ranking stay local-first; public API routes still expose read surfaces while `/bridge/v1` adds authenticated, versioned write-safe web operations for the hosted control plane
 
 ### Task Agent Path
 
@@ -116,7 +122,9 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 ### Execution Map
 
 - CLI entry: `src/skylattice/cli.py`
-- read-only API entry: `src/skylattice/api/app.py`
+- local API entry: `src/skylattice/api/app.py`
+- local connector entry: `src/skylattice/web/connector.py`
+- hosted app workspace: `apps/web/`
 - top-level runtime facade: `src/skylattice/runtime/service.py` via `TaskAgentService.from_repo()`
 - task-agent chain: planner/provider -> workspace/git/github adapters -> validation -> ledger and memory
 - radar chain: discovery source -> scoring -> experiment -> promotion or rollback -> ledger and memory
@@ -131,10 +139,12 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - `prompts/system/reflector.md` remains a tracked future-facing asset until a reflection runtime path exists
 - local runtime truth: `.local/state/`, `.local/memory/`, `.local/logs/`, `.local/work/`, and local radar validation exports under `.local/radar/validations/`
 - remote advisory truth: GitHub PR, issue, repository, and release state can guide planning and recovery, but does not replace local runtime state
+- hosted control-plane truth: the web app may store accounts, pairing state, command records, and lightweight summaries, but it does not replace local runtime, local memory, or local ledger truth
 
 ### Write-Permission Map
 
 - `observe`: local inspection, status, read-only API access, and advisory GitHub reads
+- authenticated hosted-app commands still resolve to the same local permission tiers; the browser does not receive a special bypass tier
 - `local-safe-write`: reversible writes under approved `.local/` roots
 - `repo-write`: tracked repository edits, branch creation, and commit steps initiated by task runs
 - `destructive-repo-write`: required in addition to `repo-write` for tracked `move_file` and `delete_file`
@@ -149,12 +159,14 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - `tests/test_memory.py`: memory record states, retrieval ranking, review flows, rollback, and export behavior
 - `tests/test_radar.py`: radar discovery contracts, scoring, scheduling, validation reports, promotion, rollback, and provider-neutral identity behavior
 - `tests/test_public_readiness.py`: public-safe tracked artifacts, release surfaces, Pages metadata, outreach files, and repo hygiene
+- `tests/test_web_bridge.py`: authenticated bridge routes, local connector config, and hosted control-plane command dispatch scaffolding
 - `tools/run_authenticated_smoke.py`: opt-in read-only validation against the live GitHub, GitLab, and OpenAI adapters when operator credentials are present
 - current test strength is contract and boundary coverage; authenticated end-to-end validation against live OpenAI and GitHub remains intentionally narrower and operator-invoked
 
 ## Key Boundaries
 
 - GitHub is a source and audit surface, not runtime truth.
+- the hosted app is a control plane, not runtime truth
 - Task-agent validation commands are constrained to tracked config, profile membership, and declared expectations; they do not grant arbitrary shell execution.
 - Current richer repo ops are still text-first and bounded: `create_file` and `copy_file` are routine repo-write steps, while `move_file` and `delete_file` require a separate destructive approval.
 - halted repo and external write steps remain operator-resumed; there is no automatic retry worker
@@ -162,6 +174,7 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - Radar promotions are limited to whitelisted tracked paths from `configs/radar/promotion.yaml`.
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
 - The runtime does not depend on GitHub or GitLab to exist, but live radar discovery depends on explicit provider credentials such as `GITHUB_TOKEN` or `GITLAB_TOKEN`.
+- the hosted app may be unavailable while the local runtime remains fully usable; the connector sync path is additive rather than authoritative
 
 ## Observability
 
@@ -171,5 +184,5 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - memory writes are attached to run ids when applicable
 - memory records can be listed, searched, exported, rolled back, and reviewed through the CLI without exposing a write API
 - radar promotions persist `promotion_id`, `source_branch`, `base_commit`, `experiment_commit`, `main_commit`, and `rollback_target`
-- `skylattice doctor` and the read-only FastAPI surface expose the current local state without enabling mutation
+- `skylattice doctor` and the public read-only FastAPI routes expose current local state, while the authenticated local bridge API exposes a narrower, versioned command surface for hosted-app integrations
 

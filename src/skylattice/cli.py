@@ -10,6 +10,7 @@ from typing import Sequence
 from skylattice.governance import PermissionTier
 from skylattice.memory.interfaces import MemoryLayer, RecordStatus
 from skylattice.runtime import TaskAgentService
+from skylattice.web import SkylatticeWebConnector
 
 MEMORY_LAYER_CHOICES = [layer.value for layer in MemoryLayer]
 MEMORY_STATUS_CHOICES = [status.value for status in RecordStatus]
@@ -50,6 +51,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Show an explicit GitHub bridge suggestion without mutating the current shell.",
     )
     doctor_bridge_parser.add_argument("--format", choices=["json", "env"], default="json")
+
+    web_parser = subparsers.add_parser("web", help="Manage the hosted web control-plane bridge and connector.")
+    web_subparsers = web_parser.add_subparsers(dest="web_command")
+    web_subparsers.add_parser("status", help="Show local web bridge and pairing status.")
+    web_pair_parser = web_subparsers.add_parser("pair", help="Claim a hosted app pairing code from the local machine.")
+    web_pair_parser.add_argument("--control-plane-url", required=True)
+    web_pair_parser.add_argument("--code", required=True)
+    web_pair_parser.add_argument("--device-label", required=True)
+    web_pair_parser.add_argument("--bridge-base-url")
+    web_connector_parser = web_subparsers.add_parser("connector", help="Run local hosted-app connector actions.")
+    web_connector_subparsers = web_connector_parser.add_subparsers(dest="web_connector_command")
+    web_connector_subparsers.add_parser("heartbeat", help="Send a single connector heartbeat.")
+    web_connector_subparsers.add_parser("once", help="Poll the hosted control plane once and execute at most one command.")
 
     task_parser = subparsers.add_parser("task", help="Run and inspect task-agent executions.")
     task_subparsers = task_parser.add_subparsers(dest="task_command")
@@ -181,6 +195,29 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return 0
             _dump(build_doctor_report())
             return 0
+
+        if args.command == "web":
+            connector = SkylatticeWebConnector(repo_root=service.repo_root, service=service)
+            if args.web_command == "status":
+                _dump(connector.status_report())
+                return 0
+            if args.web_command == "pair":
+                _dump(
+                    connector.pair(
+                        control_plane_url=args.control_plane_url,
+                        pairing_code=args.code,
+                        device_label=args.device_label,
+                        bridge_base_url=args.bridge_base_url,
+                    )
+                )
+                return 0
+            if args.web_command == "connector":
+                if args.web_connector_command == "heartbeat":
+                    _dump(connector.heartbeat())
+                    return 0
+                if args.web_connector_command == "once":
+                    _dump(connector.poll_once())
+                    return 0
 
         if args.command == "task":
             allows = set(getattr(args, "allow", []) or [])

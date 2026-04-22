@@ -34,6 +34,13 @@ Additional operator gate:
 
 - `destructive-repo-write` is not a general policy tier for routine planning; it is a second explicit approval that must accompany destructive tracked repo actions such as `move_file` and `delete_file`
 
+## Hosted Web Control Plane Guard
+
+- the hosted app can authenticate users, pair devices, and queue command intent, but it does not create a new permission tier
+- every hosted-app-triggered command still resolves to the same local governance checks inside the paired runtime
+- browser ergonomics do not authorize silent repo writes, external writes, or destructive repo actions
+- a paired connector may claim commands automatically, but any blocked or approval-gated runtime step still remains blocked until the local runtime rules allow it
+
 ## Task-Agent Validation Guard
 
 Task validation is intentionally narrow.
@@ -52,6 +59,7 @@ Recovery is explicit rather than automatic.
 - repo-write and external-write failures can be retryable, but Skylattice must surface the failing step, required approval, and side-effect risk first
 - resume-safe GitHub sync prefers branch-scoped PR reuse and deduplicated issue comments over blind replay
 - no background retry worker is allowed in the current architecture
+- the hosted control plane also does not authorize background retry bypass; connector polling may claim work, but failing steps still surface through governed local recovery
 
 ## Repo Operation Boundary
 

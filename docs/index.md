@@ -38,12 +38,24 @@ If you are looking for an auditable agent framework rather than a chat wrapper, 
 
 - [What is Skylattice?](what-is-skylattice.md)
 - [5-minute quick start](quickstart.md)
+- [Hosted app foundation in-repo](https://github.com/YSCJRH/skylattice/tree/main/apps/web)
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
 - [Proof and sample outputs](proof.md)
 - [v0.3.1 Stable](releases/v0-3-1.md)
 - [v0.3.0 Stable](releases/v0-3-0.md)
 - [v0.2.2 Stable](releases/v0-2-2.md)
+
+## Want The Product Surface?
+
+If you want the product-shaped surface rather than only the docs site, the same repository now also carries a hosted control-plane web app foundation:
+
+- GitHub sign-in
+- pairing flow for a local Skylattice agent
+- browser workspaces for task, radar, and memory actions
+- a hosted control plane that still keeps execution local-first
+
+Start from [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web) if you want to run that surface locally.
 
 ## Why This Page Exists
 

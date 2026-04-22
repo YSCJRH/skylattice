@@ -39,11 +39,22 @@ This page collects the shortest proof chain for search visitors, AI answer syste
 ## Verify Without API Keys
 
 - [Quick start](quickstart.md)
+- [Hosted app workspace](https://github.com/YSCJRH/skylattice/tree/main/apps/web)
 - [Doctor JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/doctor-output.json)
 - [Task walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.md)
 - [Task inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.json)
 - [Radar walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-sample.md)
 - [Radar inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json)
+
+## Web Product Proof
+
+The repository now also includes a hosted control-plane app foundation under [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web).
+
+That surface is intentionally additive:
+
+- sign in and pairing happen in the web app
+- command intent is queued in the hosted control plane
+- actual execution still happens on a paired local Skylattice agent
 
 ## Maintenance Signals
 

@@ -93,6 +93,8 @@ You have a believable first-run result when:
 
 ## Token-Enabled Path
 
+If you prefer a product-shaped surface over raw CLI commands, the repository now also includes a hosted control-plane app foundation under [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web). The app handles sign-in, pairing, and browser command intent, while the paired local runtime still executes the real work.
+
 PowerShell example:
 
 ```powershell
@@ -121,6 +123,7 @@ Optional read-only smoke before real task or radar runs:
 python tools/run_authenticated_smoke.py --provider github
 python tools/run_authenticated_smoke.py --provider gitlab
 python tools/run_authenticated_smoke.py --provider openai
+python -m skylattice.cli web status
 ```
 
 What that proves:
@@ -129,6 +132,7 @@ What that proves:
 - your live GitLab adapter can read project metadata without mutating anything
 - your live OpenAI adapter can complete a minimal structured response round-trip
 - your preflight report can distinguish `gh` login state from runtime-ready Skylattice credentials
+- your local connector can report whether it is paired to a hosted control plane before you try browser-triggered operations
 
 Representative commands:
 

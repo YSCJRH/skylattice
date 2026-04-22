@@ -43,6 +43,7 @@ nav:
   - Comparison: comparison.md
   - FAQ: faq.md
   - Proof: proof.md
+  - Web Control Plane: web-control-plane.md
   - Release:
       - v0.3.1 Stable: releases/v0-3-1.md
       - v0.3.0 Stable: releases/v0-3-0.md

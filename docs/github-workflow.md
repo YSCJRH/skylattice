@@ -4,13 +4,14 @@ GitHub is an important external ledger and discovery surface, but not the runtim
 
 ## Roles
 
-GitHub serves five roles in the current system:
+GitHub serves six roles in the current system:
 
 - remote audit and synchronization target for this repository
 - task-agent collaboration surface for draft PRs and issue comments
 - Windows-first CI surface for the tracked task validation baseline
 - GitHub Pages distribution layer for public docs, search-engine discovery, and AI-readable landing pages
 - technology-radar discovery surface for scanning open-source repositories and releases
+- hosted-app identity provider for the first web control-plane login flow
 
 ## What Stays Local
 
@@ -61,6 +62,7 @@ The current public CI lane is intentionally narrow.
 - default shared profile: `baseline`
 - execution helper: `tools/run_validation_suite.py`
 - public-site build check: `python -m mkdocs build --strict`
+- hosted web-app build check: `npm run web:build`
 
 This keeps the public automation aligned with the runtime boundary while also ensuring the Pages distribution layer stays buildable.
 

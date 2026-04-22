@@ -14,10 +14,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+
+      - name: Install web workspace dependencies
+        run: npm ci
+
+      - name: Build hosted web app
+        run: npm run web:build
 
       - name: Install package and test dependencies
         run: python -m pip install -e .[dev]

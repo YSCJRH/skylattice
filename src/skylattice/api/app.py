@@ -22,6 +22,11 @@ def get_task_agent_service() -> TaskAgentService:
     return TaskAgentService.from_repo()
 
 
+from .bridge import router as bridge_router  # noqa: E402
+
+app.include_router(bridge_router)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {

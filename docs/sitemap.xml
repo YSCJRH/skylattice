@@ -18,6 +18,10 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/quickstart/" />
   </url>
   <url>
+    <loc>https://yscjrh.github.io/skylattice/web-control-plane/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/web-control-plane/" />
+  </url>
+  <url>
     <loc>https://yscjrh.github.io/skylattice/use-cases/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/use-cases/" />
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/use-cases/" />
