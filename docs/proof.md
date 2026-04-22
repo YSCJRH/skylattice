@@ -45,6 +45,7 @@ This page collects the shortest proof chain for search visitors, AI answer syste
 - [Task inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/task-run-sample.json)
 - [Radar walkthrough](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-sample.md)
 - [Radar inspect JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/radar-run-sample.json)
+- [Web app preview state JSON](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/web-app-preview-state.json)
 
 ## Web Product Proof
 

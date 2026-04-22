@@ -220,6 +220,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "examples/redacted/task-run-sample.json",
         "examples/redacted/radar-sample.md",
         "examples/redacted/radar-run-sample.json",
+        "examples/redacted/web-app-preview-state.json",
     ]
     assert all((REPO_ROOT / relative_path).exists() for relative_path in required)
 

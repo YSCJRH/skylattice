@@ -35,6 +35,8 @@ Then open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
 
 This launches the same-repo `Next.js` app in a read-only preview mode with representative data already seeded for the guest session.
 
+Tracked proof data: [web-app-preview-state.json](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/web-app-preview-state.json)
+
 ## Representative Snapshot
 
 ![Representative Skylattice app preview](assets/app-preview-snapshot.svg)

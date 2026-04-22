@@ -9,11 +9,13 @@ This directory contains public-safe example outputs and walkthroughs for people 
 - `task-run-sample.json`: a sanitized `task inspect` payload with materialized edits and memory writes
 - `radar-sample.md`: a guided walkthrough of a successful radar run
 - `radar-run-sample.json`: a sanitized `radar inspect` payload with candidates, evidence, promotions, and memory
+- `web-app-preview-state.json`: a sanitized hosted-app preview state sample with representative devices, commands, pairings, and approvals
 
 ## Source Of Truth
 
 - the doctor sample is based on the real local `python -m skylattice.cli doctor` output with stable, public-safe values
 - the task and radar samples are generated from repository test doubles so they stay reproducible and do not require private credentials or real GitHub writes
+- the web app preview sample is the tracked source for the hosted control-plane demo seed data used by `npm run web:preview`
 - IDs and timestamps are normalized where helpful to keep the examples stable and easy to read
 
 ## Safe To Commit
