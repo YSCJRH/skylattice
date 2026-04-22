@@ -17,6 +17,7 @@ Public surfaces:
 - latest stable release: [v0.4.0 Stable](docs/releases/v0-4-0.md)
 - same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, authenticated control-plane UX, and a read-only demo preview path
 - easiest local first-look command: `npm run web:preview`
+- preview proof-data check: `npm run web:preview:check`
 
 ## Why Star Skylattice
 

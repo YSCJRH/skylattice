@@ -39,6 +39,8 @@ This launches the same-repo `Next.js` app in a read-only preview mode with repre
 
 Tracked proof data: [web-app-preview-state.json](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/web-app-preview-state.json)
 
+Maintainer check: `npm run web:preview:check`
+
 ## Representative Snapshot
 
 ![Representative Skylattice app preview](assets/app-preview-snapshot.svg)

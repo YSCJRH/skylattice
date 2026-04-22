@@ -16,6 +16,7 @@ This directory contains public-safe example outputs and walkthroughs for people 
 - the doctor sample is based on the real local `python -m skylattice.cli doctor` output with stable, public-safe values
 - the task and radar samples are generated from repository test doubles so they stay reproducible and do not require private credentials or real GitHub writes
 - the web app preview sample is the tracked source for the hosted control-plane demo seed data used by `npm run web:preview`
+- `python tools/check_web_preview_state.py` validates the preview sample shape before the app consumes it
 - IDs and timestamps are normalized where helpful to keep the examples stable and easy to read
 
 ## Safe To Commit

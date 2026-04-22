@@ -105,6 +105,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "tools/run_validation_suite.py",
         "tools/run_authenticated_smoke.py",
         "tools/run_web_preview.py",
+        "tools/check_web_preview_state.py",
         "package.json",
         "apps/web/README.md",
         "apps/web/package.json",
@@ -258,6 +259,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "read-only authenticated smoke",
         "same-repo hosted web app foundation",
         "npm run web:preview",
+        "npm run web:preview:check",
         "authenticated local bridge endpoints under `/bridge/v1`",
         "`skylattice web status`, `web pair`, and `web connector ...`",
     ]:
@@ -265,6 +267,7 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert '"web:preview": "python tools/run_web_preview.py dev"' in _read_text("package.json")
     assert '"web:preview:build": "python tools/run_web_preview.py build"' in _read_text("package.json")
     assert '"web:preview:start": "python tools/run_web_preview.py start"' in _read_text("package.json")
+    assert '"web:preview:check": "python tools/check_web_preview_state.py"' in _read_text("package.json")
     assert 'version = "0.4.0"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject

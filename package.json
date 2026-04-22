@@ -11,6 +11,7 @@
     "web:lint": "npm run lint --workspace apps/web",
     "web:preview": "python tools/run_web_preview.py dev",
     "web:preview:build": "python tools/run_web_preview.py build",
-    "web:preview:start": "python tools/run_web_preview.py start"
+    "web:preview:start": "python tools/run_web_preview.py start",
+    "web:preview:check": "python tools/check_web_preview_state.py"
   }
 }
