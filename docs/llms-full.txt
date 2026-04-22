@@ -7,6 +7,7 @@ High-value public pages:
 - https://yscjrh.github.io/skylattice/
 - https://yscjrh.github.io/skylattice/what-is-skylattice/
 - https://yscjrh.github.io/skylattice/quickstart/
+- https://yscjrh.github.io/skylattice/app-preview/
 - https://yscjrh.github.io/skylattice/use-cases/
 - https://yscjrh.github.io/skylattice/comparison/
 - https://yscjrh.github.io/skylattice/faq/

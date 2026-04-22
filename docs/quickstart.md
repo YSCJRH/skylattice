@@ -44,6 +44,17 @@ The zero-credential path proves the runtime boots, the tracked validation comman
 - live GitHub or GitLab discovery, or GitHub pull-request / issue-comment sync
 - whether Skylattice already fits your production workflow without further configuration
 
+## Fastest Product Preview
+
+If you want the web product surface before any live auth or pairing setup, run:
+
+```powershell
+npm install
+npm run web:preview
+```
+
+Then open [http://localhost:3000/dashboard](http://localhost:3000/dashboard). The preview is read-only and seeded with representative task, radar, memory, command, device, and approval data.
+
 ## 5-Minute No-Credential Verification
 
 1. Install the project.
@@ -145,6 +156,7 @@ Use the read-only smoke first if you want to separate credential wiring from ful
 
 ## Read Next
 
+- [App Preview](app-preview.md)
 - [Proof](proof.md)
 - [FAQ](faq.md)
 - [v0.4.0 Stable](releases/v0-4-0.md)

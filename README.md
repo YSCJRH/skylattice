@@ -168,6 +168,7 @@ If you want to see the shape before using real tokens, compare your output to th
 ## Public Site
 
 - [Docs and AI-friendly landing pages](https://yscjrh.github.io/skylattice/)
+- [App Preview](docs/app-preview.md)
 - [Web Control Plane](docs/web-control-plane.md)
 - [Hosted web app foundation](apps/web/README.md)
 - [What Is Skylattice?](docs/what-is-skylattice.md)

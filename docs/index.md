@@ -38,6 +38,7 @@ If you are looking for an auditable agent framework rather than a chat wrapper, 
 
 - [What is Skylattice?](what-is-skylattice.md)
 - [5-minute quick start](quickstart.md)
+- [App preview](app-preview.md)
 - [Hosted app foundation in-repo](https://github.com/YSCJRH/skylattice/tree/main/apps/web)
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
@@ -57,6 +58,8 @@ If you want the product-shaped surface rather than only the docs site, the same 
 - a hosted control plane that still keeps execution local-first
 
 Start from [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web) if you want to run that surface locally.
+
+If you want the shortest first-look path, open [App Preview](app-preview.md) and run `npm run web:preview`.
 
 ## Why This Page Exists
 

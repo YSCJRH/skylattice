@@ -136,6 +136,7 @@ The tracked schema is already represented through Drizzle tables, so the develop
 
 ## Related Pages
 
+- [App Preview](app-preview.md)
 - [Quick Start](quickstart.md)
 - [Proof](proof.md)
 - [Architecture](architecture.md)
