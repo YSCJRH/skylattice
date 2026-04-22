@@ -35,6 +35,10 @@ Then open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
 
 This launches the same-repo `Next.js` app in a read-only preview mode with representative data already seeded for the guest session.
 
+## Representative Snapshot
+
+![Representative Skylattice app preview](assets/app-preview-snapshot.svg)
+
 ## What You Can Inspect
 
 The preview is designed to answer one question fast: does the web product surface look credible enough to keep exploring?

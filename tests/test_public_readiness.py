@@ -160,6 +160,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/assets/doctor-snapshot.svg",
         "docs/assets/task-run-snapshot.svg",
         "docs/assets/runtime-architecture.svg",
+        "docs/assets/app-preview-snapshot.svg",
         "docs/assets/cover-hero.svg",
         "docs/assets/social-preview.svg",
         "docs/assets/social-preview.png",

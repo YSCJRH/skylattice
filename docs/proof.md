@@ -58,6 +58,8 @@ That surface is intentionally additive:
 
 If you want an initial product look without live auth or pairing, run `npm run web:preview` and browse the seeded read-only preview surface first.
 
+![Representative app preview snapshot](assets/app-preview-snapshot.svg)
+
 ## Maintenance Signals
 
 - [v0.4.0 Stable](releases/v0-4-0.md)

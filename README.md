@@ -60,6 +60,8 @@ Public surfaces:
 
 ![Runtime architecture](docs/assets/runtime-architecture.svg)
 
+![Representative app preview](docs/assets/app-preview-snapshot.svg)
+
 ## 5-Minute No-Credential Quick Start
 
 You do not need API keys to verify that the project is real.
