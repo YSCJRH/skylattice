@@ -237,6 +237,24 @@ def test_ci_and_review_templates_cover_web_preview_proof_validation() -> None:
     assert "npm run web:preview:check" in workflow_doc
 
 
+def test_theme_override_localizes_navigation_for_zh_pages() -> None:
+    override = _read_text("overrides/main.html")
+    for phrase in [
+        "window.location.pathname",
+        "What Is Skylattice?",
+        "什么是 Skylattice？",
+        "Quick Start",
+        "快速开始",
+        "App Preview",
+        "应用预览",
+        "Release",
+        "版本发布",
+        "System Docs",
+        "系统文档",
+    ]:
+        assert phrase in override
+
+
 def test_public_positioning_surfaces_are_present() -> None:
     readme = _read_text("README.md")
     pyproject = _read_text("pyproject.toml")

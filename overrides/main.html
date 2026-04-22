@@ -33,4 +33,94 @@
   {% if page and page.meta and page.meta.jsonld %}
   <script type="application/ld+json">{{ page.meta.jsonld | safe }}</script>
   {% endif %}
+  <script>
+    (() => {
+      const isChineseDocsPath = () => /(^|\/)zh(\/|$)/.test(window.location.pathname || "");
+
+      const translations = new Map([
+        ["Skip to content", "跳至内容"],
+        ["Table of contents", "目录"],
+        ["Back to top", "回到顶部"],
+        ["Home", "首页"],
+        ["What Is Skylattice?", "什么是 Skylattice？"],
+        ["Quick Start", "快速开始"],
+        ["App Preview", "应用预览"],
+        ["Use Cases", "使用场景"],
+        ["Comparison", "对比"],
+        ["FAQ", "常见问题"],
+        ["Proof", "证明材料"],
+        ["Web Control Plane", "网页控制面"],
+        ["Release", "版本发布"],
+        ["System Docs", "系统文档"],
+        ["Overview", "概览"],
+        ["Architecture", "架构"],
+        ["Governance", "治理"],
+        ["Memory Model", "记忆模型"],
+        ["Technology Radar", "技术雷达"],
+        ["Radar Scheduling", "雷达调度"],
+        ["GitHub Workflow", "GitHub 工作流"],
+        ["Roadmap", "路线图"],
+        ["Public Ops", "公共运营"],
+        ["AI Distribution Ops", "AI 分发运营"],
+        ["AI Search Benchmark", "AI 搜索基准"],
+        ["Outreach Kit", "对外素材"],
+        ["External Authority Program", "外部权威计划"],
+        ["Posting Runbook", "发布手册"],
+        ["Directory Blurbs", "目录文案"],
+        ["English Launch Draft", "英文发布草稿"],
+        ["Chinese Launch Draft", "中文发布草稿"],
+        ["Category Post Draft", "分类帖草稿"],
+        ["Distribution Targets", "分发目标"],
+        ["Community Post Drafts", "社区帖草稿"],
+        ["Chinese", "中文"],
+        ["Home (ZH)", "首页"],
+        ["What Is Skylattice? (ZH)", "什么是 Skylattice？"],
+        ["Quick Start (ZH)", "快速开始"],
+        ["App Preview (ZH)", "应用预览"],
+        ["Use Cases (ZH)", "使用场景"],
+        ["Comparison (ZH)", "对比"],
+        ["FAQ (ZH)", "常见问题"],
+        ["Proof (ZH)", "证明材料"],
+        ["v0.4.0 Stable (ZH)", "v0.4.0 稳定版"],
+        ["v0.3.1 Stable (ZH)", "v0.3.1 稳定版"],
+        ["v0.3.0 Stable (ZH)", "v0.3.0 稳定版"],
+        ["v0.2.2 Stable (ZH)", "v0.2.2 稳定版"],
+        ["Stable Baseline (ZH)", "稳定基线"],
+        ["Public Preview (ZH)", "公开预览"]
+      ]);
+
+      const applyTranslations = () => {
+        if (!isChineseDocsPath()) {
+          return;
+        }
+
+        document.querySelectorAll("a, button, label, .md-nav__title, .md-top, .md-content__button").forEach((element) => {
+          const rawText = element.textContent?.trim();
+          if (!rawText) {
+            return;
+          }
+          const translated = translations.get(rawText);
+          if (!translated) {
+            return;
+          }
+
+          if (element.childElementCount === 0) {
+            element.textContent = translated;
+            return;
+          }
+
+          const textNodes = Array.from(element.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE);
+          if (textNodes.length === 1) {
+            textNodes[0].textContent = translated;
+          }
+        });
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", applyTranslations, { once: true });
+      } else {
+        applyTranslations();
+      }
+    })();
+  </script>
 {% endblock %}
