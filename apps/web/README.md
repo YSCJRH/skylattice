@@ -54,7 +54,20 @@ npm run web:dev
 
 That mode seeds representative read-only command, device, approval, and pairing data for the guest session so the app is inspectable before live setup.
 
+If you do not want to remember the env var yourself, use the repository-level shortcut:
+
+```powershell
+npm run web:preview
+```
+
 For production-style `build` and `start` flows, set the same env var before `npm run web:build` as well, because the preview surface is compiled into the Next.js app at build time.
+
+Equivalent repository-level shortcuts:
+
+```powershell
+npm run web:preview:build
+npm run web:preview:start
+```
 
 If `SKYLATTICE_CONTROL_PLANE_DATABASE_URL` or `DATABASE_URL` is set, the app uses the Postgres-ready Drizzle/Neon backend instead of the local-file development store.
 

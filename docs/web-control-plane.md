@@ -71,13 +71,17 @@ If you only want to inspect the product shape locally before wiring OAuth, pairi
 
 ```powershell
 npm install
-$env:NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW = "1"
-npm run web:dev
+npm run web:preview
 ```
 
 That preview mode seeds representative command, device, approval, and pairing records for the guest session. It is intentionally read-only and does not turn the hosted app into runtime truth.
 
-If you package the app through `npm run web:build` and `npm run start`, set the same preview env before the build step too, because that public preview surface is compiled into the Next.js output.
+If you package the app through `npm run web:build` and `npm run start`, set the same preview env before the build step too, or use the repository-level wrappers:
+
+```powershell
+npm run web:preview:build
+npm run web:preview:start
+```
 
 ## Why Pairing Exists
 
