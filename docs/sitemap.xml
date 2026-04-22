@@ -20,6 +20,7 @@
   <url>
     <loc>https://yscjrh.github.io/skylattice/app-preview/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://yscjrh.github.io/skylattice/app-preview/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://yscjrh.github.io/skylattice/zh/app-preview/" />
   </url>
   <url>
     <loc>https://yscjrh.github.io/skylattice/web-control-plane/</loc>

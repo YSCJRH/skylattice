@@ -5,6 +5,8 @@ robots: index, follow
 alternates:
   - lang: en
     href: https://yscjrh.github.io/skylattice/app-preview/
+  - lang: zh-CN
+    href: https://yscjrh.github.io/skylattice/zh/app-preview/
 jsonld: |
   {
     "@context": "https://schema.org",

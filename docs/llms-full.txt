@@ -31,6 +31,7 @@ Chinese mirrors:
 - https://yscjrh.github.io/skylattice/zh/
 - https://yscjrh.github.io/skylattice/zh/what-is-skylattice/
 - https://yscjrh.github.io/skylattice/zh/quickstart/
+- https://yscjrh.github.io/skylattice/zh/app-preview/
 - https://yscjrh.github.io/skylattice/zh/use-cases/
 - https://yscjrh.github.io/skylattice/zh/comparison/
 - https://yscjrh.github.io/skylattice/zh/faq/
