@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { APP_BASE_URL, DOCS_URL, controlPlaneDatabaseUrl } from "@/lib/env";
 import { DEFAULT_STATE, newExpiry, nowIso, summarizeAuth, upsertPendingApproval } from "@/lib/control-plane/helpers";
 import { PostgresControlPlaneStore } from "@/lib/control-plane/postgres-store";
+import { PreviewControlPlaneStore } from "@/lib/control-plane/preview-store";
 import type {
   ApprovalRecord,
   CommandKind,
@@ -269,8 +270,8 @@ export class LocalFileControlPlaneStore implements ControlPlaneStore {
 }
 
 export function getControlPlaneStore(): ControlPlaneStore {
-  if (controlPlaneDatabaseUrl()) {
-    return new PostgresControlPlaneStore();
-  }
-  return new LocalFileControlPlaneStore();
+  const base = controlPlaneDatabaseUrl()
+    ? new PostgresControlPlaneStore()
+    : new LocalFileControlPlaneStore();
+  return new PreviewControlPlaneStore(base);
 }

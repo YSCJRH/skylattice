@@ -1,19 +1,31 @@
 import { DeviceManager } from "@/components/control-plane-panels";
-import { ButtonLink, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { getAppSession } from "@/lib/auth";
+import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { getAppSession, getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { DOCS_URL, GITHUB_REPOSITORY_URL, isGitHubAuthConfigured } from "@/lib/env";
+import { DOCS_URL, GITHUB_REPOSITORY_URL, isDemoPreviewEnabled, isGitHubAuthConfigured } from "@/lib/env";
 import Link from "next/link";
 
 export default async function SettingsPage() {
   const session = await getAppSession();
   const store = getControlPlaneStore();
   const persistence = store.describePersistence();
-  const userId = session?.user?.email || session?.user?.name || "guest@skylattice.local";
+  const userId = await getSessionUserId();
   const devices = await store.listDevices(userId);
+  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
 
   return (
     <main className="space-y-8">
+      {previewMode ? (
+        <PreviewNotice
+          title="Settings preview"
+          description="The preview keeps persistence, docs, and trust surfaces visible even before GitHub OAuth is configured. Live account and device management still require sign-in."
+          action={
+            <ButtonLink href="/signin" variant="secondary">
+              Sign in for live settings
+            </ButtonLink>
+          }
+        />
+      ) : null}
       <WorkspaceHero
         title="Settings and trust surfaces"
         description="This page makes the hosted control plane honest about auth, persistence mode, docs links, and the local-first boundaries it is intentionally not allowed to cross."
@@ -81,7 +93,7 @@ export default async function SettingsPage() {
           }
         />
       </StickerCard>
-      <DeviceManager devices={devices} />
+      <DeviceManager devices={devices} previewMode={previewMode} />
     </main>
   );
 }

@@ -8,7 +8,7 @@ type ButtonVariant = "primary" | "secondary";
 
 function buttonClassName(variant: ButtonVariant): string {
   return cx(
-    "focus-pop inline-flex min-h-12 items-center justify-center gap-3 rounded-full border-2 border-[var(--border)] px-5 py-3 text-sm font-bold tracking-[0.01em] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+    "focus-pop inline-flex min-h-12 items-center justify-center gap-3 rounded-full border-2 border-[var(--border)] px-5 py-3 text-sm font-bold tracking-[0.01em] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0",
     variant === "primary"
       ? "bg-[var(--accent)] text-[var(--accent-foreground)] shadow-[var(--shadow-hard)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[var(--shadow-hard-hover)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[var(--shadow-hard-active)]"
       : "bg-white text-[var(--foreground)] hover:bg-[var(--tertiary)]",
@@ -162,5 +162,28 @@ export function WorkspaceHero({
         <div className="flex flex-wrap gap-3">{chips}</div>
       </div>
     </section>
+  );
+}
+
+export function PreviewNotice({
+  title = "Read-only preview data",
+  description = "This surface is showing representative command, device, and approval records so you can inspect the product shape before GitHub sign-in, pairing, or a live local runtime are configured.",
+  action,
+}: {
+  title?: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <StickerCard tone="tertiary" className="px-6 py-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-3">
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Preview mode</p>
+          <h2 className="font-[family-name:var(--font-outfit)] text-2xl font-extrabold tracking-tight md:text-3xl">{title}</h2>
+          <p className="max-w-3xl text-sm leading-7 text-[var(--foreground)]">{description}</p>
+        </div>
+        {action}
+      </div>
+    </StickerCard>
   );
 }

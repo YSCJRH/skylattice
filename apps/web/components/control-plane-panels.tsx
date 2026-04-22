@@ -57,6 +57,15 @@ function CommandResultBanner({ error }: { error: string | null }) {
   );
 }
 
+function PreviewReadOnlyNote({ detail }: { detail: string }) {
+  return (
+    <div className="rounded-[20px] border-2 border-[var(--border)] bg-[color:rgba(251,191,36,0.22)] px-4 py-3 text-sm leading-7 text-[var(--foreground)]">
+      <p className="font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Preview mode</p>
+      <p className="mt-2">{detail}</p>
+    </div>
+  );
+}
+
 function useSubmissionState() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +96,7 @@ function useSubmissionState() {
   };
 }
 
-export function PairingWizard() {
+export function PairingWizard({ previewMode = false }: { previewMode?: boolean }) {
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [deviceLabel, setDeviceLabel] = useState("Primary workstation");
@@ -103,6 +112,9 @@ export function PairingWizard() {
         <p className="text-sm leading-7 text-[var(--muted-foreground)]">
           Generate a short-lived pairing code in the hosted app, then claim it locally with the CLI connector so the browser never needs direct localhost access.
         </p>
+        {previewMode ? (
+          <PreviewReadOnlyNote detail="Pairing is disabled in preview mode. Sign in with GitHub before creating a live pairing code for a real local agent." />
+        ) : null}
         <CommandResultBanner error={state.error} />
         <div className="flex flex-wrap gap-3">
           <CandyButton
@@ -114,7 +126,7 @@ export function PairingWizard() {
                 return payload;
               })
             }
-            disabled={state.pending}
+            disabled={state.pending || previewMode}
           >
             {state.pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" strokeWidth={2.5} />}
             Generate pairing code
@@ -218,7 +230,7 @@ export function PairingStatePanel({
   );
 }
 
-export function TaskCommandComposer({ devices }: { devices: PairedDevice[] }) {
+export function TaskCommandComposer({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
   const [goal, setGoal] = useState("Refresh the README and prepare a draft PR.");
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [allowRepoWrite, setAllowRepoWrite] = useState(true);
@@ -234,6 +246,9 @@ export function TaskCommandComposer({ devices }: { devices: PairedDevice[] }) {
           value={goal}
           onChange={(event) => setGoal(event.target.value)}
         />
+        {previewMode ? (
+          <PreviewReadOnlyNote detail="Task queueing is disabled in preview mode. Use this page to inspect the workflow shape first, then sign in and pair a device to send live commands." />
+        ) : null}
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm font-bold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
             Target device
@@ -276,7 +291,7 @@ export function TaskCommandComposer({ devices }: { devices: PairedDevice[] }) {
               }),
             )
           }
-          disabled={state.pending}
+          disabled={state.pending || previewMode}
         >
           {state.pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" strokeWidth={2.5} />}
           Queue task command
@@ -287,7 +302,7 @@ export function TaskCommandComposer({ devices }: { devices: PairedDevice[] }) {
   );
 }
 
-export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
+export function RadarCommandPanel({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [scheduleId, setScheduleId] = useState("weekly-github");
   const [candidateId, setCandidateId] = useState("cand-seed");
@@ -314,6 +329,9 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
             ))}
           </select>
         </label>
+        {previewMode ? (
+          <PreviewReadOnlyNote detail="Radar commands are disabled in preview mode. The seeded records below show what scans, schedule validation, replay, and rollback look like once a live device is paired." />
+        ) : null}
         <Tabs.Root defaultValue="scan">
           <Tabs.List className="flex flex-wrap gap-2">
             {["scan", "schedule", "validate", "replay", "rollback"].map((item) => (
@@ -329,7 +347,7 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
           <div className="mt-4 rounded-[24px] border-2 border-[var(--border)] bg-white p-4">
             <Tabs.Content value="scan" className="space-y-3">
               <p className="text-sm text-[var(--muted-foreground)]">Queue a manual weekly-style scan against the paired local runtime.</p>
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.scan", payload: { window: "manual", limit: 20 }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.scan", payload: { window: "manual", limit: 20 }, ...common }))}>
                 Queue radar scan
               </CandyButton>
             </Tabs.Content>
@@ -338,7 +356,7 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
                 Schedule ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={scheduleId} onChange={(event) => setScheduleId(event.target.value)} />
               </label>
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.run", payload: { scheduleId }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.run", payload: { scheduleId }, ...common }))}>
                 Queue schedule run
               </CandyButton>
             </Tabs.Content>
@@ -347,7 +365,7 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
                 Schedule ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={scheduleId} onChange={(event) => setScheduleId(event.target.value)} />
               </label>
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.validate", payload: { scheduleId }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.validate", payload: { scheduleId }, ...common }))}>
                 Validate latest scheduled run
               </CandyButton>
             </Tabs.Content>
@@ -356,7 +374,7 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
                 Candidate ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={candidateId} onChange={(event) => setCandidateId(event.target.value)} />
               </label>
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.candidate.replay", payload: { candidateId }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.candidate.replay", payload: { candidateId }, ...common }))}>
                 Replay candidate
               </CandyButton>
             </Tabs.Content>
@@ -365,7 +383,7 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
                 Promotion ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={promotionId} onChange={(event) => setPromotionId(event.target.value)} />
               </label>
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.promotion.rollback", payload: { promotionId }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.promotion.rollback", payload: { promotionId }, ...common }))}>
                 Queue rollback
               </CandyButton>
             </Tabs.Content>
@@ -378,7 +396,7 @@ export function RadarCommandPanel({ devices }: { devices: PairedDevice[] }) {
   );
 }
 
-export function MemoryCommandPanel({ devices }: { devices: PairedDevice[] }) {
+export function MemoryCommandPanel({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [query, setQuery] = useState("governance");
   const [recordId, setRecordId] = useState("record-seed");
@@ -407,6 +425,9 @@ export function MemoryCommandPanel({ devices }: { devices: PairedDevice[] }) {
             ))}
           </select>
         </label>
+        {previewMode ? (
+          <PreviewReadOnlyNote detail="Memory commands are disabled in preview mode. The seeded results show the shape of search, proposal, and review work before you connect a live local runtime." />
+        ) : null}
         <Tabs.Root defaultValue="search">
           <Tabs.List className="flex flex-wrap gap-2">
             {["search", "profile", "confirm", "reject"].map((item) => (
@@ -422,7 +443,7 @@ export function MemoryCommandPanel({ devices }: { devices: PairedDevice[] }) {
           <div className="mt-4 rounded-[24px] border-2 border-[var(--border)] bg-white p-4">
             <Tabs.Content value="search" className="space-y-3">
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={query} onChange={(event) => setQuery(event.target.value)} />
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.search", payload: { query, limit: 5 }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.search", payload: { query, limit: 5 }, ...common }))}>
                 Queue memory search
               </CandyButton>
             </Tabs.Content>
@@ -430,19 +451,19 @@ export function MemoryCommandPanel({ devices }: { devices: PairedDevice[] }) {
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={profileKey} onChange={(event) => setProfileKey(event.target.value)} />
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={profileValue} onChange={(event) => setProfileValue(event.target.value)} />
               <textarea className="focus-pop block min-h-24 w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={reason} onChange={(event) => setReason(event.target.value)} />
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.profile.propose", payload: { key: profileKey, value: profileValue, reason }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.profile.propose", payload: { key: profileKey, value: profileValue, reason }, ...common }))}>
                 Queue profile proposal
               </CandyButton>
             </Tabs.Content>
             <Tabs.Content value="confirm" className="space-y-3">
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={recordId} onChange={(event) => setRecordId(event.target.value)} />
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.confirm", payload: { recordId }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.confirm", payload: { recordId }, ...common }))}>
                 Confirm proposal
               </CandyButton>
             </Tabs.Content>
             <Tabs.Content value="reject" className="space-y-3">
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={recordId} onChange={(event) => setRecordId(event.target.value)} />
-              <CandyButton onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.reject", payload: { recordId }, ...common }))}>
+              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.reject", payload: { recordId }, ...common }))}>
                 Reject proposal
               </CandyButton>
             </Tabs.Content>
@@ -455,7 +476,7 @@ export function MemoryCommandPanel({ devices }: { devices: PairedDevice[] }) {
   );
 }
 
-export function DeviceManager({ devices }: { devices: PairedDevice[] }) {
+export function DeviceManager({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
   const [localDevices, setLocalDevices] = useState(devices);
   const state = useSubmissionState();
 
@@ -466,6 +487,9 @@ export function DeviceManager({ devices }: { devices: PairedDevice[] }) {
         <p className="text-sm leading-7 text-[var(--muted-foreground)]">
           Revoke a device if you want to cut off a connector token or move browser control to a different machine.
         </p>
+        {previewMode ? (
+          <PreviewReadOnlyNote detail="Device revocation is disabled in preview mode. These entries are representative connector records rather than live devices attached to your account." />
+        ) : null}
         <CommandResultBanner error={state.error} />
         <div className="space-y-3">
           {localDevices.length ? (
@@ -495,7 +519,7 @@ export function DeviceManager({ devices }: { devices: PairedDevice[] }) {
                         return payload;
                       })
                     }
-                    disabled={state.pending}
+                    disabled={state.pending || previewMode}
                   >
                     {state.pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" strokeWidth={2.5} />}
                     Revoke
@@ -557,7 +581,7 @@ export function DeviceReadinessPanel({ devices }: { devices: PairedDevice[] }) {
   );
 }
 
-export function ApprovalManager({ approvals }: { approvals: ApprovalRecord[] }) {
+export function ApprovalManager({ approvals, previewMode = false }: { approvals: ApprovalRecord[]; previewMode?: boolean }) {
   const [localApprovals, setLocalApprovals] = useState(approvals);
   const state = useSubmissionState();
 
@@ -568,6 +592,9 @@ export function ApprovalManager({ approvals }: { approvals: ApprovalRecord[] }) 
         <p className="text-sm leading-7 text-white">
           The hosted app can reflect approval pressure, but resolving it here still only closes the control-plane reminder. It does not bypass local runtime enforcement.
         </p>
+        {previewMode ? (
+          <PreviewReadOnlyNote detail="Approval reminders are read-only in preview mode. Sign in and pair a real device before managing live governance pressure from the browser." />
+        ) : null}
         <CommandResultBanner error={state.error} />
         <div className="space-y-3">
           {localApprovals.length ? (
@@ -585,7 +612,7 @@ export function ApprovalManager({ approvals }: { approvals: ApprovalRecord[] }) 
                         return payload;
                       })
                     }
-                    disabled={state.pending}
+                    disabled={state.pending || previewMode}
                   >
                     {state.pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />}
                     Resolve reminder

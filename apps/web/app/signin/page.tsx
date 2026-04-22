@@ -1,15 +1,27 @@
 import Link from "next/link";
 
-import { ButtonLink, SectionHeading, StickerCard, StatusChip } from "@/components/ui";
+import { ButtonLink, PreviewNotice, SectionHeading, StickerCard, StatusChip } from "@/components/ui";
 import { getAppSession } from "@/lib/auth";
-import { isGitHubAuthConfigured } from "@/lib/env";
+import { isDemoPreviewEnabled, isGitHubAuthConfigured } from "@/lib/env";
 
 export default async function SignInPage() {
   const session = await getAppSession();
   const configured = isGitHubAuthConfigured();
+  const demoPreview = isDemoPreviewEnabled();
 
   return (
     <main className="space-y-8">
+      {demoPreview && !session?.user ? (
+        <PreviewNotice
+          title="Preview first, then sign in when you want live control."
+          description="The app can expose a seeded read-only preview for first-look evaluation. GitHub sign-in is still required before queueing real commands, creating pairing codes, or managing live devices."
+          action={
+            <ButtonLink href="/dashboard" variant="secondary">
+              Open preview dashboard
+            </ButtonLink>
+          }
+        />
+      ) : null}
       <SectionHeading
         eyebrow="Identity"
         title="Sign in to the hosted control plane."

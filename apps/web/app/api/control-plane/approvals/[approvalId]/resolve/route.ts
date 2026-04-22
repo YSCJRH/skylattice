@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSessionUserId } from "@/lib/auth";
+import { getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
 
 export async function POST(
@@ -8,6 +8,15 @@ export async function POST(
   context: { params: Promise<{ approvalId: string }> },
 ) {
   const userId = await getSessionUserId();
+  if (isGuestUserId(userId)) {
+    return NextResponse.json(
+      {
+        status: "blocked",
+        error: "GitHub sign-in is required before resolving live approval reminders.",
+      },
+      { status: 401 },
+    );
+  }
   const { approvalId } = await context.params;
   try {
     const approval = await getControlPlaneStore().resolveApproval(userId, approvalId);

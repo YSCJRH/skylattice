@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getSessionUserId } from "@/lib/auth";
+import { getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
 import type { CommandKind } from "@/lib/control-plane/types";
 
@@ -12,11 +12,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const userId = await getSessionUserId();
-  if (userId === "guest@skylattice.local") {
+  if (isGuestUserId(userId)) {
     return NextResponse.json(
       {
         status: "blocked",
-        error: "GitHub sign-in is required before queueing commands.",
+        error: "GitHub sign-in is required before queueing live commands.",
       },
       { status: 401 },
     );

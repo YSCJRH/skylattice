@@ -15,7 +15,7 @@ Public surfaces:
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
 - latest stable release: [v0.4.0 Stable](docs/releases/v0-4-0.md)
-- same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, and authenticated control-plane UX
+- same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, authenticated control-plane UX, and a read-only demo preview path
 
 ## Why Star Skylattice
 

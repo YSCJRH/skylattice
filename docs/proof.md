@@ -56,6 +56,8 @@ That surface is intentionally additive:
 - command intent is queued in the hosted control plane
 - actual execution still happens on a paired local Skylattice agent
 
+If you want an initial product look without live auth or pairing, run the app locally with `NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW=1` and browse the seeded read-only preview surface first.
+
 ## Maintenance Signals
 
 - [v0.4.0 Stable](releases/v0-4-0.md)

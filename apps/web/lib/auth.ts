@@ -3,6 +3,8 @@ import GitHubProvider from "next-auth/providers/github";
 
 import { isGitHubAuthConfigured } from "@/lib/env";
 
+export const GUEST_USER_ID = "guest@skylattice.local";
+
 const providers = isGitHubAuthConfigured()
   ? [
       GitHubProvider({
@@ -23,10 +25,17 @@ export const authOptions: NextAuthOptions = {
 };
 
 export async function getAppSession() {
+  if (!isGitHubAuthConfigured()) {
+    return null;
+  }
   return getServerSession(authOptions);
 }
 
 export async function getSessionUserId(): Promise<string> {
   const session = await getAppSession();
-  return session?.user?.email || session?.user?.name || "guest@skylattice.local";
+  return session?.user?.email || session?.user?.name || GUEST_USER_ID;
+}
+
+export function isGuestUserId(userId: string): boolean {
+  return userId === GUEST_USER_ID;
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSessionUserId } from "@/lib/auth";
+import { getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
 
 export async function DELETE(
@@ -8,6 +8,15 @@ export async function DELETE(
   context: { params: Promise<{ deviceId: string }> },
 ) {
   const userId = await getSessionUserId();
+  if (isGuestUserId(userId)) {
+    return NextResponse.json(
+      {
+        status: "blocked",
+        error: "GitHub sign-in is required before revoking live devices.",
+      },
+      { status: 401 },
+    );
+  }
   const { deviceId } = await context.params;
   try {
     const result = await getControlPlaneStore().revokeDevice(userId, deviceId);

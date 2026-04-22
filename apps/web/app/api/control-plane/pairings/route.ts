@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSessionUserId } from "@/lib/auth";
+import { getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
 
 export async function GET() {
@@ -11,11 +11,11 @@ export async function GET() {
 
 export async function POST() {
   const userId = await getSessionUserId();
-  if (userId === "guest@skylattice.local") {
+  if (isGuestUserId(userId)) {
     return NextResponse.json(
       {
         status: "blocked",
-        error: "GitHub sign-in is required before creating a pairing code.",
+        error: "GitHub sign-in is required before creating a live pairing code.",
       },
       { status: 401 },
     );

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 
-import { AppWordmark, PageFrame } from "@/components/ui";
+import { AppWordmark, PageFrame, StatusChip } from "@/components/ui";
 import { getAppSession } from "@/lib/auth";
-import { DOCS_URL, GITHUB_REPOSITORY_URL } from "@/lib/env";
+import { DOCS_URL, GITHUB_REPOSITORY_URL, isDemoPreviewEnabled } from "@/lib/env";
 
 import "./globals.css";
 
@@ -37,6 +37,7 @@ const navigation = [
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getAppSession();
+  const demoPreview = isDemoPreviewEnabled();
 
   return (
     <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable}`}>
@@ -62,6 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 ))}
               </nav>
               <div className="flex flex-wrap items-center gap-2">
+                {demoPreview && !session?.user ? <StatusChip tone="tertiary">preview</StatusChip> : null}
                 <Link href={DOCS_URL} className="hidden rounded-full border-2 border-[var(--border)] px-4 py-2 text-sm font-bold hover:bg-[var(--tertiary)] lg:inline-flex">
                   Docs
                 </Link>

@@ -13,3 +13,8 @@ export function controlPlaneStatePath(): string {
 export function controlPlaneDatabaseUrl(): string | null {
   return process.env.SKYLATTICE_CONTROL_PLANE_DATABASE_URL || process.env.DATABASE_URL || null;
 }
+
+export function isDemoPreviewEnabled(): boolean {
+  const value = process.env.NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW || process.env.SKYLATTICE_DEMO_PREVIEW || "";
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}

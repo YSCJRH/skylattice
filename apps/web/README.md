@@ -43,6 +43,18 @@ npm run web:dev
 - `DATABASE_URL`
 - `NEXT_PUBLIC_SKYLATTICE_APP_URL`
 - `NEXT_PUBLIC_SKYLATTICE_DOCS_URL`
+- `NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW`
+
+If you want a first-look product preview without GitHub OAuth, pairing, or a live local agent, set:
+
+```powershell
+$env:NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW = "1"
+npm run web:dev
+```
+
+That mode seeds representative read-only command, device, approval, and pairing data for the guest session so the app is inspectable before live setup.
+
+For production-style `build` and `start` flows, set the same env var before `npm run web:build` as well, because the preview surface is compiled into the Next.js app at build time.
 
 If `SKYLATTICE_CONTROL_PLANE_DATABASE_URL` or `DATABASE_URL` is set, the app uses the Postgres-ready Drizzle/Neon backend instead of the local-file development store.
 

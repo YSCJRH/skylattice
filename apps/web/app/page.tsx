@@ -1,7 +1,7 @@
 import { ArrowRight, GitBranch, NotebookText, ShieldCheck } from "lucide-react";
 
-import { ButtonLink, PageFrame, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { DOCS_URL } from "@/lib/env";
+import { ButtonLink, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { DOCS_URL, isDemoPreviewEnabled } from "@/lib/env";
 
 const productCards = [
   {
@@ -25,6 +25,8 @@ const productCards = [
 ];
 
 export default function HomePage() {
+  const demoPreview = isDemoPreviewEnabled();
+
   return (
     <main className="space-y-12">
       <WorkspaceHero
@@ -47,7 +49,16 @@ export default function HomePage() {
               eyebrow="Public app surface"
               title="Stable grid, wild decoration, and operator-grade clarity."
               description="The app uses a playful geometric system on purpose: big shapes, hard shadows, strong borders, and lively motion for the marketing shell; calmer structured surfaces once you enter the authenticated workspaces."
-              action={<ButtonLink href="/signin">Sign in with GitHub</ButtonLink>}
+              action={
+                <div className="flex flex-wrap gap-3">
+                  {demoPreview ? (
+                    <ButtonLink href="/dashboard" variant="secondary">
+                      Preview the app
+                    </ButtonLink>
+                  ) : null}
+                  <ButtonLink href="/signin">Sign in with GitHub</ButtonLink>
+                </div>
+              }
             />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-[24px] border-2 border-[var(--border)] bg-white px-5 py-4 shadow-[var(--shadow-hard)]">
@@ -63,17 +74,29 @@ export default function HomePage() {
         </StickerCard>
 
         <StickerCard tone="quaternary" className="px-8 py-8 md:px-10">
-          <div className="space-y-4">
-            <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Start path</p>
-            <h2 className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold tracking-tight">From docs visitor to signed-in operator.</h2>
-            <ol className="space-y-4 text-sm leading-7 text-[var(--foreground)]">
-              <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">1. Land on docs, proof, or release surfaces and trust the product story.</li>
-              <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">2. Sign in with GitHub and generate a short-lived pairing code.</li>
-              <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">3. Claim that pairing from your local connector and start queuing governed work.</li>
-            </ol>
-            <ButtonLink href="/connect" variant="secondary">
-              Explore pairing flow
-            </ButtonLink>
+            <div className="space-y-4">
+              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Start path</p>
+              <h2 className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold tracking-tight">From docs visitor to signed-in operator.</h2>
+              <ol className="space-y-4 text-sm leading-7 text-[var(--foreground)]">
+                {demoPreview ? (
+                  <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">
+                    0. Open the demo preview first if you want to inspect the product shape before configuring auth or a paired local agent.
+                  </li>
+                ) : null}
+                <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">1. Land on docs, proof, or release surfaces and trust the product story.</li>
+                <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">2. Sign in with GitHub and generate a short-lived pairing code.</li>
+                <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">3. Claim that pairing from your local connector and start queuing governed work.</li>
+              </ol>
+            <div className="flex flex-wrap gap-3">
+              {demoPreview ? (
+                <ButtonLink href="/dashboard" variant="secondary">
+                  Open preview dashboard
+                </ButtonLink>
+              ) : null}
+              <ButtonLink href="/connect" variant="secondary">
+                Explore pairing flow
+              </ButtonLink>
+            </div>
           </div>
         </StickerCard>
       </section>

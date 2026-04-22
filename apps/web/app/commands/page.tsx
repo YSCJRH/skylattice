@@ -1,8 +1,9 @@
 import Link from "next/link";
 
-import { SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId } from "@/lib/auth";
+import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { isDemoPreviewEnabled } from "@/lib/env";
 import type { CommandRecord } from "@/lib/control-plane/types";
 
 type ScopeFilter = "all" | "task" | "radar" | "memory";
@@ -73,6 +74,7 @@ export default async function CommandsPage({
 }) {
   const userId = await getSessionUserId();
   const commands = await getControlPlaneStore().listCommands(userId);
+  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
   const params = await searchParams;
   const scope = (["all", "task", "radar", "memory"].includes(params.scope || "") ? params.scope : "all") as ScopeFilter;
   const status = (["all", "queued", "claimed", "succeeded", "failed"].includes(params.status || "") ? params.status : "all") as StatusFilter;
@@ -80,6 +82,17 @@ export default async function CommandsPage({
 
   return (
     <main className="space-y-8">
+      {previewMode ? (
+        <PreviewNotice
+          title="Command ledger preview"
+          description="These command records are representative preview data so first-time evaluators can inspect the control-plane shape before creating a live account or pairing a local device."
+          action={
+            <ButtonLink href="/signin" variant="secondary">
+              Sign in for live commands
+            </ButtonLink>
+          }
+        />
+      ) : null}
       <WorkspaceHero
         title="Command ledger"
         description="A dedicated drill-down surface for every control-plane command record, regardless of whether it came from tasks, radar, memory, or onboarding."

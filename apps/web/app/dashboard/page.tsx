@@ -2,16 +2,27 @@ import { CheckCircle2, Clock3, Cpu, Link2 } from "lucide-react";
 import Link from "next/link";
 
 import { ApprovalManager, DeviceReadinessPanel } from "@/components/control-plane-panels";
-import { ButtonLink, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId } from "@/lib/auth";
+import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { getSessionUserId, isGuestUserId } from "@/lib/auth";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { isDemoPreviewEnabled } from "@/lib/env";
 
 export default async function DashboardPage() {
   const userId = await getSessionUserId();
   const snapshot = await getControlPlaneStore().getDashboardSnapshot(userId);
+  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
 
   return (
     <main className="space-y-8">
+      {previewMode ? (
+        <PreviewNotice
+          action={
+            <ButtonLink href="/signin" variant="secondary">
+              Sign in for live control
+            </ButtonLink>
+          }
+        />
+      ) : null}
       <WorkspaceHero
         title="Hosted control plane overview"
         description="This dashboard shows what the app can currently see: paired devices, recent command records, pending approvals, and whether your control-plane store is alive."
@@ -124,7 +135,7 @@ export default async function DashboardPage() {
         </StickerCard>
       </section>
       <DeviceReadinessPanel devices={snapshot.devices} />
-      <ApprovalManager approvals={snapshot.pendingApprovals} />
+      <ApprovalManager approvals={snapshot.pendingApprovals} previewMode={previewMode} />
     </main>
   );
 }

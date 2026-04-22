@@ -59,10 +59,25 @@ The hosted app adds:
 
 - a public app home
 - a sign-in flow
+- an optional read-only preview mode for first-look evaluation before auth and pairing
 - a dashboard
 - task, radar, and memory workspaces
 - a connect / pairing flow
 - settings for identity, pairing state, and runtime readiness
+
+## First-Look Preview
+
+If you only want to inspect the product shape locally before wiring OAuth, pairing, or a live connector, the web workspace also supports a read-only preview mode:
+
+```powershell
+npm install
+$env:NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW = "1"
+npm run web:dev
+```
+
+That preview mode seeds representative command, device, approval, and pairing records for the guest session. It is intentionally read-only and does not turn the hosted app into runtime truth.
+
+If you package the app through `npm run web:build` and `npm run start`, set the same preview env before the build step too, because that public preview surface is compiled into the Next.js output.
 
 ## Why Pairing Exists
 
