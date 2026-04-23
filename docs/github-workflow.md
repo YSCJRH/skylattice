@@ -12,6 +12,7 @@ GitHub serves six roles in the current system:
 - GitHub Pages distribution layer for public docs, search-engine discovery, and AI-readable landing pages
 - technology-radar discovery surface for scanning open-source repositories and releases
 - hosted-app identity provider for the first web control-plane login flow
+- public feedback surface for Hosted Alpha onboarding, comparison, and first-run signal
 
 ## What Stays Local
 
@@ -77,6 +78,7 @@ Phase 5 closeout keeps the validation story explicit.
 - `python tools/run_authenticated_smoke.py --provider github` and `--provider openai` are opt-in read-only checks outside the public CI lane
 - if a credential-dependent check is not run, record it as `skipped` or `blocked` instead of treating a green CI run as proof that the live adapter path passed
 - current onboarding-feedback issues remain a supporting signal for docs and positioning work, not a release gate for Phase 5 operational closure
+- issues `#2`, `#3`, and `#4` are now also explicit Hosted Alpha acceptance inputs for first-run friction, comparison clarity, and post-release onboarding feedback
 
 ## GitHub Pages As A Distribution Layer
 

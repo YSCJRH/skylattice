@@ -1,24 +1,33 @@
 import { ApprovalManager } from "@/components/control-plane-panels";
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { isDemoPreviewEnabled } from "@/lib/env";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
+import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
 
 export default async function ApprovalsPage() {
-  const userId = await getSessionUserId();
-  const approvals = await getControlPlaneStore().listApprovals(userId);
+  const context = await getControlPlanePageContext();
+  const { snapshot, previewMode, blocked, readiness } = context;
+  const approvals = snapshot.pendingApprovals;
   const pending = approvals.filter((item) => item.status === "pending");
-  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="Approval visibility is part of the live operating surface, but a Hosted Alpha deployment must be fully configured before this page should handle real reminders."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Review hosted alpha blockers
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           title="Approval visibility preview"
           description="The preview keeps governance reminders visible without pretending a guest session can resolve live approval pressure from a real local runtime."
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live approvals
+              Sign in for Hosted Alpha approvals
             </ButtonLink>
           }
         />
@@ -39,7 +48,7 @@ export default async function ApprovalsPage() {
         title="Approval reminders deserve their own page."
         description="Use this surface when you need to review blocked or failed command pressure without mixing it into task, radar, or memory workspaces."
       />
-      <ApprovalManager approvals={pending} previewMode={previewMode} />
+      <ApprovalManager approvals={pending} previewMode={previewMode || blocked} />
     </main>
   );
 }

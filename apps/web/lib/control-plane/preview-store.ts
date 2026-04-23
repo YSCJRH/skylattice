@@ -119,7 +119,7 @@ export class PreviewControlPlaneStore implements ControlPlaneStore {
     return this.base.resolveApproval(userId, approvalId);
   }
 
-  describePersistence(): { backend: "local-file" | "postgres"; statePath: string; appBaseUrl: string } {
+  describePersistence(): ReturnType<ControlPlaneStore["describePersistence"]> {
     return this.base.describePersistence();
   }
 }

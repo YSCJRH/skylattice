@@ -1,6 +1,13 @@
+@import "@fontsource/outfit/700.css";
+@import "@fontsource/outfit/800.css";
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
 @import "tailwindcss";
 
 :root {
+  --font-outfit: "Outfit", system-ui, sans-serif;
+  --font-plus-jakarta-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --background: #fffdf5;
   --foreground: #1e293b;
   --muted: #f1f5f9;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSessionUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 
 export async function GET(
   _request: Request,
@@ -9,8 +9,12 @@ export async function GET(
 ) {
   const userId = await getSessionUserId();
   const { commandId } = await context.params;
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
   try {
-    const command = await getControlPlaneStore().getCommand(userId, commandId);
+    const command = await routed.store.getCommand(userId, commandId);
     return NextResponse.json({ command });
   } catch (error) {
     return NextResponse.json(

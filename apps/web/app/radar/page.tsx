@@ -1,25 +1,35 @@
 import { RadarCommandPanel } from "@/components/control-plane-panels";
 import { CommandHistoryPanel } from "@/components/command-history";
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { isDemoPreviewEnabled } from "@/lib/env";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
+import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
+import { toPublicDevices } from "@/lib/control-plane/public";
 
 export default async function RadarPage() {
-  const userId = await getSessionUserId();
-  const snapshot = await getControlPlaneStore().getDashboardSnapshot(userId);
+  const context = await getControlPlanePageContext();
+  const { snapshot, previewMode, blocked, readiness } = context;
   const radarCommands = snapshot.commands.filter((command) => command.kind.startsWith("radar."));
-  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
+  const devices = toPublicDevices(snapshot.devices);
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="The radar workspace can only become a real Hosted Alpha surface after the deployment is using public app auth and Postgres-backed control-plane state."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Review deployment blockers
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           title="Radar workspace preview"
           description="The preview keeps radar scans, schedule validation, and rollback surfaces visible without pretending the browser can drive live promotion before a real local runtime is connected."
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live radar control
+              Sign in for Hosted Alpha radar control
             </ButtonLink>
           }
         />
@@ -42,7 +52,7 @@ export default async function RadarPage() {
         description="The hosted app can queue radar work without turning GitHub or the control plane into runtime truth."
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <RadarCommandPanel devices={snapshot.devices} previewMode={previewMode} />
+        <RadarCommandPanel devices={devices} previewMode={previewMode || blocked} />
         <CommandHistoryPanel
           title="Latest radar outcomes"
           description="Scans, validations, replays, and rollbacks leave a visible command trail in the app even though the real work happens on the local agent."

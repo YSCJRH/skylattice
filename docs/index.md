@@ -39,6 +39,7 @@ If you are looking for an auditable agent framework rather than a chat wrapper, 
 - [What is Skylattice?](what-is-skylattice.md)
 - [5-minute quick start](quickstart.md)
 - [App preview](app-preview.md)
+- [Hosted Alpha runbook](ops/hosted-alpha-runbook.md)
 - [Hosted app foundation in-repo](https://github.com/YSCJRH/skylattice/tree/main/apps/web)
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
@@ -56,6 +57,12 @@ If you want the product-shaped surface rather than only the docs site, the same 
 - pairing flow for a local Skylattice agent
 - browser workspaces for task, radar, and memory actions
 - a hosted control plane that still keeps execution local-first
+
+Preview and live Hosted Alpha are intentionally separate:
+
+- `App Preview` is the read-only first-look path
+- `Hosted Alpha` is the real public app URL plus GitHub sign-in, pairing, and command lifecycle
+- the local agent remains the executor in both cases
 
 Start from [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web) if you want to run that surface locally.
 

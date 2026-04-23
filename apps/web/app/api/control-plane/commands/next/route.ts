@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 
 function connectorToken(request: NextRequest): string {
   return request.headers.get("x-skylattice-connector-token") || "";
@@ -11,8 +11,12 @@ export async function GET(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ status: "error", error: "Missing connector token." }, { status: 401 });
   }
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
   try {
-    const command = await getControlPlaneStore().claimNextCommand(token);
+    const command = await routed.store.claimNextCommand(token);
     return NextResponse.json({ status: "ok", command });
   } catch (error) {
     return NextResponse.json(

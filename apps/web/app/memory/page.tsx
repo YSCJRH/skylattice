@@ -1,25 +1,35 @@
 import { MemoryCommandPanel } from "@/components/control-plane-panels";
 import { CommandHistoryPanel } from "@/components/command-history";
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { isDemoPreviewEnabled } from "@/lib/env";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
+import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
+import { toPublicDevices } from "@/lib/control-plane/public";
 
 export default async function MemoryPage() {
-  const userId = await getSessionUserId();
-  const snapshot = await getControlPlaneStore().getDashboardSnapshot(userId);
+  const context = await getControlPlanePageContext();
+  const { snapshot, previewMode, blocked, readiness } = context;
   const memoryCommands = snapshot.commands.filter((command) => command.kind.startsWith("memory."));
-  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
+  const devices = toPublicDevices(snapshot.devices);
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="The memory workspace can render, but live browser-triggered memory actions need the Hosted Alpha deployment to be fully configured first."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Open deployment settings
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           title="Memory workspace preview"
           description="This preview exposes representative search, proposal, and review records so the browser-side memory workflow is legible before you connect a live local memory store."
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live memory actions
+              Sign in for Hosted Alpha memory actions
             </ButtonLink>
           }
         />
@@ -41,7 +51,7 @@ export default async function MemoryPage() {
         description="The app can request memory actions, but it does not dissolve the local review boundary that already governs profile, semantic, and procedural changes."
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <MemoryCommandPanel devices={snapshot.devices} previewMode={previewMode} />
+        <MemoryCommandPanel devices={devices} previewMode={previewMode || blocked} />
         <CommandHistoryPanel
           title="Latest memory results"
           description="Searches, proposals, confirms, and rejects stay visible here so the browser feels like a real workspace instead of a one-shot form."

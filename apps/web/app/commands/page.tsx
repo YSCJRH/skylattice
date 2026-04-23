@@ -1,9 +1,7 @@
 import Link from "next/link";
 
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { isDemoPreviewEnabled } from "@/lib/env";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { getControlPlaneCommandsForPage, getControlPlanePageContext } from "@/lib/control-plane/page-context";
 import type { CommandRecord } from "@/lib/control-plane/types";
 
 type ScopeFilter = "all" | "task" | "radar" | "memory";
@@ -72,9 +70,9 @@ export default async function CommandsPage({
 }: {
   searchParams: Promise<{ scope?: string; status?: string }>;
 }) {
-  const userId = await getSessionUserId();
-  const commands = await getControlPlaneStore().listCommands(userId);
-  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
+  const context = await getControlPlanePageContext();
+  const { previewMode, blocked, readiness } = context;
+  const commands = await getControlPlaneCommandsForPage(context);
   const params = await searchParams;
   const scope = (["all", "task", "radar", "memory"].includes(params.scope || "") ? params.scope : "all") as ScopeFilter;
   const status = (["all", "queued", "claimed", "succeeded", "failed"].includes(params.status || "") ? params.status : "all") as StatusFilter;
@@ -82,13 +80,24 @@ export default async function CommandsPage({
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="The command ledger becomes a real Hosted Alpha operating surface only after the live deployment is using public app auth and Postgres-backed control-plane state."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Review hosted alpha blockers
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           title="Command ledger preview"
           description="These command records are representative preview data so first-time evaluators can inspect the control-plane shape before creating a live account or pairing a local device."
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live commands
+              Sign in for Hosted Alpha commands
             </ButtonLink>
           }
         />

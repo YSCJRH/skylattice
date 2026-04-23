@@ -55,6 +55,8 @@ npm run web:preview
 
 Then open [http://localhost:3000/dashboard](http://localhost:3000/dashboard). The preview is read-only and seeded with representative task, radar, memory, command, device, and approval data.
 
+That preview is deliberately different from Hosted Alpha live usage. Hosted Alpha adds a real public app URL, GitHub sign-in, real pairing, and Postgres-backed control-plane state, while the local agent still executes the work.
+
 ## 5-Minute No-Credential Verification
 
 1. Install the project.
@@ -104,7 +106,7 @@ You have a believable first-run result when:
 
 ## Token-Enabled Path
 
-If you prefer a product-shaped surface over raw CLI commands, the repository now also includes a hosted control-plane app foundation under [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web). The app handles sign-in, pairing, and browser command intent, while the paired local runtime still executes the real work.
+If you prefer a product-shaped surface over raw CLI commands, the repository now also includes a hosted control-plane app foundation under [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web). The app handles sign-in, pairing, and browser command intent, while the paired local runtime still executes the real work. For the public deployment contract, use [Hosted Alpha Runbook](ops/hosted-alpha-runbook.md).
 
 PowerShell example:
 

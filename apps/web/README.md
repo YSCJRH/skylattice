@@ -41,8 +41,10 @@ npm run web:dev
 - `SKYLATTICE_CONTROL_PLANE_STATE_PATH`
 - `SKYLATTICE_CONTROL_PLANE_DATABASE_URL`
 - `DATABASE_URL`
+- `SKYLATTICE_HOSTED_ALPHA`
 - `NEXT_PUBLIC_SKYLATTICE_APP_URL`
 - `NEXT_PUBLIC_SKYLATTICE_DOCS_URL`
+- `NEXTAUTH_URL`
 - `NEXT_PUBLIC_SKYLATTICE_DEMO_PREVIEW`
 
 If you want a first-look product preview without GitHub OAuth, pairing, or a live local agent, set:
@@ -70,6 +72,38 @@ npm run web:preview:start
 ```
 
 If `SKYLATTICE_CONTROL_PLANE_DATABASE_URL` or `DATABASE_URL` is set, the app uses the Postgres-ready Drizzle/Neon backend instead of the local-file development store.
+
+## Hosted Alpha Deployment Contract
+
+The first public hosted target is:
+
+- `Vercel` for hosting
+- `Neon Postgres` for control-plane persistence
+- `GitHub OAuth` for browser sign-in
+- repo-local `@fontsource/*` packages so builds do not depend on live Google Fonts fetches
+
+Use [`.env.example`](./.env.example) as the canonical env template.
+
+Important guardrail:
+
+- local preview and local development may use the `local-file` control-plane backend
+- Hosted Alpha must use `postgres`
+- if Hosted Alpha mode is active without `DATABASE_URL`, the app now enters a blocked state instead of silently falling back to local-file persistence
+- the app shell now distinguishes `Preview`, `Local development`, `Hosted Alpha blocked`, and real paired control so operators do not confuse a local surface with a public deployment
+
+That guardrail exists so a public deployment does not impersonate a credible hosted product while actually storing state in a local development JSON file.
+
+For the tracked deployment checklist, use [Hosted Alpha Runbook](https://github.com/YSCJRH/skylattice/blob/main/docs/ops/hosted-alpha-runbook.md).
+
+Helpful repository-level commands:
+
+```powershell
+npm run web:hosted-alpha:check
+npm run web:hosted-alpha:bootstrap
+```
+
+- `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when required env is missing
+- `web:hosted-alpha:bootstrap` applies the tracked SQL bootstrap under `apps/web/sql/hosted-alpha-bootstrap.sql` to `DATABASE_URL`
 
 ## Local Connector
 

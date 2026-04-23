@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 
 function connectorToken(request: NextRequest): string {
   return request.headers.get("x-skylattice-connector-token") || "";
@@ -20,8 +20,12 @@ export async function POST(
     result?: Record<string, unknown>;
     error?: string | null;
   };
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
   try {
-    const command = await getControlPlaneStore().recordCommandResult(token, commandId, {
+    const command = await routed.store.recordCommandResult(token, commandId, {
       status: payload.status || "succeeded",
       result: payload.result,
       error: payload.error,

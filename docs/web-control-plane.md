@@ -55,11 +55,19 @@ Skylattice now has two deliberate surfaces:
 
 The public docs site remains the canonical explanation and discoverability layer.
 
+The cleanest way to think about the product now is:
+
+- `Docs`: what the system is and why the boundary exists
+- `Preview`: local read-only first-look evaluation
+- `Hosted Alpha`: real sign-in, pairing, and command lifecycle
+- `Local Agent`: the actual executor and governance boundary
+
 The hosted app adds:
 
 - a public app home
 - a sign-in flow
 - an optional read-only preview mode for first-look evaluation before auth and pairing
+- a production-style Hosted Alpha path for real sign-in, pairing, and command lifecycle
 - a dashboard
 - task, radar, and memory workspaces
 - a connect / pairing flow
@@ -97,6 +105,19 @@ Instead:
 
 This keeps the browser, hosted app, and local runtime cleanly separated.
 
+## Hosted Alpha Deployment Contract
+
+The first real hosted target is intentionally narrow:
+
+- `Vercel` for the public app URL
+- `Neon Postgres` for hosted control-plane state
+- `GitHub OAuth` for sign-in
+- one or more paired local Skylattice agents per personal account
+
+This is still a control plane, not a hosted runtime.
+
+See the tracked deployment checklist in [ops/hosted-alpha-runbook.md](ops/hosted-alpha-runbook.md).
+
 ## What Stays Local
 
 - private memory records
@@ -118,6 +139,7 @@ The hosted app should not become a shadow memory store.
 ## Current Repository Surfaces
 
 - web app workspace: [apps/web/README.md](https://github.com/YSCJRH/skylattice/tree/main/apps/web)
+- Hosted Alpha env template: [apps/web/.env.example](https://github.com/YSCJRH/skylattice/blob/main/apps/web/.env.example)
 - local bridge API: `src/skylattice/api/bridge.py`
 - local connector commands:
   - `python -m skylattice.cli web status`
@@ -127,17 +149,25 @@ The hosted app should not become a shadow memory store.
 
 ## Control-Plane Persistence
 
-The same-repo app supports two control-plane persistence modes:
+The same-repo app now has three control-plane persistence states:
 
 - `local-file` for development
 - `postgres` when `SKYLATTICE_CONTROL_PLANE_DATABASE_URL` or `DATABASE_URL` is configured
+- `blocked` when Hosted Alpha semantics are active but the deployment is missing the env required for a real live app
 
 The tracked schema is already represented through Drizzle tables, so the development backend and the hosted backend keep the same shape.
+
+In practice:
+
+- preview and local development can stay easy to run
+- Hosted Alpha deployments fail clearly instead of pretending local-file persistence is a valid live control-plane backend
+- the app shell explicitly distinguishes `Preview`, `Local development`, `Hosted Alpha blocked`, and real paired control so the browser surface cannot quietly masquerade as a public hosted runtime
 
 ## Related Pages
 
 - [App Preview](app-preview.md)
 - [Quick Start](quickstart.md)
 - [Proof](proof.md)
+- [Hosted Alpha Runbook](ops/hosted-alpha-runbook.md)
 - [Architecture](architecture.md)
 - [Governance](governance.md)

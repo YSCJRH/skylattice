@@ -85,9 +85,12 @@ When you move from preview to live control, the architecture stays the same but 
 
 The browser still does not become runtime truth. The paired local Skylattice agent remains the executor.
 
+If you are preparing the real hosted deployment rather than a first-look preview, use [Hosted Alpha Runbook](ops/hosted-alpha-runbook.md).
+
 ## Related Pages
 
 - [Web Control Plane](web-control-plane.md)
+- [Hosted Alpha Runbook](ops/hosted-alpha-runbook.md)
 - [Quick Start](quickstart.md)
 - [Proof](proof.md)
 - [v0.4.0 Stable](releases/v0-4-0.md)

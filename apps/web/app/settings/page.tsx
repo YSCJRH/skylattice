@@ -1,8 +1,9 @@
 import { DeviceManager } from "@/components/control-plane-panels";
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
 import { getAppSession, getSessionUserId, isGuestUserId } from "@/lib/auth";
+import { toPublicDevices } from "@/lib/control-plane/public";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { DOCS_URL, GITHUB_REPOSITORY_URL, isDemoPreviewEnabled, isGitHubAuthConfigured } from "@/lib/env";
+import { DOCS_URL, GITHUB_REPOSITORY_URL, hostedAlphaReadiness, isDemoPreviewEnabled, isGitHubAuthConfigured } from "@/lib/env";
 import Link from "next/link";
 
 export default async function SettingsPage() {
@@ -10,18 +11,26 @@ export default async function SettingsPage() {
   const store = getControlPlaneStore();
   const persistence = store.describePersistence();
   const userId = await getSessionUserId();
-  const devices = await store.listDevices(userId);
+  const readiness = hostedAlphaReadiness();
+  const blocked = persistence.backend === "blocked";
+  const devices = blocked ? [] : toPublicDevices(await store.listDevices(userId));
   const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="This deployment is being treated as Hosted Alpha, so the app refuses to fall back to local-file control-plane state. Finish the live deployment env before expecting real browser operations."
+          blockers={readiness.blockers}
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           title="Settings preview"
           description="The preview keeps persistence, docs, and trust surfaces visible even before GitHub OAuth is configured. Live account and device management still require sign-in."
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live settings
+              Sign in for Hosted Alpha settings
             </ButtonLink>
           }
         />
@@ -34,7 +43,7 @@ export default async function SettingsPage() {
             <StatusChip tone={isGitHubAuthConfigured() ? "quaternary" : "secondary"}>
               {isGitHubAuthConfigured() ? "GitHub auth ready" : "GitHub auth blocked"}
             </StatusChip>
-            <StatusChip tone="tertiary">{persistence.backend}</StatusChip>
+            <StatusChip tone={blocked ? "secondary" : "tertiary"}>{persistence.backend}</StatusChip>
           </>
         }
       />
@@ -51,11 +60,20 @@ export default async function SettingsPage() {
             <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/80">Persistence</p>
             <p className="font-[family-name:var(--font-outfit)] text-3xl font-extrabold">Current backend: {persistence.backend}</p>
             <p className="text-sm leading-7">
-              The current same-repo scaffold stores hosted control-plane state in a local development file by default, but it can switch to the Postgres-ready backend when `DATABASE_URL` or `SKYLATTICE_CONTROL_PLANE_DATABASE_URL` is configured.
+              {blocked
+                ? "Hosted Alpha mode is active, but the deployment is still missing the Postgres-backed control-plane env required for live operation."
+                : "The current same-repo scaffold stores hosted control-plane state in a local development file by default, but it can switch to the Postgres-ready backend when `DATABASE_URL` or `SKYLATTICE_CONTROL_PLANE_DATABASE_URL` is configured."}
             </p>
           </div>
         </StickerCard>
       </div>
+      <StickerCard tone="white" className="px-8 py-8">
+        <SectionHeading
+          eyebrow="Hosted alpha readiness"
+          title={readiness.ready ? "Live deployment looks ready." : "Live deployment still has blockers."}
+          description={readiness.ready ? "Public app URL, GitHub OAuth, Postgres-backed persistence, and auth callback configuration are all present." : readiness.blockers.join(" ")}
+        />
+      </StickerCard>
       <section className="grid gap-6 md:grid-cols-3">
         <StickerCard tone="tertiary">
           <div className="space-y-3">
@@ -93,7 +111,7 @@ export default async function SettingsPage() {
           }
         />
       </StickerCard>
-      <DeviceManager devices={devices} previewMode={previewMode} />
+      <DeviceManager devices={devices} previewMode={previewMode || blocked} />
     </main>
   );
 }

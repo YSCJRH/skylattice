@@ -187,3 +187,89 @@ export function PreviewNotice({
     </StickerCard>
   );
 }
+
+export function HostedAlphaNotice({
+  title = "Hosted Alpha configuration required",
+  description,
+  blockers,
+  action,
+}: {
+  title?: string;
+  description: string;
+  blockers: string[];
+  action?: ReactNode;
+}) {
+  return (
+    <StickerCard tone="secondary" className="px-6 py-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-3">
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/80">Hosted alpha</p>
+          <h2 className="font-[family-name:var(--font-outfit)] text-2xl font-extrabold tracking-tight text-white md:text-3xl">{title}</h2>
+          <p className="max-w-3xl text-sm leading-7 text-white">{description}</p>
+          {blockers.length ? (
+            <ul className="space-y-2 text-sm leading-7 text-white">
+              {blockers.map((blocker) => (
+                <li key={blocker}>- {blocker}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+        {action}
+      </div>
+    </StickerCard>
+  );
+}
+
+export function AppStatusBanner({
+  mode,
+  title,
+  description,
+  blockers = [],
+  chips,
+  action,
+}: {
+  mode: "preview" | "blocked" | "live" | "development";
+  title: string;
+  description: string;
+  blockers?: string[];
+  chips?: ReactNode;
+  action?: ReactNode;
+}) {
+  const tone = mode === "blocked"
+    ? "secondary"
+    : mode === "preview"
+      ? "tertiary"
+      : mode === "development"
+        ? "white"
+        : "quaternary";
+  const eyebrow = mode === "blocked"
+    ? "Hosted Alpha blocked"
+    : mode === "preview"
+      ? "Preview mode"
+      : mode === "development"
+        ? "Local development"
+        : "Local-first control";
+  const textClass = mode === "blocked" ? "text-white" : "text-[var(--foreground)]";
+  const subtleTextClass = mode === "blocked" ? "text-white/80" : "text-[var(--muted-foreground)]";
+
+  return (
+    <StickerCard tone={tone} className="mb-8 px-6 py-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-3">
+          <p className={`text-xs font-extrabold uppercase tracking-[0.22em] ${subtleTextClass}`}>{eyebrow}</p>
+          <h2 className={`font-[family-name:var(--font-outfit)] text-2xl font-extrabold tracking-tight md:text-3xl ${textClass}`}>{title}</h2>
+          <p className={`max-w-3xl text-sm leading-7 ${textClass}`}>{description}</p>
+          {chips ? <div className="flex flex-wrap gap-3">{chips}</div> : null}
+          {blockers.length ? (
+            <ul className={`space-y-2 text-sm leading-7 ${textClass}`}>
+              {blockers.map((blocker) => (
+                <li key={blocker}>- {blocker}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+        {action}
+      </div>
+    </StickerCard>
+  );
+}

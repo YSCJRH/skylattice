@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 
 export async function POST(
   _request: Request,
@@ -18,8 +18,12 @@ export async function POST(
     );
   }
   const { approvalId } = await context.params;
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
   try {
-    const approval = await getControlPlaneStore().resolveApproval(userId, approvalId);
+    const approval = await routed.store.resolveApproval(userId, approvalId);
     return NextResponse.json({ status: "ok", approval });
   } catch (error) {
     return NextResponse.json(

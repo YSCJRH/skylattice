@@ -106,9 +106,13 @@ def test_public_engineering_baseline_files_exist() -> None:
         "tools/run_authenticated_smoke.py",
         "tools/run_web_preview.py",
         "tools/check_web_preview_state.py",
+        "tools/check_hosted_alpha_setup.mjs",
+        "tools/bootstrap_hosted_alpha_db.mjs",
         "package.json",
         "apps/web/README.md",
+        "apps/web/.env.example",
         "apps/web/package.json",
+        "apps/web/sql/hosted-alpha-bootstrap.sql",
         "apps/web/app/page.tsx",
         "apps/web/app/dashboard/page.tsx",
         "apps/web/lib/control-plane/store.ts",
@@ -131,6 +135,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/faq.md",
         "docs/proof.md",
         "docs/radar-scheduling.md",
+        "docs/ops/hosted-alpha-runbook.md",
         "docs/ops/radar-weekly-validation-template.md",
         "docs/ai-distribution-ops.md",
         "docs/ai-search-benchmark.md",
@@ -200,6 +205,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/tasks/phase-5-validation-record-template.md",
         "docs/tasks/gitlab-second-live-provider.md",
         "docs/tasks/web-product-upgrade.md",
+        "docs/tasks/hosted-alpha-production-readiness.md",
         "docs/adrs/0005-review-driven-memory-operations.md",
         "docs/adrs/0006-resume-safe-external-sync.md",
         "docs/adrs/0007-tracked-validation-envelope.md",
@@ -285,6 +291,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "run_authenticated_smoke.py",
         "read-only authenticated smoke",
         "same-repo hosted web app foundation",
+        "Hosted Alpha deployment contract",
         "npm run web:preview",
         "npm run web:preview:check",
         "authenticated local bridge endpoints under `/bridge/v1`",
@@ -295,6 +302,8 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert '"web:preview:build": "python tools/run_web_preview.py build"' in _read_text("package.json")
     assert '"web:preview:start": "python tools/run_web_preview.py start"' in _read_text("package.json")
     assert '"web:preview:check": "python tools/check_web_preview_state.py"' in _read_text("package.json")
+    assert '"web:hosted-alpha:check": "node tools/check_hosted_alpha_setup.mjs"' in _read_text("package.json")
+    assert '"web:hosted-alpha:bootstrap": "node tools/bootstrap_hosted_alpha_db.mjs"' in _read_text("package.json")
     assert 'version = "0.4.0"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject

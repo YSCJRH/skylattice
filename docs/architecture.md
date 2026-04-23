@@ -140,6 +140,7 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - local runtime truth: `.local/state/`, `.local/memory/`, `.local/logs/`, `.local/work/`, and local radar validation exports under `.local/radar/validations/`
 - remote advisory truth: GitHub PR, issue, repository, and release state can guide planning and recovery, but does not replace local runtime state
 - hosted control-plane truth: the web app may store accounts, pairing state, command records, and lightweight summaries, but it does not replace local runtime, local memory, or local ledger truth
+- production-like Hosted Alpha deployments now refuse to silently fall back to local-file control-plane state; missing hosted env leaves the app blocked instead of pretending local persistence is a valid live backend
 
 ### Write-Permission Map
 
@@ -175,6 +176,7 @@ Radar now also has tracked local schedule intent, tracked provider intent, plus 
 - `src/skylattice/runtime/`, `src/skylattice/governance/`, and core schema paths are intentionally outside the automatic radar promotion path.
 - The runtime does not depend on GitHub or GitLab to exist, but live radar discovery depends on explicit provider credentials such as `GITHUB_TOKEN` or `GITLAB_TOKEN`.
 - the hosted app may be unavailable while the local runtime remains fully usable; the connector sync path is additive rather than authoritative
+- Hosted Alpha is intentionally narrow: Vercel-hosted app, GitHub OAuth, Neon/Postgres control-plane state, and paired local agents rather than hosted execution
 
 ## Observability
 

@@ -1,20 +1,34 @@
 import Link from "next/link";
 
-import { ButtonLink, PreviewNotice, SectionHeading, StickerCard, StatusChip } from "@/components/ui";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StickerCard, StatusChip } from "@/components/ui";
 import { getAppSession } from "@/lib/auth";
-import { isDemoPreviewEnabled, isGitHubAuthConfigured } from "@/lib/env";
+import { hostedAlphaReadiness, isDemoPreviewEnabled, isGitHubAuthConfigured, isHostedAlphaEnvironment } from "@/lib/env";
 
 export default async function SignInPage() {
   const session = await getAppSession();
   const configured = isGitHubAuthConfigured();
   const demoPreview = isDemoPreviewEnabled();
+  const readiness = hostedAlphaReadiness();
+  const hostedAlpha = isHostedAlphaEnvironment();
 
   return (
     <main className="space-y-8">
+      {hostedAlpha && !readiness.ready ? (
+        <HostedAlphaNotice
+          title="Live sign-in is blocked by deployment config"
+          description="The live app surface should only be used once the Hosted Alpha deployment has a public app URL, GitHub OAuth, and Postgres-backed control-plane state configured."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Open deployment settings
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {demoPreview && !session?.user ? (
         <PreviewNotice
           title="Preview first, then sign in when you want live control."
-          description="The app can expose a seeded read-only preview for first-look evaluation. GitHub sign-in is still required before queueing real commands, creating pairing codes, or managing live devices."
+          description="The app can expose a seeded read-only preview for first-look evaluation. GitHub sign-in is still required before queueing real commands, creating pairing codes, or managing real paired devices."
           action={
             <ButtonLink href="/dashboard" variant="secondary">
               Open preview dashboard
@@ -25,7 +39,7 @@ export default async function SignInPage() {
       <SectionHeading
         eyebrow="Identity"
         title="Sign in to the hosted control plane."
-        description="GitHub is the first login provider because the current Skylattice operator loop already lives close to Git, PRs, issues, and repo truth surfaces."
+        description="GitHub is the first login provider because the current Skylattice operator loop already lives close to Git, PRs, issues, and repo truth surfaces. Signing in unlocks the Hosted Alpha control plane, not a hosted executor."
       />
       <StickerCard tone="accent" className="px-8 py-8">
         <div className="space-y-4">

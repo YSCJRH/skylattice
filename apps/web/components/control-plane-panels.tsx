@@ -6,7 +6,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { AlertCircle, CheckCircle2, Link2, LoaderCircle, Radar, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 
 import { CandyButton, StatusChip, StickerCard } from "@/components/ui";
-import type { ApprovalRecord, PairedDevice, PairingChallenge } from "@/lib/control-plane/types";
+import type { ApprovalRecord, PublicPairedDevice, PublicPairingChallenge } from "@/lib/control-plane/types";
 import { APP_BASE_URL } from "@/lib/env";
 
 type Receipt = Record<string, unknown> | null;
@@ -162,8 +162,8 @@ export function PairingStatePanel({
   pairings,
   devices,
 }: {
-  pairings: PairingChallenge[];
-  devices: PairedDevice[];
+  pairings: PublicPairingChallenge[];
+  devices: PublicPairedDevice[];
 }) {
   return (
     <StickerCard tone="white" icon={<Link2 className="h-5 w-5" strokeWidth={2.5} />}>
@@ -230,7 +230,7 @@ export function PairingStatePanel({
   );
 }
 
-export function TaskCommandComposer({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
+export function TaskCommandComposer({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
   const [goal, setGoal] = useState("Refresh the README and prepare a draft PR.");
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [allowRepoWrite, setAllowRepoWrite] = useState(true);
@@ -302,7 +302,7 @@ export function TaskCommandComposer({ devices, previewMode = false }: { devices:
   );
 }
 
-export function RadarCommandPanel({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
+export function RadarCommandPanel({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [scheduleId, setScheduleId] = useState("weekly-github");
   const [candidateId, setCandidateId] = useState("cand-seed");
@@ -396,7 +396,7 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
   );
 }
 
-export function MemoryCommandPanel({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
+export function MemoryCommandPanel({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [query, setQuery] = useState("governance");
   const [recordId, setRecordId] = useState("record-seed");
@@ -476,7 +476,7 @@ export function MemoryCommandPanel({ devices, previewMode = false }: { devices: 
   );
 }
 
-export function DeviceManager({ devices, previewMode = false }: { devices: PairedDevice[]; previewMode?: boolean }) {
+export function DeviceManager({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
   const [localDevices, setLocalDevices] = useState(devices);
   const state = useSubmissionState();
 
@@ -539,7 +539,7 @@ export function DeviceManager({ devices, previewMode = false }: { devices: Paire
   );
 }
 
-export function DeviceReadinessPanel({ devices }: { devices: PairedDevice[] }) {
+export function DeviceReadinessPanel({ devices }: { devices: PublicPairedDevice[] }) {
   return (
     <StickerCard tone="quaternary" icon={<Link2 className="h-5 w-5" strokeWidth={2.5} />}>
       <div className="space-y-4 pt-7">

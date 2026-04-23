@@ -13,7 +13,7 @@ export type CommandKind =
 
 export type CommandStatus = "queued" | "claimed" | "succeeded" | "failed";
 
-export type ControlPlaneBackend = "local-file" | "postgres";
+export type ControlPlaneBackend = "local-file" | "postgres" | "blocked";
 
 export interface ControlPlaneStore {
   getDashboardSnapshot(userId: string): Promise<DashboardSnapshot>;
@@ -33,7 +33,7 @@ export interface ControlPlaneStore {
     payload: { status: "succeeded" | "failed"; result?: Record<string, unknown>; error?: string | null },
   ): Promise<CommandRecord>;
   resolveApproval(userId: string, approvalId: string): Promise<ApprovalRecord>;
-  describePersistence(): { backend: ControlPlaneBackend; statePath: string; appBaseUrl: string };
+  describePersistence(): { backend: ControlPlaneBackend; statePath: string; appBaseUrl: string; reason?: string | null };
 }
 
 export interface PairedDevice {
@@ -48,6 +48,8 @@ export interface PairedDevice {
   latestAuthSummary: string | null;
 }
 
+export type PublicPairedDevice = Omit<PairedDevice, "connectorToken">;
+
 export interface PairingChallenge {
   pairingId: string;
   userId: string;
@@ -59,6 +61,8 @@ export interface PairingChallenge {
   deviceLabel: string | null;
   connectorToken: string | null;
 }
+
+export type PublicPairingChallenge = Omit<PairingChallenge, "connectorToken">;
 
 export interface CommandRecord {
   commandId: string;

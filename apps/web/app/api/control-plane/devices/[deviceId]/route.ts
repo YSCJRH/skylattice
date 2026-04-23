@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 
 export async function DELETE(
   _request: Request,
@@ -18,8 +18,12 @@ export async function DELETE(
     );
   }
   const { deviceId } = await context.params;
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
   try {
-    const result = await getControlPlaneStore().revokeDevice(userId, deviceId);
+    const result = await routed.store.revokeDevice(userId, deviceId);
     return NextResponse.json({ status: "ok", ...result });
   } catch (error) {
     return NextResponse.json(

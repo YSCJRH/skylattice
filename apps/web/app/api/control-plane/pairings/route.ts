@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { toPublicDevices, toPublicPairings } from "@/lib/control-plane/public";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 
 export async function GET() {
   const userId = await getSessionUserId();
-  const snapshot = await getControlPlaneStore().getDashboardSnapshot(userId);
-  return NextResponse.json({ pairings: snapshot.pairings, devices: snapshot.devices });
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
+  const snapshot = await routed.store.getDashboardSnapshot(userId);
+  return NextResponse.json({ pairings: toPublicPairings(snapshot.pairings), devices: toPublicDevices(snapshot.devices) });
 }
 
 export async function POST() {
@@ -20,6 +25,10 @@ export async function POST() {
       { status: 401 },
     );
   }
-  const pairing = await getControlPlaneStore().createPairingChallenge(userId);
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
+  const pairing = await routed.store.createPairingChallenge(userId);
   return NextResponse.json(pairing, { status: 201 });
 }

@@ -1,7 +1,7 @@
 import { ArrowRight, GitBranch, NotebookText, ShieldCheck } from "lucide-react";
 
-import { ButtonLink, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { DOCS_URL, isDemoPreviewEnabled } from "@/lib/env";
+import { ButtonLink, HostedAlphaNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { DOCS_URL, hostedAlphaReadiness, isDemoPreviewEnabled, isHostedAlphaEnvironment } from "@/lib/env";
 
 const productCards = [
   {
@@ -26,9 +26,23 @@ const productCards = [
 
 export default function HomePage() {
   const demoPreview = isDemoPreviewEnabled();
+  const readiness = hostedAlphaReadiness();
+  const hostedAlpha = isHostedAlphaEnvironment();
 
   return (
     <main className="space-y-12">
+      {hostedAlpha && !readiness.ready ? (
+        <HostedAlphaNotice
+          title="Hosted Alpha deployment is not ready yet"
+          description="This app is running in Hosted Alpha mode, but it still needs a public app URL, GitHub OAuth, and Postgres-backed control-plane state before it should be treated as the live browser surface."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Review settings
+            </ButtonLink>
+          }
+        />
+      ) : null}
       <WorkspaceHero
         title="Skylattice becomes a real web product without giving up local-first runtime truth."
         description="This hosted app surface is the control plane for sign-in, pairing, onboarding, and authenticated command intent. Your actual runs, private memory, and governance gates still stay with your local Skylattice agent."
@@ -56,7 +70,7 @@ export default function HomePage() {
                       Preview the app
                     </ButtonLink>
                   ) : null}
-                  <ButtonLink href="/signin">Sign in with GitHub</ButtonLink>
+                  <ButtonLink href="/signin">{readiness.ready ? "Open Hosted Alpha" : "Set up GitHub sign-in"}</ButtonLink>
                 </div>
               }
             />
@@ -84,7 +98,7 @@ export default function HomePage() {
                   </li>
                 ) : null}
                 <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">1. Land on docs, proof, or release surfaces and trust the product story.</li>
-                <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">2. Sign in with GitHub and generate a short-lived pairing code.</li>
+                <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">{readiness.ready ? "2. Sign in with GitHub on the Hosted Alpha app and generate a short-lived pairing code." : "2. Finish the Hosted Alpha deployment env so browser sign-in points at a public app URL with real auth."}</li>
                 <li className="rounded-[20px] border-2 border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-hard)]">3. Claim that pairing from your local connector and start queuing governed work.</li>
               </ol>
             <div className="flex flex-wrap gap-3">
@@ -93,8 +107,8 @@ export default function HomePage() {
                   Open preview dashboard
                 </ButtonLink>
               ) : null}
-              <ButtonLink href="/connect" variant="secondary">
-                Explore pairing flow
+              <ButtonLink href={readiness.ready ? "/connect" : "/settings"} variant="secondary">
+                {readiness.ready ? "Explore pairing flow" : "Review hosted alpha setup"}
               </ButtonLink>
             </div>
           </div>
@@ -133,13 +147,13 @@ export default function HomePage() {
             <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/80">Operator promise</p>
             <h3 className="font-[family-name:var(--font-outfit)] text-3xl font-extrabold text-white">No silent autonomy, even when the browser gets prettier.</h3>
             <p className="text-sm leading-7 text-white">
-              Hosted UX cannot bypass local approvals. Dangerous writes still require the same explicit flags and the same local runtime enforcement.
+              Hosted UX cannot bypass local approvals. No paired local agent means no real execution, and dangerous writes still require the same explicit flags plus the same local runtime enforcement.
             </p>
             <a
               href="/signin"
               className="inline-flex items-center gap-3 rounded-full border-2 border-[var(--border)] bg-white px-5 py-3 text-sm font-bold text-[var(--foreground)] shadow-[var(--shadow-hard)]"
             >
-              Continue to app
+              Continue to Hosted Alpha
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </a>
           </div>

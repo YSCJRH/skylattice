@@ -1,25 +1,35 @@
 import { CommandHistoryPanel } from "@/components/command-history";
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
 import { TaskCommandComposer } from "@/components/control-plane-panels";
-import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { isDemoPreviewEnabled } from "@/lib/env";
+import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
+import { toPublicDevices } from "@/lib/control-plane/public";
 
 export default async function TasksPage() {
-  const userId = await getSessionUserId();
-  const snapshot = await getControlPlaneStore().getDashboardSnapshot(userId);
+  const context = await getControlPlanePageContext();
+  const { snapshot, previewMode, blocked, readiness } = context;
   const taskCommands = snapshot.commands.filter((command) => command.kind.startsWith("task."));
-  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
+  const devices = toPublicDevices(snapshot.devices);
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="The task workspace is ready in the UI, but live browser-triggered task runs stay blocked until the Hosted Alpha deployment has real auth and control-plane persistence."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Review hosted alpha blockers
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           title="Task workspace preview"
           description="These task records are representative preview data. Sign in and pair a local agent when you want to queue a real governed task run from the browser."
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live tasks
+              Sign in for Hosted Alpha tasks
             </ButtonLink>
           }
         />
@@ -41,7 +51,7 @@ export default async function TasksPage() {
         description="The form below writes command intent into the hosted control plane. Your paired connector claims it and executes through the same local runtime service used by the CLI."
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <TaskCommandComposer devices={snapshot.devices} previewMode={previewMode} />
+        <TaskCommandComposer devices={devices} previewMode={previewMode || blocked} />
         <CommandHistoryPanel
           title="Latest task command results"
           description="Recent task commands stay visible here so the workspace is useful after queueing work, not only before it."

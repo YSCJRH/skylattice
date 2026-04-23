@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { neon } from "@neondatabase/serverless";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, or, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 
 import { APP_BASE_URL, DOCS_URL } from "@/lib/env";
@@ -271,7 +271,15 @@ export class PostgresControlPlaneStore {
     const [command] = await database
       .select()
       .from(commandRequests)
-      .where(and(eq(commandRequests.status, "queued"), eq(commandRequests.deviceId, device.deviceId)))
+      .where(
+        and(
+          eq(commandRequests.status, "queued"),
+          or(
+            eq(commandRequests.deviceId, device.deviceId),
+            isNull(commandRequests.deviceId),
+          ),
+        ),
+      )
       .orderBy(desc(commandRequests.createdAt))
       .limit(1);
     if (!command) {
@@ -283,6 +291,7 @@ export class PostgresControlPlaneStore {
         status: "claimed",
         claimedAt: new Date(),
         updatedAt: new Date(),
+        deviceId: device.deviceId,
       })
       .where(eq(commandRequests.commandId, command.commandId))
       .returning();

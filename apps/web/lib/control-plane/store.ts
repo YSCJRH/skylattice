@@ -2,7 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
-import { APP_BASE_URL, DOCS_URL, controlPlaneDatabaseUrl } from "@/lib/env";
+import { APP_BASE_URL, DOCS_URL, controlPlaneDatabaseUrl, requiresHostedAlphaPersistence } from "@/lib/env";
+import { BlockedControlPlaneStore } from "@/lib/control-plane/blocked-store";
 import { DEFAULT_STATE, newExpiry, nowIso, summarizeAuth, upsertPendingApproval } from "@/lib/control-plane/helpers";
 import { PostgresControlPlaneStore } from "@/lib/control-plane/postgres-store";
 import { PreviewControlPlaneStore } from "@/lib/control-plane/preview-store";
@@ -270,8 +271,18 @@ export class LocalFileControlPlaneStore implements ControlPlaneStore {
 }
 
 export function getControlPlaneStore(): ControlPlaneStore {
-  const base = controlPlaneDatabaseUrl()
-    ? new PostgresControlPlaneStore()
-    : new LocalFileControlPlaneStore();
+  const base = requiresHostedAlphaPersistence()
+    ? (
+        controlPlaneDatabaseUrl()
+          ? new PostgresControlPlaneStore()
+          : new BlockedControlPlaneStore(
+              "Hosted Alpha requires Neon/Postgres-backed control-plane state. Configure DATABASE_URL or SKYLATTICE_CONTROL_PLANE_DATABASE_URL instead of falling back to local-file persistence.",
+            )
+      )
+    : (
+        controlPlaneDatabaseUrl()
+          ? new PostgresControlPlaneStore()
+          : new LocalFileControlPlaneStore()
+      );
   return new PreviewControlPlaneStore(base);
 }

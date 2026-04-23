@@ -5,6 +5,12 @@ import { isGitHubAuthConfigured } from "@/lib/env";
 
 export const GUEST_USER_ID = "guest@skylattice.local";
 
+type SessionUser = {
+  id?: string;
+  email?: string | null;
+  name?: string | null;
+};
+
 const providers = isGitHubAuthConfigured()
   ? [
       GitHubProvider({
@@ -18,6 +24,14 @@ export const authOptions: NextAuthOptions = {
   providers,
   session: {
     strategy: "jwt",
+  },
+  callbacks: {
+    session({ session, token }) {
+      if (session.user && token.sub) {
+        (session.user as SessionUser).id = `github:${token.sub}`;
+      }
+      return session;
+    },
   },
   pages: {
     signIn: "/signin",
@@ -33,7 +47,8 @@ export async function getAppSession() {
 
 export async function getSessionUserId(): Promise<string> {
   const session = await getAppSession();
-  return session?.user?.email || session?.user?.name || GUEST_USER_ID;
+  const user = session?.user as SessionUser | undefined;
+  return user?.id || user?.email || user?.name || GUEST_USER_ID;
 }
 
 export function isGuestUserId(userId: string): boolean {

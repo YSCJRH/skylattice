@@ -15,9 +15,11 @@ Public surfaces:
 - docs and AI-friendly landing pages: [yscjrh.github.io/skylattice](https://yscjrh.github.io/skylattice/)
 - GitHub repository and release history: [YSCJRH/skylattice](https://github.com/YSCJRH/skylattice)
 - latest stable release: [v0.4.0 Stable](docs/releases/v0-4-0.md)
-- same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, authenticated control-plane UX, and a read-only demo preview path
+- same-repo hosted web app foundation: [apps/web](apps/web/README.md) for GitHub sign-in, pairing, authenticated control-plane UX, a read-only demo preview path, and Hosted Alpha deployment envs
 - easiest local first-look command: `npm run web:preview`
 - preview proof-data check: `npm run web:preview:check`
+- Hosted Alpha env check: `npm run web:hosted-alpha:check`
+- Hosted Alpha database bootstrap: `npm run web:hosted-alpha:bootstrap`
 
 ## Why Star Skylattice
 
@@ -43,6 +45,7 @@ Public surfaces:
 - `skylattice web status`, `web pair`, and `web connector ...` for pairing a local agent to the hosted control plane
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - same-repo `Next.js` web app foundation under `apps/web/` with Playful Geometric tokens, GitHub login scaffolding, pairing flows, and browser command queueing
+- Hosted Alpha deployment contract under `apps/web/.env.example` plus `docs/ops/hosted-alpha-runbook.md`, with production-style blocked mode instead of silent local-file fallback
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
@@ -173,6 +176,7 @@ If you want to see the shape before using real tokens, compare your output to th
 - [Docs and AI-friendly landing pages](https://yscjrh.github.io/skylattice/)
 - [App Preview](docs/app-preview.md)
 - [Web Control Plane](docs/web-control-plane.md)
+- [Hosted Alpha Runbook](docs/ops/hosted-alpha-runbook.md)
 - [Hosted web app foundation](apps/web/README.md)
 - [What Is Skylattice?](docs/what-is-skylattice.md)
 - [Quick Start](docs/quickstart.md)
@@ -249,6 +253,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - docs/faq.md: query-aligned public FAQ
 - docs/proof.md: proof surfaces, demo, and sample outputs
 - docs/web-control-plane.md: hosted app, pairing, connector, and local-first browser architecture
+- docs/ops/hosted-alpha-runbook.md: Vercel, Neon, GitHub OAuth, and live Hosted Alpha acceptance checklist
 - docs/overview.md: product narrative and positioning
 - docs/use-cases.md: who should care and what Skylattice is good for
 - docs/comparison.md: category-level comparison and positioning boundaries
@@ -281,6 +286,10 @@ Tracked surface:
 
 - `docs/`: architecture, governance, task briefs, comparison pages, release notes, and ADRs
 - `apps/web/`: hosted web control plane, design system tokens, app routes, and pairing UX
+- `apps/web/.env.example`: Hosted Alpha env template for Vercel + Neon + GitHub OAuth
+- `apps/web/sql/hosted-alpha-bootstrap.sql`: tracked bootstrap SQL for the hosted control-plane tables
+- `tools/check_hosted_alpha_setup.mjs`: prints Hosted Alpha readiness and fails when deployment blockers remain
+- `tools/bootstrap_hosted_alpha_db.mjs`: applies the tracked control-plane bootstrap SQL to `DATABASE_URL`
 - `configs/`: tracked defaults, governance baselines, task validation, and radar scoring and promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
+import { getRoutableControlPlaneStore } from "@/lib/control-plane/route-helpers";
 import type { CommandKind } from "@/lib/control-plane/types";
 
 export async function GET() {
   const userId = await getSessionUserId();
-  const commands = await getControlPlaneStore().listCommands(userId);
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
+  const commands = await routed.store.listCommands(userId);
   return NextResponse.json({ commands });
 }
 
@@ -29,7 +33,11 @@ export async function POST(request: NextRequest) {
   if (!payload.kind) {
     return NextResponse.json({ status: "error", error: "Command kind is required." }, { status: 400 });
   }
-  const command = await getControlPlaneStore().queueCommand(
+  const routed = getRoutableControlPlaneStore();
+  if ("response" in routed) {
+    return routed.response;
+  }
+  const command = await routed.store.queueCommand(
     userId,
     payload.kind,
     payload.payload || {},

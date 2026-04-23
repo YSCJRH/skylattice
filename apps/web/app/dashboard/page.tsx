@@ -2,23 +2,33 @@ import { CheckCircle2, Clock3, Cpu, Link2 } from "lucide-react";
 import Link from "next/link";
 
 import { ApprovalManager, DeviceReadinessPanel } from "@/components/control-plane-panels";
-import { ButtonLink, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
-import { getSessionUserId, isGuestUserId } from "@/lib/auth";
-import { getControlPlaneStore } from "@/lib/control-plane/store";
-import { isDemoPreviewEnabled } from "@/lib/env";
+import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
+import { toPublicDevices } from "@/lib/control-plane/public";
 
 export default async function DashboardPage() {
-  const userId = await getSessionUserId();
-  const snapshot = await getControlPlaneStore().getDashboardSnapshot(userId);
-  const previewMode = isDemoPreviewEnabled() && isGuestUserId(userId);
+  const context = await getControlPlanePageContext();
+  const { snapshot, previewMode, blocked, readiness } = context;
+  const devices = toPublicDevices(snapshot.devices);
 
   return (
     <main className="space-y-8">
+      {blocked ? (
+        <HostedAlphaNotice
+          description="This app is being treated like a Hosted Alpha deployment, so it will not fall back to the local-file control-plane store. Finish the deployment env before expecting live browser control."
+          blockers={readiness.blockers}
+          action={
+            <ButtonLink href="/settings" variant="secondary">
+              Review deployment settings
+            </ButtonLink>
+          }
+        />
+      ) : null}
       {previewMode ? (
         <PreviewNotice
           action={
             <ButtonLink href="/signin" variant="secondary">
-              Sign in for live control
+              Sign in for Hosted Alpha
             </ButtonLink>
           }
         />
@@ -29,8 +39,8 @@ export default async function DashboardPage() {
         chips={
           <>
             <StatusChip tone="accent">{snapshot.backend} store</StatusChip>
-            <StatusChip tone={snapshot.devices.length ? "quaternary" : "secondary"}>
-              {snapshot.devices.length ? `${snapshot.devices.length} paired device(s)` : "No paired devices yet"}
+            <StatusChip tone={devices.length ? "quaternary" : "secondary"}>
+              {devices.length ? `${devices.length} paired device(s)` : "No paired devices yet"}
             </StatusChip>
             <StatusChip tone="tertiary">{snapshot.commands.length} recent command(s)</StatusChip>
           </>
@@ -40,7 +50,7 @@ export default async function DashboardPage() {
         <StickerCard tone="white" icon={<Cpu className="h-5 w-5" strokeWidth={2.5} />}>
           <div className="pt-7">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Paired devices</p>
-            <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{snapshot.devices.length}</p>
+            <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{devices.length}</p>
             <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">The browser issues intent. Your paired local connector is the executor.</p>
             <div className="mt-4">
               <Link
@@ -119,7 +129,7 @@ export default async function DashboardPage() {
                 ))
               ) : (
                 <div className="rounded-[20px] border-2 border-dashed border-[var(--border)] bg-white/20 px-4 py-4 text-sm text-white">
-                  No commands yet. Sign in, pair a device, and queue work from Tasks, Radar, or Memory.
+                  No commands yet. Sign in, pair a local device, and queue work from Tasks, Radar, or Memory.
                 </div>
               )}
             </div>
@@ -134,8 +144,8 @@ export default async function DashboardPage() {
           </div>
         </StickerCard>
       </section>
-      <DeviceReadinessPanel devices={snapshot.devices} />
-      <ApprovalManager approvals={snapshot.pendingApprovals} previewMode={previewMode} />
+      <DeviceReadinessPanel devices={devices} />
+      <ApprovalManager approvals={snapshot.pendingApprovals} previewMode={previewMode || blocked} />
     </main>
   );
 }
