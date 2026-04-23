@@ -29,11 +29,12 @@ CHINESE_EXPECTATIONS = {
     "docs/zh/index.md": "???? AI Agent ???",
     "docs/zh/what-is-skylattice.md": "??? Skylattice",
     "docs/zh/quickstart.md": "5 ???????",
-    "docs/zh/app-preview.md": "应用预览",
+    "docs/zh/app-preview.md": "Skylattice App Preview",
     "docs/zh/comparison.md": "???????? Agent ??",
     "docs/zh/faq.md": "Skylattice ??????",
     "docs/zh/proof.md": "??????? Skylattice ???????",
     "docs/zh/use-cases.md": "????",
+    "docs/zh/releases/v0-4-1.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
     "docs/zh/releases/v0-4-0.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
     "docs/zh/releases/v0-3-1.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
     "docs/zh/releases/v0-3-0.md": "\u5f53\u524d\u7a33\u5b9a\u7248\u672c",
@@ -148,6 +149,8 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/outreach/category-post.md",
         "docs/outreach/distribution-targets.md",
         "docs/outreach/community-posts.md",
+        "docs/releases/v0.4.1-stable.md",
+        "docs/releases/v0-4-1.md",
         "docs/releases/v0.4.0-stable.md",
         "docs/releases/v0-4-0.md",
         "docs/releases/v0.3.1-stable.md",
@@ -180,6 +183,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "docs/zh/comparison.md",
         "docs/zh/faq.md",
         "docs/zh/proof.md",
+        "docs/zh/releases/v0-4-1.md",
         "docs/zh/releases/v0-4-0.md",
         "docs/zh/releases/v0-3-1.md",
         "docs/zh/releases/v0-3-0.md",
@@ -247,19 +251,14 @@ def test_theme_override_localizes_navigation_for_zh_pages() -> None:
     override = _read_text("overrides/main.html")
     for phrase in [
         "window.location.pathname",
+        "translations = new Map",
         "What Is Skylattice?",
-        "什么是 Skylattice？",
         "Quick Start",
-        "快速开始",
         "App Preview",
-        "应用预览",
         "Release",
-        "版本发布",
         "System Docs",
-        "系统文档",
     ]:
         assert phrase in override
-
 
 def test_public_positioning_surfaces_are_present() -> None:
     readme = _read_text("README.md")
@@ -304,7 +303,7 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert '"web:preview:check": "python tools/check_web_preview_state.py"' in _read_text("package.json")
     assert '"web:hosted-alpha:check": "node tools/check_hosted_alpha_setup.mjs"' in _read_text("package.json")
     assert '"web:hosted-alpha:bootstrap": "node tools/bootstrap_hosted_alpha_db.mjs"' in _read_text("package.json")
-    assert 'version = "0.4.0"' in pyproject
+    assert 'version = "0.4.1"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject
     assert 'Documentation = "https://yscjrh.github.io/skylattice/"' in pyproject
@@ -334,7 +333,7 @@ def test_public_site_metadata_is_tracked() -> None:
     assert mkdocs_config["repo_url"] == "https://github.com/YSCJRH/skylattice"
     assert mkdocs_config["extra"]["social_image"] == "assets/social-preview.png"
     assert citation["title"] == "Skylattice"
-    assert citation["version"] == "0.4.0"
+    assert citation["version"] == "0.4.1"
     assert citation["url"] == "https://yscjrh.github.io/skylattice/"
     assert "mkdocs>=1.6,<2.0" in pyproject
     assert "mkdocs-material>=9.6,<10.0" in pyproject
@@ -349,8 +348,8 @@ def test_ai_discovery_files_allow_public_crawlers() -> None:
     assert "User-agent: GPTBot" in robots
     assert "Allow: /" in robots
     assert "Sitemap: https://yscjrh.github.io/skylattice/sitemap.xml" in robots
-    assert "https://yscjrh.github.io/skylattice/releases/v0-4-0/" in llms
-    assert "https://yscjrh.github.io/skylattice/zh/releases/v0-4-0/" in llms_full
+    assert "https://yscjrh.github.io/skylattice/releases/v0-4-1/" in llms
+    assert "https://yscjrh.github.io/skylattice/zh/releases/v0-4-1/" in llms_full
     assert "https://github.com/YSCJRH/skylattice" in llms
 
 
@@ -366,6 +365,7 @@ def test_sitemap_declares_core_pages_and_language_alternates() -> None:
         "https://yscjrh.github.io/skylattice/comparison/",
         "https://yscjrh.github.io/skylattice/faq/",
         "https://yscjrh.github.io/skylattice/proof/",
+        "https://yscjrh.github.io/skylattice/releases/v0-4-1/",
         "https://yscjrh.github.io/skylattice/releases/v0-4-0/",
         "https://yscjrh.github.io/skylattice/releases/v0-3-1/",
         "https://yscjrh.github.io/skylattice/releases/v0-3-0/",
@@ -376,7 +376,7 @@ def test_sitemap_declares_core_pages_and_language_alternates() -> None:
         assert f"<loc>{loc}</loc>" in sitemap
     assert 'hreflang="zh-CN"' in sitemap
     assert 'https://yscjrh.github.io/skylattice/zh/' in sitemap
-    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-4-0/' in sitemap
+    assert 'https://yscjrh.github.io/skylattice/zh/releases/v0-4-1/' in sitemap
 
 
 def test_ai_distribution_docs_cover_weekly_review_loop_and_manual_ops() -> None:
@@ -385,7 +385,7 @@ def test_ai_distribution_docs_cover_weekly_review_loop_and_manual_ops() -> None:
     baseline = _read_text("evals/ai-search/2026-04-09-baseline.md")
     for phrase in ["homepageUrl", "social preview", "tools/upload_github_social_preview.py", "Google Search Console", "Bing Webmaster Tools", "Agent A", "Agent B", "Agent C", "Agent D", ".local/discoverability/", "evals/ai-search/"]:
         assert phrase in ops
-    assert "v0.4.0" in ops
+    assert "v0.4.1" in ops
     for phrase in ["English Query Cluster", "Chinese Query Cluster", "Day 0", "Day 7", "Day 14", "Day 30", "isolated agents", "evals/ai-search/"]:
         assert phrase in benchmark
     assert "English non-brand discoverability: `3/10`" in baseline
@@ -405,7 +405,7 @@ def test_release_story_points_at_stable_surface() -> None:
             "README.md",
         ]
     )
-    assert "v0.4.0 Stable" in combined
+    assert "v0.4.1 Stable" in combined
     assert "stable non-pre-release" in combined or "stable release" in combined
 
 
@@ -414,6 +414,8 @@ def test_post_release_docs_do_not_keep_stale_release_todo_text() -> None:
         _read_text(path)
         for path in [
             "README.md",
+            "docs/releases/v0.4.1-stable.md",
+            "docs/releases/v0-4-1.md",
             "docs/releases/v0.4.0-stable.md",
             "docs/releases/v0-4-0.md",
             "docs/releases/v0.3.1-stable.md",

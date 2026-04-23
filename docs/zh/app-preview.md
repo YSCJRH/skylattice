@@ -1,7 +1,6 @@
 ---
-title: 应用预览
-description: 用一条命令在本地预览 Skylattice 的网页产品面，查看只读示例工作区，并理解从 preview 切到 live pairing 之后会发生什么变化。
-robots: index, follow
+title: 搴旂敤棰勮
+description: 鐢ㄤ竴鏉″懡浠ゅ湪鏈湴棰勮 Skylattice 鐨勭綉椤典骇鍝侀潰锛屾煡鐪嬪彧璇荤ず渚嬪伐浣滃尯锛屽苟鐞嗚В浠?preview 鍒囧埌 live pairing 涔嬪悗浼氬彂鐢熶粈涔堝彉鍖栥€?robots: index, follow
 alternates:
   - lang: en
     href: https://yscjrh.github.io/skylattice/app-preview/
@@ -12,76 +11,59 @@ jsonld: |
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
     "name": "Skylattice App Preview",
-    "description": "Skylattice 网页产品面的只读初步预览入口。",
+    "description": "Skylattice 缃戦〉浜у搧闈㈢殑鍙鍒濇棰勮鍏ュ彛銆?,
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.4.0",
+    "softwareVersion": "0.4.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "zh-CN"
   }
 ---
 
-# 应用预览
+# 搴旂敤棰勮
 
-如果你想先看看 Skylattice 的网页产品面是什么样子，而不是先配置 GitHub OAuth、pairing 本地 agent 或 hosted deployment，就从这里开始。
+濡傛灉浣犳兂鍏堢湅鐪?Skylattice 鐨勭綉椤典骇鍝侀潰鏄粈涔堟牱瀛愶紝鑰屼笉鏄厛閰嶇疆 GitHub OAuth銆乸airing 鏈湴 agent 鎴?hosted deployment锛屽氨浠庤繖閲屽紑濮嬨€?
+## 涓€鏉″懡浠ょ殑鍏ュ彛
 
-## 一条命令的入口
-
-在仓库根目录执行：
-
+鍦ㄤ粨搴撴牴鐩綍鎵ц锛?
 ```powershell
 npm install
 npm run web:preview
 ```
 
-然后打开 [http://localhost:3000/dashboard](http://localhost:3000/dashboard)。
-
-这会启动同仓库的 `Next.js` 应用，并以只读 preview 模式加载一套已经准备好的代表性示例数据。
-
+鐒跺悗鎵撳紑 [http://localhost:3000/dashboard](http://localhost:3000/dashboard)銆?
+杩欎細鍚姩鍚屼粨搴撶殑 `Next.js` 搴旂敤锛屽苟浠ュ彧璇?preview 妯″紡鍔犺浇涓€濂楀凡缁忓噯澶囧ソ鐨勪唬琛ㄦ€хず渚嬫暟鎹€?
 Tracked proof data: [web-app-preview-state.json](https://github.com/YSCJRH/skylattice/blob/main/examples/redacted/web-app-preview-state.json)
 
-## 你可以先看哪些页面
+## 浣犲彲浠ュ厛鐪嬪摢浜涢〉闈?
+杩欎釜 preview 涓昏鏄负浜嗗府浣犲揩閫熷洖绛斾竴涓棶棰橈細杩欎釜缃戦〉浜у搧闈㈢湅璧锋潵鏄惁瓒冲鍙俊锛屽€煎緱缁х画娣卞叆锛?
+寤鸿浼樺厛鎵撳紑杩欎簺璺敱锛?
+- `/dashboard`锛氳澶囩姸鎬併€佹渶杩戝懡浠ゃ€乤pproval 鍘嬪姏銆乵emory activity
+- `/tasks`锛歡overned task run 鐨勮〃闈㈠舰鎬佸拰浠ｈ〃鎬х粨鏋滃巻鍙?- `/radar`锛歴can銆乻chedule validate銆乺eplay銆乺ollback 鐨勫伐浣滃尯
+- `/memory`锛歴earch銆乸rofile proposal銆乺eview-driven memory actions
+- `/commands`锛氬懡浠よ处鏈拰鍗曟潯鍛戒护 drill-down
+- `/connect`锛歱airing flow銆乸airing code 鍜?claimed device 鐘舵€?- `/devices` 涓?`/approvals`锛氭洿闀挎湡鐨勭鐞嗛〉
 
-这个 preview 主要是为了帮你快速回答一个问题：这个网页产品面看起来是否足够可信，值得继续深入？
+## 杩欎釜 Preview 鏄粈涔?
+- 涓€涓湡瀹炰絾鍙鐨勭綉椤典骇鍝佸垵姝ュ叆鍙?- 涓€涓甫浠ｈ〃鎬?command銆乨evice銆乸airing銆乤pproval 鏁版嵁鐨?guest session
+- 涓€涓湪 live setup 涔嬪墠鍏堣瘎浼颁俊鎭灦鏋勫拰浜や簰妯″瀷鐨勬柟寮?
+## 杩欎釜 Preview 涓嶆槸浠€涔?
+- 涓嶆槸 hosted runtime
+- 涓嶆槸 live account session
+- 榛樿涓嶄細杩炲埌鐪熷疄鐨勬湰鍦?agent
+- 涓嶅厑璁哥洿鎺?queue live commands銆乺evoke live devices 鎴?resolve live approvals
 
-建议优先打开这些路由：
+杩欎釜 preview 鏄埢鎰忎繚鎸佸彧璇荤殑銆?
+## 鍒囧埌 Live Mode 涔嬪悗浼氬彉浠€涔?
+褰撲綘浠?preview 杩涘叆 live control锛屾灦鏋勫苟涓嶄細鍙橈紝鍙槸鏁版嵁浠庝唬琛ㄦ€ф牱渚嬪彉鎴愮湡瀹炶繍琛岄潰锛?
+1. 鐢?GitHub 鐧诲綍
+2. 鍒涘缓鐭椂 pairing code
+3. 鍦ㄦ湰鍦扮敤 `skylattice web pair` claim 杩欎釜 code
+4. 璁╂湰鍦?connector claim commands 骞跺洖浼?readiness
 
-- `/dashboard`：设备状态、最近命令、approval 压力、memory activity
-- `/tasks`：governed task run 的表面形态和代表性结果历史
-- `/radar`：scan、schedule validate、replay、rollback 的工作区
-- `/memory`：search、profile proposal、review-driven memory actions
-- `/commands`：命令账本和单条命令 drill-down
-- `/connect`：pairing flow、pairing code 和 claimed device 状态
-- `/devices` 与 `/approvals`：更长期的管理页
-
-## 这个 Preview 是什么
-
-- 一个真实但只读的网页产品初步入口
-- 一个带代表性 command、device、pairing、approval 数据的 guest session
-- 一个在 live setup 之前先评估信息架构和交互模型的方式
-
-## 这个 Preview 不是什么
-
-- 不是 hosted runtime
-- 不是 live account session
-- 默认不会连到真实的本地 agent
-- 不允许直接 queue live commands、revoke live devices 或 resolve live approvals
-
-这个 preview 是刻意保持只读的。
-
-## 切到 Live Mode 之后会变什么
-
-当你从 preview 进入 live control，架构并不会变，只是数据从代表性样例变成真实运行面：
-
-1. 用 GitHub 登录
-2. 创建短时 pairing code
-3. 在本地用 `skylattice web pair` claim 这个 code
-4. 让本地 connector claim commands 并回传 readiness
-
-浏览器仍然不会变成 runtime truth。真正执行任务、维护 memory、做审批和治理判断的，仍然是配对后的本地 Skylattice agent。
-
-## 相关页面
+娴忚鍣ㄤ粛鐒朵笉浼氬彉鎴?runtime truth銆傜湡姝ｆ墽琛屼换鍔°€佺淮鎶?memory銆佸仛瀹℃壒鍜屾不鐞嗗垽鏂殑锛屼粛鐒舵槸閰嶅鍚庣殑鏈湴 Skylattice agent銆?
+## 鐩稿叧椤甸潰
 
 - [Web Control Plane](../web-control-plane.md)
-- [快速开始](quickstart.md)
-- [证明材料](proof.md)
-- [v0.4.0 Stable](releases/v0-4-0.md)
+- [蹇€熷紑濮媇(quickstart.md)
+- [璇佹槑鏉愭枡](proof.md)
+- [v0.4.1 Stable](releases/v0-4-1.md)

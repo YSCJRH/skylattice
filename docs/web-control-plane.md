@@ -12,7 +12,7 @@ jsonld: |
     "name": "Skylattice Web Control Plane",
     "description": "Hosted control-plane surface for the local-first Skylattice runtime.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.4.0",
+    "softwareVersion": "0.4.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }

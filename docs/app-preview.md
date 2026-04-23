@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice App Preview",
     "description": "Read-only first-look entry for the Skylattice hosted app surface.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.4.0",
+    "softwareVersion": "0.4.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -93,4 +93,4 @@ If you are preparing the real hosted deployment rather than a first-look preview
 - [Hosted Alpha Runbook](ops/hosted-alpha-runbook.md)
 - [Quick Start](quickstart.md)
 - [Proof](proof.md)
-- [v0.4.0 Stable](releases/v0-4-0.md)
+- [v0.4.1 Stable](releases/v0-4-1.md)

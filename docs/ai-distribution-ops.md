@@ -16,7 +16,7 @@ Keep these public pages aligned before changing outreach copy or remote metadata
 - what-is page: `https://yscjrh.github.io/skylattice/what-is-skylattice/`
 - quick start: `https://yscjrh.github.io/skylattice/quickstart/`
 - proof page: `https://yscjrh.github.io/skylattice/proof/`
-- stable release page: `https://yscjrh.github.io/skylattice/releases/v0-4-0/`
+- stable release page: `https://yscjrh.github.io/skylattice/releases/v0-4-1/`
 
 ## Weekly Four-Agent Review Loop
 
@@ -82,7 +82,7 @@ Execution files live under `docs/outreach/`. Use `authority-program.md` as the 3
 
 ## Stable Release Follow-Up
 
-- keep `v0.4.0` as the canonical stable release page and GitHub release target
+- keep `v0.4.1` as the canonical stable release page and GitHub release target
 - keep `v0.3.1` as the previous stable runtime milestone in the public release history
 - keep `v0.2.0` only as historical preview context
 - keep `v0.2.1` as the first stable baseline in the public release history

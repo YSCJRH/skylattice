@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.4.1 - Stable Hosted Alpha Deployment Hardening
+
+Date: 2026-04-23
+
+### Added
+
+- a tracked Hosted Alpha deployment runbook, env template, SQL bootstrap, and repository-level readiness/bootstrap commands
+- explicit blocked-mode control-plane route helpers plus public-payload shaping that strips connector tokens from browser-facing surfaces
+- app-shell status surfaces that distinguish preview, local development, Hosted Alpha blocked, and real paired control
+
+### Changed
+
+- the canonical stable release signal now points to `v0.4.1 Stable`
+- Hosted Alpha deployments now refuse silent fallback to local-file persistence
+- the web workspace now uses repo-local font assets so `npm run web:build` no longer depends on live Google Fonts fetches
+
+### Notes
+
+- `v0.4.0 Stable` remains part of the public history as the hosted web control-plane foundation release
+- this release still does not create a public hosted app URL from the repository alone
+- real Hosted Alpha deployment still requires Vercel, Neon, and GitHub OAuth setup outside the repo
+
 ## v0.4.0 - Stable Hosted Web Control Plane Foundation
 
 Date: 2026-04-22

@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "?? API Key ???? Skylattice???? proof artifacts ? token-enabled ????",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.4.0",
+    "softwareVersion": "0.4.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "zh-CN"
   }
@@ -100,4 +100,4 @@ skylattice radar scan --window weekly --limit 20
 
 - [?????](proof.md)
 - [????](faq.md)
-- [v0.4.0 Stable](releases/v0-4-0.md)
+- [v0.4.1 Stable](releases/v0-4-1.md)

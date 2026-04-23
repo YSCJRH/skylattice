@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Verify Skylattice without API keys, then inspect proof artifacts and token-enabled workflows.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.4.0",
+    "softwareVersion": "0.4.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -161,4 +161,4 @@ Use the read-only smoke first if you want to separate credential wiring from ful
 - [App Preview](app-preview.md)
 - [Proof](proof.md)
 - [FAQ](faq.md)
-- [v0.4.0 Stable](releases/v0-4-0.md)
+- [v0.4.1 Stable](releases/v0-4-1.md)

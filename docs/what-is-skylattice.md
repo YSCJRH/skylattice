@@ -14,7 +14,7 @@ jsonld: |
     "name": "Skylattice",
     "description": "Local-first AI agent runtime and auditable agent framework for durable memory, governed repo tasks, and Git-native reviewability.",
     "codeRepository": "https://github.com/YSCJRH/skylattice",
-    "softwareVersion": "0.4.0",
+    "softwareVersion": "0.4.1",
     "license": "https://github.com/YSCJRH/skylattice/blob/main/LICENSE",
     "inLanguage": "en"
   }
@@ -57,4 +57,4 @@ It combines private local memory, governed repo tasks, and Git-native review sur
 - [Use cases](use-cases.md)
 - [Comparison](comparison.md)
 - [Proof](proof.md)
-- [v0.4.0 Stable](releases/v0-4-0.md)
+- [v0.4.1 Stable](releases/v0-4-1.md)
