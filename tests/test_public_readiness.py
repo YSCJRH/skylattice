@@ -113,6 +113,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "tools/check_web_control_cockpit_ui.py",
         "tools/check_web_connector_roundtrip_local.py",
         "tools/check_web_connector_recovery_local.py",
+        "tools/check_web_local_proof_suite.py",
         "package.json",
         "apps/web/README.md",
         "apps/web/.env.example",
@@ -301,6 +302,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "npm run web:cockpit:check",
         "npm run web:connector:local",
         "npm run web:recovery:local",
+        "npm run web:proof:local",
         "authenticated local bridge endpoints under `/bridge/v1`",
         "`skylattice web status`, `web pair`, and `web connector ...`",
     ]:
@@ -315,6 +317,7 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert '"web:cockpit:check": "python tools/check_web_control_cockpit_ui.py"' in _read_text("package.json")
     assert '"web:connector:local": "python tools/check_web_connector_roundtrip_local.py"' in _read_text("package.json")
     assert '"web:recovery:local": "python tools/check_web_connector_recovery_local.py"' in _read_text("package.json")
+    assert '"web:proof:local": "python tools/check_web_local_proof_suite.py"' in _read_text("package.json")
     assert 'version = "0.4.1"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject

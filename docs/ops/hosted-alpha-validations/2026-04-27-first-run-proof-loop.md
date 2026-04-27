@@ -34,6 +34,7 @@ npm run web:first-run:local
 npm run web:cockpit:check
 npm run web:connector:local
 npm run web:recovery:local
+npm run web:proof:local
 ```
 
 ## Results
@@ -83,6 +84,8 @@ The observed command id was `cmd-local-memory-search`, and the final command sta
 - create a pending approval reminder with `repo-write` and `external-write` pressure
 
 The observed command id was `cmd-local-recovery-proof`, and the final command status was `failed`. This proves the recovery/approval-pressure path locally, but it still does not prove live browser sign-in or a real operator approval resolution.
+
+`npm run web:proof:local` now wraps the local proof floor in one sequential command. It runs the first-run blocked proof, server-rendered cockpit UI contract, connector success roundtrip, and connector recovery roundtrip without starting competing Next.js proof servers.
 
 ### Hosted Alpha Readiness
 
@@ -145,6 +148,7 @@ Verified in this run:
 - local server-rendered cockpit pages expose preview, blocked, local unpaired, paired-but-unauthenticated, and command-detail lifecycle/recovery boundaries
 - the local connector can claim a seeded pairing, heartbeat, claim one command, execute local `memory.search`, and record a result through the existing HTTP control-plane API
 - the local connector can record a failed command result and surface pending approval pressure through the existing HTTP control-plane API
+- the local proof floor is available through one sequential command: `npm run web:proof:local`
 - unpaired connector heartbeat fails with an actionable pairing instruction
 - auth preflight distinguishes `gh` login from explicit Skylattice runtime credentials
 

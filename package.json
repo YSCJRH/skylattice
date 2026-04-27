@@ -17,6 +17,7 @@
     "web:cockpit:check": "python tools/check_web_control_cockpit_ui.py",
     "web:connector:local": "python tools/check_web_connector_roundtrip_local.py",
     "web:recovery:local": "python tools/check_web_connector_recovery_local.py",
+    "web:proof:local": "python tools/check_web_local_proof_suite.py",
     "web:hosted-alpha:check": "node tools/check_hosted_alpha_setup.mjs",
     "web:hosted-alpha:bootstrap": "node tools/bootstrap_hosted_alpha_db.mjs"
   }

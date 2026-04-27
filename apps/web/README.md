@@ -104,6 +104,7 @@ npm run web:first-run:local
 npm run web:cockpit:check
 npm run web:connector:local
 npm run web:recovery:local
+npm run web:proof:local
 ```
 
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when required env is missing
@@ -112,6 +113,7 @@ npm run web:recovery:local
 - `web:cockpit:check` starts local Next.js dev servers and checks the server-rendered UI contract for preview, blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states without exercising live Hosted Alpha sign-in
 - `web:connector:local` starts a local control-plane server, seeds a temporary pairing challenge plus queued command, then proves the Python connector can claim pairing, heartbeat, claim a command, execute local `memory.search`, and record the result
 - `web:recovery:local` seeds a failing command and proves the Python connector records a failed result plus pending approval pressure instead of bypassing local governance
+- `web:proof:local` runs the local first-run, cockpit UI, connector success, and connector recovery checks sequentially as the no-secrets proof floor
 
 ## Local Connector
 

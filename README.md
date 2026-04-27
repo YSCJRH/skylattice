@@ -24,6 +24,7 @@ Public surfaces:
 - local control cockpit UI contract check: `npm run web:cockpit:check`
 - local connector roundtrip proof: `npm run web:connector:local`
 - local connector recovery proof: `npm run web:recovery:local`
+- full local web proof suite: `npm run web:proof:local`
 
 ## Why Star Skylattice
 
@@ -54,6 +55,7 @@ Public surfaces:
 - local control cockpit UI contract check via `npm run web:cockpit:check`, covering preview, Hosted Alpha blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states through server-rendered pages
 - local connector roundtrip proof via `npm run web:connector:local`, covering pairing claim, heartbeat, command claim, local `memory.search` execution, and result recording against a temporary local control-plane state file
 - local connector recovery proof via `npm run web:recovery:local`, covering failed local execution, failed result recording, and pending approval-pressure creation without bypassing governance
+- full local web proof suite via `npm run web:proof:local`, running the local first-run, cockpit UI, connector success, and connector recovery checks sequentially so Next.js proof servers do not compete
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
@@ -302,6 +304,7 @@ Tracked surface:
 - `tools/check_web_control_cockpit_ui.py`: starts local Next.js dev servers to verify the control cockpit UI contract without exercising live Hosted Alpha sign-in
 - `tools/check_web_connector_roundtrip_local.py`: verifies the local connector HTTP roundtrip without exercising live Hosted Alpha sign-in or cloud execution
 - `tools/check_web_connector_recovery_local.py`: verifies the failed-command recovery roundtrip and approval-pressure creation without exercising live Hosted Alpha sign-in
+- `tools/check_web_local_proof_suite.py`: runs the local web proof floor sequentially from one command
 - `configs/`: tracked defaults, governance baselines, task validation, and radar scoring and promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions
@@ -332,6 +335,7 @@ Local-only surface:
 - `npm run web:cockpit:check`
 - `npm run web:connector:local`
 - `npm run web:recovery:local`
+- `npm run web:proof:local`
 - `python -m mkdocs build --strict`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`
