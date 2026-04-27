@@ -15,6 +15,7 @@
     "web:preview:check": "python tools/check_web_preview_state.py",
     "web:first-run:local": "python tools/check_hosted_alpha_first_run_local.py",
     "web:cockpit:check": "python tools/check_web_control_cockpit_ui.py",
+    "web:connector:local": "python tools/check_web_connector_roundtrip_local.py",
     "web:hosted-alpha:check": "node tools/check_hosted_alpha_setup.mjs",
     "web:hosted-alpha:bootstrap": "node tools/bootstrap_hosted_alpha_db.mjs"
   }

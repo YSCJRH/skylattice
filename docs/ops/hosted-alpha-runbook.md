@@ -84,12 +84,14 @@ npm run web:hosted-alpha:check
 npm run web:hosted-alpha:bootstrap
 npm run web:first-run:local
 npm run web:cockpit:check
+npm run web:connector:local
 ```
 
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when blockers remain
 - `web:hosted-alpha:bootstrap` applies the tracked SQL bootstrap in `apps/web/sql/hosted-alpha-bootstrap.sql` to `DATABASE_URL`
 - `web:first-run:local` verifies the local blocked proof loop without pretending localhost is a live Hosted Alpha deployment
 - `web:cockpit:check` verifies the local server-rendered UI contract for preview, blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states. It does not exercise live Hosted Alpha sign-in or Postgres-backed pairing.
+- `web:connector:local` verifies the local connector HTTP roundtrip: seeded pairing challenge, connector claim, heartbeat, command claim, local `memory.search` execution, and result recording. It does not exercise live Hosted Alpha sign-in or cloud execution.
 
 ## Important Production Guardrail
 
@@ -193,7 +195,7 @@ Each validation note should distinguish:
 - which commands were run
 - which next action would unblock the live Hosted Alpha path
 
-When live Hosted Alpha credentials are unavailable, `npm run web:first-run:local` plus `npm run web:cockpit:check` are the repeatable local proof floor. They do not replace the live sign-in, pairing, connector heartbeat, queue, claim, result, and approval checks.
+When live Hosted Alpha credentials are unavailable, `npm run web:first-run:local`, `npm run web:cockpit:check`, and `npm run web:connector:local` are the repeatable local proof floor. They do not replace the live sign-in, Postgres-backed pairing creation, public connector heartbeat, queue, claim, result, and approval checks.
 
 ## Onboarding Acceptance Inputs
 

@@ -22,6 +22,7 @@ Public surfaces:
 - Hosted Alpha database bootstrap: `npm run web:hosted-alpha:bootstrap`
 - local Hosted Alpha first-run proof loop: `npm run web:first-run:local`
 - local control cockpit UI contract check: `npm run web:cockpit:check`
+- local connector roundtrip proof: `npm run web:connector:local`
 
 ## Why Star Skylattice
 
@@ -50,6 +51,7 @@ Public surfaces:
 - Hosted Alpha deployment contract under `apps/web/.env.example` plus `docs/ops/hosted-alpha-runbook.md`, with production-style blocked mode instead of silent local-file fallback
 - local Hosted Alpha first-run proof harness via `npm run web:first-run:local`, covering preview proof data, blocked Hosted Alpha readiness, unpaired connector behavior, and auth preflight without impersonating a live deployment
 - local control cockpit UI contract check via `npm run web:cockpit:check`, covering preview, Hosted Alpha blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states through server-rendered pages
+- local connector roundtrip proof via `npm run web:connector:local`, covering pairing claim, heartbeat, command claim, local `memory.search` execution, and result recording against a temporary local control-plane state file
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
@@ -296,6 +298,7 @@ Tracked surface:
 - `tools/bootstrap_hosted_alpha_db.mjs`: applies the tracked control-plane bootstrap SQL to `DATABASE_URL`
 - `tools/check_hosted_alpha_first_run_local.py`: verifies the local first-run proof loop without requiring Vercel, Neon, GitHub OAuth, or a paired connector
 - `tools/check_web_control_cockpit_ui.py`: starts local Next.js dev servers to verify the control cockpit UI contract without exercising live Hosted Alpha sign-in
+- `tools/check_web_connector_roundtrip_local.py`: verifies the local connector HTTP roundtrip without exercising live Hosted Alpha sign-in or cloud execution
 - `configs/`: tracked defaults, governance baselines, task validation, and radar scoring and promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions
@@ -324,6 +327,7 @@ Local-only surface:
 - `npm run web:preview:check`
 - `npm run web:first-run:local`
 - `npm run web:cockpit:check`
+- `npm run web:connector:local`
 - `python -m mkdocs build --strict`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`
