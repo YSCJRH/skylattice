@@ -83,11 +83,13 @@ Helpful repository-level commands:
 npm run web:hosted-alpha:check
 npm run web:hosted-alpha:bootstrap
 npm run web:first-run:local
+npm run web:cockpit:check
 ```
 
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when blockers remain
 - `web:hosted-alpha:bootstrap` applies the tracked SQL bootstrap in `apps/web/sql/hosted-alpha-bootstrap.sql` to `DATABASE_URL`
 - `web:first-run:local` verifies the local blocked proof loop without pretending localhost is a live Hosted Alpha deployment
+- `web:cockpit:check` verifies the local server-rendered UI contract for preview, blocked, local unpaired, and paired-but-unauthenticated states. It does not exercise live Hosted Alpha sign-in or Postgres-backed pairing.
 
 ## Important Production Guardrail
 
@@ -190,6 +192,8 @@ Each validation note should distinguish:
 - what was simulated or blocked by missing credentials, deployment resources, or pairing state
 - which commands were run
 - which next action would unblock the live Hosted Alpha path
+
+When live Hosted Alpha credentials are unavailable, `npm run web:first-run:local` plus `npm run web:cockpit:check` are the repeatable local proof floor. They do not replace the live sign-in, pairing, connector heartbeat, queue, claim, result, and approval checks.
 
 ## Onboarding Acceptance Inputs
 

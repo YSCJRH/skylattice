@@ -78,6 +78,7 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     check_script = _read("tools/check_hosted_alpha_setup.mjs")
     bootstrap_script = _read("tools/bootstrap_hosted_alpha_db.mjs")
     first_run_script = _read("tools/check_hosted_alpha_first_run_local.py")
+    cockpit_script = _read("tools/check_web_control_cockpit_ui.py")
 
     assert 'id = `github:${token.sub}`' in auth_text
     assert 'text("user_id")' in schema_text
@@ -91,12 +92,15 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     assert '"web:hosted-alpha:check"' in package_json
     assert '"web:hosted-alpha:bootstrap"' in package_json
     assert '"web:first-run:local"' in package_json
+    assert '"web:cockpit:check"' in package_json
     assert "Hosted Alpha mode is not active" in check_script
     assert "DATABASE_URL or SKYLATTICE_CONTROL_PLANE_DATABASE_URL is missing." in check_script
     assert "hosted-alpha-bootstrap.sql" in bootstrap_script
     assert "status: \"ok\"" in bootstrap_script
     assert "Connector is not paired yet" in first_run_script
     assert "Local Hosted Alpha readiness check unexpectedly passed." in first_run_script
+    assert "local server-rendered UI contract" in cockpit_script
+    assert "liveHostedAlpha" in cockpit_script
 
 
 def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
@@ -113,6 +117,7 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     dashboard = _read("apps/web/app/dashboard/page.tsx")
     commands = _read("apps/web/app/commands/page.tsx")
     task_brief = _read("docs/tasks/hosted-alpha-control-cockpit.md")
+    first_run_task_brief = _read("docs/tasks/hosted-alpha-first-run-proof-loop.md")
 
     assert "Preview and live Hosted Alpha are intentionally separate" in index_page
     assert "Hosted Alpha" in app_preview
@@ -129,9 +134,15 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "Connector is not paired yet" in first_run_note
     assert "npm run web:first-run:local" in runbook
     assert "npm run web:first-run:local" in first_run_note
+    assert "npm run web:cockpit:check" in runbook
+    assert "npm run web:cockpit:check" in first_run_task_brief
+    assert "npm run web:cockpit:check" in first_run_note
+    assert "local UI contract check only" in first_run_note
     assert "npm run web:first-run:local" in readme
     assert "npm run web:first-run:local" in web_readme
     assert "npm run web:first-run:local" in quickstart
+    assert "npm run web:cockpit:check" in readme
+    assert "npm run web:cockpit:check" in web_readme
     assert "local Hosted Alpha first-run proof loop" in readme
     assert "without pretending local development is a live deployment" in web_readme
     assert "control cockpit" in app_preview

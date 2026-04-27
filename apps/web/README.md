@@ -101,11 +101,13 @@ Helpful repository-level commands:
 npm run web:hosted-alpha:check
 npm run web:hosted-alpha:bootstrap
 npm run web:first-run:local
+npm run web:cockpit:check
 ```
 
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when required env is missing
 - `web:hosted-alpha:bootstrap` applies the tracked SQL bootstrap under `apps/web/sql/hosted-alpha-bootstrap.sql` to `DATABASE_URL`
 - `web:first-run:local` proves the local first-run loop: preview proof data is valid, Hosted Alpha readiness blocks as expected on localhost, the connector stays unpaired, and auth preflight reports missing live credentials without pretending local development is a live deployment
+- `web:cockpit:check` starts local Next.js dev servers and checks the server-rendered UI contract for preview, blocked, local unpaired, and paired-but-unauthenticated states without exercising live Hosted Alpha sign-in
 
 ## Local Connector
 
