@@ -30,6 +30,7 @@ python -m skylattice.cli web status
 python -m skylattice.cli doctor auth
 npm run web:preview:check
 python -m skylattice.cli web connector heartbeat
+npm run web:first-run:local
 ```
 
 ## Results
@@ -46,6 +47,8 @@ The preview proof state remains structurally valid:
 - approvals: `1`
 
 This confirms the read-only first-look surface is still available before live auth, pairing, or a real local agent are configured.
+
+`npm run web:first-run:local` now packages this local proof lane into one repeatable harness. It verifies preview data, expected local Hosted Alpha blockers, injected unpaired connector failure, and auth-preflight reporting without relying on the operator's real `.local/overrides/web-control-plane.json` pairing state.
 
 ### Hosted Alpha Readiness
 

@@ -77,6 +77,7 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     package_json = _read("package.json")
     check_script = _read("tools/check_hosted_alpha_setup.mjs")
     bootstrap_script = _read("tools/bootstrap_hosted_alpha_db.mjs")
+    first_run_script = _read("tools/check_hosted_alpha_first_run_local.py")
 
     assert 'id = `github:${token.sub}`' in auth_text
     assert 'text("user_id")' in schema_text
@@ -89,10 +90,13 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     assert "DATABASE_URL=" in env_example
     assert '"web:hosted-alpha:check"' in package_json
     assert '"web:hosted-alpha:bootstrap"' in package_json
+    assert '"web:first-run:local"' in package_json
     assert "Hosted Alpha mode is not active" in check_script
     assert "DATABASE_URL or SKYLATTICE_CONTROL_PLANE_DATABASE_URL is missing." in check_script
     assert "hosted-alpha-bootstrap.sql" in bootstrap_script
     assert "status: \"ok\"" in bootstrap_script
+    assert "Connector is not paired yet" in first_run_script
+    assert "Local Hosted Alpha readiness check unexpectedly passed." in first_run_script
 
 
 def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
@@ -120,6 +124,8 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "docs/ops/hosted-alpha-validations/" in runbook
     assert "Hosted Alpha First-Run Proof Loop Validation" in first_run_note
     assert "Connector is not paired yet" in first_run_note
+    assert "npm run web:first-run:local" in runbook
+    assert "npm run web:first-run:local" in first_run_note
     assert "control cockpit" in app_preview
     assert "Control Cockpit Shape" in web_control_plane
     assert "Command center" in commands

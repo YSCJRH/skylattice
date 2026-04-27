@@ -82,10 +82,12 @@ Helpful repository-level commands:
 ```powershell
 npm run web:hosted-alpha:check
 npm run web:hosted-alpha:bootstrap
+npm run web:first-run:local
 ```
 
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when blockers remain
 - `web:hosted-alpha:bootstrap` applies the tracked SQL bootstrap in `apps/web/sql/hosted-alpha-bootstrap.sql` to `DATABASE_URL`
+- `web:first-run:local` verifies the local blocked proof loop without pretending localhost is a live Hosted Alpha deployment
 
 ## Important Production Guardrail
 
