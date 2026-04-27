@@ -100,6 +100,7 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     app_preview = _read("docs/app-preview.md")
     web_control_plane = _read("docs/web-control-plane.md")
     runbook = _read("docs/ops/hosted-alpha-runbook.md")
+    first_run_note = _read("docs/ops/hosted-alpha-validations/2026-04-27-first-run-proof-loop.md")
     layout = _read("apps/web/app/layout.tsx")
     mode_helper = _read("apps/web/lib/control-plane/mode.ts")
     dashboard = _read("apps/web/app/dashboard/page.tsx")
@@ -116,6 +117,9 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "Hosted Alpha does **not** mean:" in runbook
     assert "Hosted Alpha Launch" in runbook
     assert "Skylattice Hosted Alpha" in runbook
+    assert "docs/ops/hosted-alpha-validations/" in runbook
+    assert "Hosted Alpha First-Run Proof Loop Validation" in first_run_note
+    assert "Connector is not paired yet" in first_run_note
     assert "control cockpit" in app_preview
     assert "Control Cockpit Shape" in web_control_plane
     assert "Command center" in commands

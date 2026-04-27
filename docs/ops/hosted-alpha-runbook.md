@@ -178,6 +178,17 @@ python -m skylattice.cli web pair --control-plane-url <app-url> --code <pairing-
    - live app
    - paired local agent
 
+## Validation Notes
+
+Record first-run proof-loop checks under `docs/ops/hosted-alpha-validations/`.
+
+Each validation note should distinguish:
+
+- what was verified in the current environment
+- what was simulated or blocked by missing credentials, deployment resources, or pairing state
+- which commands were run
+- which next action would unblock the live Hosted Alpha path
+
 ## Onboarding Acceptance Inputs
 
 Use these GitHub issues as explicit Hosted Alpha acceptance inputs:

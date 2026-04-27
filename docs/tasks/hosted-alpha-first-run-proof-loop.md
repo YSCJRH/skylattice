@@ -65,7 +65,7 @@
    - Do not add browser-side bypasses for repo-write, external-write, destructive-repo-write, memory review, or radar promotion.
 
 5. Record proof and feedback.
-   - Add a tracked first-run validation note under `docs/ops/hosted-alpha-validations/` or another explicit ops path if the proof loop is run.
+   - Add tracked first-run validation notes under `docs/ops/hosted-alpha-validations/` when the proof loop is run or blocked in a meaningful way.
    - Feed onboarding issues `#2`, `#3`, and `#4` into wording and first-run friction fixes only when they map to this proof loop.
    - Keep one-time operator observations separate from durable docs and rules.
 
@@ -101,5 +101,6 @@
 ## Notes
 
 - This is the recommended post-cockpit wedge because it aligns Phase 5 operational proof with ADR 0018's hosted-control-plane boundary.
+- The first blocked local proof-loop note is `docs/ops/hosted-alpha-validations/2026-04-27-first-run-proof-loop.md`.
 - The work should stay narrow. If the first-run proof reveals a need for schema evolution, auth-provider expansion, or new command kinds, create a separate brief before implementation.
 - The highest-cost mistake is making the hosted app appear more authoritative than the local runtime. Favor disabled states, explicit blockers, and local recovery guidance over optimistic UI.
