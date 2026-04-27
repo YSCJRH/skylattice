@@ -33,6 +33,7 @@ python -m skylattice.cli web connector heartbeat
 npm run web:first-run:local
 npm run web:cockpit:check
 npm run web:connector:local
+npm run web:recovery:local
 ```
 
 ## Results
@@ -71,6 +72,17 @@ This is a local UI contract check only; it does not replace the live Hosted Alph
 - record the command result through `/api/control-plane/commands/<commandId>/result`
 
 The observed command id was `cmd-local-memory-search`, and the final command status was `succeeded`. This proves the connector protocol roundtrip locally, but it still does not prove live browser sign-in or Postgres-backed Hosted Alpha pairing creation.
+
+`npm run web:recovery:local` also passed. It starts a local Next.js control-plane server with a temporary local-file state, seeds one pairing challenge and one queued `memory.review.confirm` command that references a missing review record, then uses the Python connector to:
+
+- claim the seeded pairing challenge
+- write a heartbeat and auth summary
+- claim the queued command
+- hit the expected local runtime error for `missing-review-record`
+- record the command result as `failed`
+- create a pending approval reminder with `repo-write` and `external-write` pressure
+
+The observed command id was `cmd-local-recovery-proof`, and the final command status was `failed`. This proves the recovery/approval-pressure path locally, but it still does not prove live browser sign-in or a real operator approval resolution.
 
 ### Hosted Alpha Readiness
 
@@ -132,6 +144,7 @@ Verified in this run:
 - Hosted Alpha readiness fails clearly instead of falling back to local-file live semantics
 - local server-rendered cockpit pages expose preview, blocked, local unpaired, paired-but-unauthenticated, and command-detail lifecycle/recovery boundaries
 - the local connector can claim a seeded pairing, heartbeat, claim one command, execute local `memory.search`, and record a result through the existing HTTP control-plane API
+- the local connector can record a failed command result and surface pending approval pressure through the existing HTTP control-plane API
 - unpaired connector heartbeat fails with an actionable pairing instruction
 - auth preflight distinguishes `gh` login from explicit Skylattice runtime credentials
 

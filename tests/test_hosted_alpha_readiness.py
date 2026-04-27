@@ -80,6 +80,7 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     first_run_script = _read("tools/check_hosted_alpha_first_run_local.py")
     cockpit_script = _read("tools/check_web_control_cockpit_ui.py")
     connector_roundtrip_script = _read("tools/check_web_connector_roundtrip_local.py")
+    recovery_roundtrip_script = _read("tools/check_web_connector_recovery_local.py")
 
     assert 'id = `github:${token.sub}`' in auth_text
     assert 'text("user_id")' in schema_text
@@ -95,6 +96,7 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     assert '"web:first-run:local"' in package_json
     assert '"web:cockpit:check"' in package_json
     assert '"web:connector:local"' in package_json
+    assert '"web:recovery:local"' in package_json
     assert "Hosted Alpha mode is not active" in check_script
     assert "DATABASE_URL or SKYLATTICE_CONTROL_PLANE_DATABASE_URL is missing." in check_script
     assert "hosted-alpha-bootstrap.sql" in bootstrap_script
@@ -109,6 +111,9 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     assert "local connector HTTP roundtrip" in connector_roundtrip_script
     assert "cmd-local-memory-search" in connector_roundtrip_script
     assert "memory.search" in connector_roundtrip_script
+    assert "local connector recovery roundtrip" in recovery_roundtrip_script
+    assert "cmd-local-recovery-proof" in recovery_roundtrip_script
+    assert "approvalPressureRecorded" in recovery_roundtrip_script
 
 
 def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
@@ -148,6 +153,9 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "npm run web:connector:local" in runbook
     assert "npm run web:connector:local" in first_run_task_brief
     assert "npm run web:connector:local" in first_run_note
+    assert "npm run web:recovery:local" in runbook
+    assert "npm run web:recovery:local" in first_run_task_brief
+    assert "npm run web:recovery:local" in first_run_note
     assert "local UI contract check only" in first_run_note
     assert "succeeded and failed command detail pages" in first_run_note
     assert "connector protocol roundtrip locally" in first_run_note
@@ -158,6 +166,8 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "npm run web:cockpit:check" in web_readme
     assert "npm run web:connector:local" in readme
     assert "npm run web:connector:local" in web_readme
+    assert "npm run web:recovery:local" in readme
+    assert "npm run web:recovery:local" in web_readme
     assert "succeeded/failed command-detail" in readme
     assert "succeeded/failed command-detail" in web_readme
     assert "local Hosted Alpha first-run proof loop" in readme

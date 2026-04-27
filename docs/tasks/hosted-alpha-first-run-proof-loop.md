@@ -76,6 +76,7 @@
   - `npm run web:first-run:local`
   - `npm run web:cockpit:check`
   - `npm run web:connector:local`
+  - `npm run web:recovery:local`
   - `npm run web:build`
   - `python -m pytest tests/test_web_bridge.py tests/test_web_cli.py tests/test_hosted_alpha_readiness.py -q`
   - `python -m mkdocs build --strict`
@@ -108,5 +109,6 @@
 - The local harness command is `npm run web:first-run:local`; it verifies preview proof data, local Hosted Alpha blocked readiness, unpaired connector failure, and auth-preflight reporting without pretending to be a live deployment.
 - The local UI contract command is `npm run web:cockpit:check`; it starts local Next.js dev servers and verifies preview, Hosted Alpha blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail server-rendered pages without exercising live Hosted Alpha sign-in.
 - The local connector roundtrip command is `npm run web:connector:local`; it verifies pairing claim, heartbeat, command claim, local `memory.search` execution, and result recording against a temporary local control-plane state file.
+- The local recovery roundtrip command is `npm run web:recovery:local`; it verifies a failed `memory.review.confirm` command records a failed result plus pending approval pressure against a temporary local control-plane state file.
 - The work should stay narrow. If the first-run proof reveals a need for schema evolution, auth-provider expansion, or new command kinds, create a separate brief before implementation.
 - The highest-cost mistake is making the hosted app appear more authoritative than the local runtime. Favor disabled states, explicit blockers, and local recovery guidance over optimistic UI.

@@ -23,6 +23,7 @@ Public surfaces:
 - local Hosted Alpha first-run proof loop: `npm run web:first-run:local`
 - local control cockpit UI contract check: `npm run web:cockpit:check`
 - local connector roundtrip proof: `npm run web:connector:local`
+- local connector recovery proof: `npm run web:recovery:local`
 
 ## Why Star Skylattice
 
@@ -52,6 +53,7 @@ Public surfaces:
 - local Hosted Alpha first-run proof harness via `npm run web:first-run:local`, covering preview proof data, blocked Hosted Alpha readiness, unpaired connector behavior, and auth preflight without impersonating a live deployment
 - local control cockpit UI contract check via `npm run web:cockpit:check`, covering preview, Hosted Alpha blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states through server-rendered pages
 - local connector roundtrip proof via `npm run web:connector:local`, covering pairing claim, heartbeat, command claim, local `memory.search` execution, and result recording against a temporary local control-plane state file
+- local connector recovery proof via `npm run web:recovery:local`, covering failed local execution, failed result recording, and pending approval-pressure creation without bypassing governance
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
@@ -299,6 +301,7 @@ Tracked surface:
 - `tools/check_hosted_alpha_first_run_local.py`: verifies the local first-run proof loop without requiring Vercel, Neon, GitHub OAuth, or a paired connector
 - `tools/check_web_control_cockpit_ui.py`: starts local Next.js dev servers to verify the control cockpit UI contract without exercising live Hosted Alpha sign-in
 - `tools/check_web_connector_roundtrip_local.py`: verifies the local connector HTTP roundtrip without exercising live Hosted Alpha sign-in or cloud execution
+- `tools/check_web_connector_recovery_local.py`: verifies the failed-command recovery roundtrip and approval-pressure creation without exercising live Hosted Alpha sign-in
 - `configs/`: tracked defaults, governance baselines, task validation, and radar scoring and promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions
@@ -328,6 +331,7 @@ Local-only surface:
 - `npm run web:first-run:local`
 - `npm run web:cockpit:check`
 - `npm run web:connector:local`
+- `npm run web:recovery:local`
 - `python -m mkdocs build --strict`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`

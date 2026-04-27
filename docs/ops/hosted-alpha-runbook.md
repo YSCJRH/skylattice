@@ -85,6 +85,7 @@ npm run web:hosted-alpha:bootstrap
 npm run web:first-run:local
 npm run web:cockpit:check
 npm run web:connector:local
+npm run web:recovery:local
 ```
 
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when blockers remain
@@ -92,6 +93,7 @@ npm run web:connector:local
 - `web:first-run:local` verifies the local blocked proof loop without pretending localhost is a live Hosted Alpha deployment
 - `web:cockpit:check` verifies the local server-rendered UI contract for preview, blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states. It does not exercise live Hosted Alpha sign-in or Postgres-backed pairing.
 - `web:connector:local` verifies the local connector HTTP roundtrip: seeded pairing challenge, connector claim, heartbeat, command claim, local `memory.search` execution, and result recording. It does not exercise live Hosted Alpha sign-in or cloud execution.
+- `web:recovery:local` verifies the failed-command recovery roundtrip: seeded failing command, connector claim, failed result recording, and pending approval-pressure creation. It does not bypass local governance or approval semantics.
 
 ## Important Production Guardrail
 
@@ -195,7 +197,7 @@ Each validation note should distinguish:
 - which commands were run
 - which next action would unblock the live Hosted Alpha path
 
-When live Hosted Alpha credentials are unavailable, `npm run web:first-run:local`, `npm run web:cockpit:check`, and `npm run web:connector:local` are the repeatable local proof floor. They do not replace the live sign-in, Postgres-backed pairing creation, public connector heartbeat, queue, claim, result, and approval checks.
+When live Hosted Alpha credentials are unavailable, `npm run web:first-run:local`, `npm run web:cockpit:check`, `npm run web:connector:local`, and `npm run web:recovery:local` are the repeatable local proof floor. They do not replace the live sign-in, Postgres-backed pairing creation, public connector heartbeat, queue, claim, result, and approval checks.
 
 ## Onboarding Acceptance Inputs
 
