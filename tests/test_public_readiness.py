@@ -109,6 +109,7 @@ def test_public_engineering_baseline_files_exist() -> None:
         "tools/check_web_preview_state.py",
         "tools/check_hosted_alpha_setup.mjs",
         "tools/bootstrap_hosted_alpha_db.mjs",
+        "tools/check_hosted_alpha_first_run_local.py",
         "package.json",
         "apps/web/README.md",
         "apps/web/.env.example",
@@ -293,6 +294,7 @@ def test_public_positioning_surfaces_are_present() -> None:
         "Hosted Alpha deployment contract",
         "npm run web:preview",
         "npm run web:preview:check",
+        "npm run web:first-run:local",
         "authenticated local bridge endpoints under `/bridge/v1`",
         "`skylattice web status`, `web pair`, and `web connector ...`",
     ]:
@@ -303,6 +305,7 @@ def test_public_positioning_surfaces_are_present() -> None:
     assert '"web:preview:check": "python tools/check_web_preview_state.py"' in _read_text("package.json")
     assert '"web:hosted-alpha:check": "node tools/check_hosted_alpha_setup.mjs"' in _read_text("package.json")
     assert '"web:hosted-alpha:bootstrap": "node tools/bootstrap_hosted_alpha_db.mjs"' in _read_text("package.json")
+    assert '"web:first-run:local": "python tools/check_hosted_alpha_first_run_local.py"' in _read_text("package.json")
     assert 'version = "0.4.1"' in pyproject
     assert "Local-first AI agent runtime for persistent memory, governed repo tasks, and Git-native self-improvement." in pyproject
     assert 'Homepage = "https://yscjrh.github.io/skylattice/"' in pyproject

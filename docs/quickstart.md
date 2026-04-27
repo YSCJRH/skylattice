@@ -57,6 +57,12 @@ Then open [http://localhost:3000/dashboard](http://localhost:3000/dashboard). Th
 
 That preview is deliberately different from Hosted Alpha live usage. Hosted Alpha adds a real public app URL, GitHub sign-in, real pairing, and Postgres-backed control-plane state, while the local agent still executes the work.
 
+For a maintainer-facing proof loop that checks this boundary without live OAuth, Neon, or a paired connector, run:
+
+```powershell
+npm run web:first-run:local
+```
+
 ## 5-Minute No-Credential Verification
 
 1. Install the project.

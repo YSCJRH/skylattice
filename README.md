@@ -20,6 +20,7 @@ Public surfaces:
 - preview proof-data check: `npm run web:preview:check`
 - Hosted Alpha env check: `npm run web:hosted-alpha:check`
 - Hosted Alpha database bootstrap: `npm run web:hosted-alpha:bootstrap`
+- local Hosted Alpha first-run proof loop: `npm run web:first-run:local`
 
 ## Why Star Skylattice
 
@@ -46,6 +47,7 @@ Public surfaces:
 - Windows-first CI driven by tracked validation commands in `configs/task/validation.yaml`
 - same-repo `Next.js` web app foundation under `apps/web/` with Playful Geometric tokens, GitHub login scaffolding, pairing flows, and browser command queueing
 - Hosted Alpha deployment contract under `apps/web/.env.example` plus `docs/ops/hosted-alpha-runbook.md`, with production-style blocked mode instead of silent local-file fallback
+- local Hosted Alpha first-run proof harness via `npm run web:first-run:local`, covering preview proof data, blocked Hosted Alpha readiness, unpaired connector behavior, and auth preflight without impersonating a live deployment
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`
@@ -290,6 +292,7 @@ Tracked surface:
 - `apps/web/sql/hosted-alpha-bootstrap.sql`: tracked bootstrap SQL for the hosted control-plane tables
 - `tools/check_hosted_alpha_setup.mjs`: prints Hosted Alpha readiness and fails when deployment blockers remain
 - `tools/bootstrap_hosted_alpha_db.mjs`: applies the tracked control-plane bootstrap SQL to `DATABASE_URL`
+- `tools/check_hosted_alpha_first_run_local.py`: verifies the local first-run proof loop without requiring Vercel, Neon, GitHub OAuth, or a paired connector
 - `configs/`: tracked defaults, governance baselines, task validation, and radar scoring and promotion policy
 - `prompts/`: versioned core prompts and reflection templates
 - `skills/`: tracked skill definitions and conventions
@@ -316,6 +319,7 @@ Local-only surface:
 - `python -m skylattice.cli doctor`
 - `python tools/run_validation_suite.py`
 - `npm run web:preview:check`
+- `npm run web:first-run:local`
 - `python -m mkdocs build --strict`
 - review `tests/test_public_readiness.py`
 - `git ls-files .local`
