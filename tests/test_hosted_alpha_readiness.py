@@ -101,6 +101,10 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     web_control_plane = _read("docs/web-control-plane.md")
     runbook = _read("docs/ops/hosted-alpha-runbook.md")
     layout = _read("apps/web/app/layout.tsx")
+    mode_helper = _read("apps/web/lib/control-plane/mode.ts")
+    dashboard = _read("apps/web/app/dashboard/page.tsx")
+    commands = _read("apps/web/app/commands/page.tsx")
+    task_brief = _read("docs/tasks/hosted-alpha-control-cockpit.md")
 
     assert "Preview and live Hosted Alpha are intentionally separate" in index_page
     assert "Hosted Alpha" in app_preview
@@ -112,6 +116,16 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "Hosted Alpha does **not** mean:" in runbook
     assert "Hosted Alpha Launch" in runbook
     assert "Skylattice Hosted Alpha" in runbook
+    assert "control cockpit" in app_preview
+    assert "Control Cockpit Shape" in web_control_plane
+    assert "Command center" in commands
+    assert "Hosted Alpha control cockpit" in dashboard
+    assert 'export type ControlPlaneMode = "preview" | "blocked" | "development" | "live-unpaired" | "live-ready"' in mode_helper
+    assert "Sign-in required" in mode_helper
+    assert "signInRequired" in _read("apps/web/components/control-plane-panels.tsx")
+    assert "signedIn" in _read("apps/web/lib/control-plane/page-context.ts")
+    assert "/commands` is the product center" in task_brief
+    assert "unauthenticated paired states" in task_brief
     assert "This is the local development control plane." in layout
     assert "Hosted Alpha can route intent to paired local agents." in layout
     assert "Preview is showing representative sample data." in layout

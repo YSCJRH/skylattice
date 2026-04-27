@@ -5,9 +5,15 @@ import { toPublicDevices, toPublicPairings } from "@/lib/control-plane/public";
 
 export default async function ConnectPage() {
   const context = await getControlPlanePageContext();
-  const { snapshot, previewMode, blocked, readiness } = context;
+  const { snapshot, previewMode, blocked, readiness, signedIn } = context;
   const devices = toPublicDevices(snapshot.devices);
   const pairings = toPublicPairings(snapshot.pairings);
+  const onboardingSteps = [
+    "Sign in through the hosted app so pairing belongs to the right account.",
+    "Generate a short-lived pairing code in this browser.",
+    "Claim the code locally with `skylattice web pair` on the machine that will execute work.",
+    "Run connector heartbeat or polling so commands can be claimed and readiness becomes visible.",
+  ];
 
   return (
     <main className="space-y-8">
@@ -47,10 +53,20 @@ export default async function ConnectPage() {
       <SectionHeading
         eyebrow="Onboarding"
         title="The first app loop starts with pairing, not blind cloud trust."
-        description="This flow is shaped directly by the first-run friction questions already captured in GitHub issues #2 and #4: reduce confusion, keep trust visible, and make the next step obvious."
+        description="Pairing is the trust handshake that turns a browser session into a control cockpit without moving execution, memory, or governance into the cloud."
       />
+      <section className="grid gap-4 md:grid-cols-4">
+        {onboardingSteps.map((step, index) => (
+          <StickerCard key={step} tone={index === 2 ? "quaternary" : "white"}>
+            <div className="space-y-3">
+              <StatusChip tone={index === 2 ? "quaternary" : "tertiary"}>step {index + 1}</StatusChip>
+              <p className="text-sm leading-7 text-[var(--foreground)]">{step}</p>
+            </div>
+          </StickerCard>
+        ))}
+      </section>
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <PairingWizard previewMode={previewMode || blocked} />
+        <PairingWizard previewMode={previewMode || blocked} signInRequired={!signedIn && !previewMode && !blocked} />
         <StickerCard tone="white" className="px-8 py-8">
           <div className="space-y-4">
             <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[var(--muted-foreground)]">Pairing contract</p>

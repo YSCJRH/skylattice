@@ -9,6 +9,7 @@ Hosted Alpha means:
 - a real public app URL
 - GitHub browser sign-in
 - real pairing codes
+- a control cockpit that makes preview, blocked, unpaired, and ready states explicit
 - real command queue, approvals, and device lifecycle
 - a local paired Skylattice agent that still executes the work
 
@@ -166,13 +167,16 @@ python -m skylattice.cli web pair --control-plane-url <app-url> --code <pairing-
    - `/tasks`
    - `/radar`
    - `/memory`
-7. Confirm command status appears in `/commands`.
-8. Revoke a device once from `/devices`.
-9. Resolve an approval reminder once from `/approvals`.
-10. Confirm docs still distinguish:
+7. Confirm `/dashboard` shows the correct mode and next action.
+8. Confirm command status appears in `/commands`.
+9. Open one command detail page and confirm lifecycle, routing, payload, result or error, and next action are visible.
+10. Revoke a device once from `/devices`.
+11. Resolve an approval reminder once from `/approvals`.
+12. Confirm docs still distinguish:
    - docs site
    - preview
    - live app
+   - paired local agent
 
 ## Onboarding Acceptance Inputs
 
@@ -187,6 +191,7 @@ Success means a cold visitor can quickly understand:
 - what Skylattice is
 - why preview is not the live app
 - why the live app is still not a hosted runtime
+- why `/commands` is the central command ledger, not a cloud execution log
 
 ## Related Pages
 

@@ -1,6 +1,7 @@
 import { RadarCommandPanel } from "@/components/control-plane-panels";
 import { CommandHistoryPanel } from "@/components/command-history";
 import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
+import { commandComposerGate } from "@/lib/control-plane/mode";
 import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
 import { toPublicDevices } from "@/lib/control-plane/public";
 
@@ -9,6 +10,7 @@ export default async function RadarPage() {
   const { snapshot, previewMode, blocked, readiness } = context;
   const radarCommands = snapshot.commands.filter((command) => command.kind.startsWith("radar."));
   const devices = toPublicDevices(snapshot.devices);
+  const gate = commandComposerGate(context.mode, devices.length, context.signedIn);
 
   return (
     <main className="space-y-8">
@@ -49,10 +51,21 @@ export default async function RadarPage() {
       <SectionHeading
         eyebrow="Radar control"
         title="Browser intent, local experiment execution."
-        description="The hosted app can queue radar work without turning GitHub or the control plane into runtime truth."
+        description="The hosted app can queue radar work after pairing, but discovery, branch work, ledger writes, and promotion gates still run on the local runtime."
+        action={
+          gate.disabled ? (
+            <ButtonLink href={gate.actionHref || "/connect"} variant="secondary">
+              {gate.actionLabel || "Pair a local agent"}
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/commands?scope=radar" variant="secondary">
+              Open radar commands
+            </ButtonLink>
+          )
+        }
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <RadarCommandPanel devices={devices} previewMode={previewMode || blocked} />
+        <RadarCommandPanel devices={devices} previewMode={previewMode || blocked} gate={gate} />
         <CommandHistoryPanel
           title="Latest radar outcomes"
           description="Scans, validations, replays, and rollbacks leave a visible command trail in the app even though the real work happens on the local agent."

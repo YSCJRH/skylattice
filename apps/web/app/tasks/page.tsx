@@ -1,6 +1,7 @@
 import { CommandHistoryPanel } from "@/components/command-history";
 import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
 import { TaskCommandComposer } from "@/components/control-plane-panels";
+import { commandComposerGate } from "@/lib/control-plane/mode";
 import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
 import { toPublicDevices } from "@/lib/control-plane/public";
 
@@ -9,6 +10,7 @@ export default async function TasksPage() {
   const { snapshot, previewMode, blocked, readiness } = context;
   const taskCommands = snapshot.commands.filter((command) => command.kind.startsWith("task."));
   const devices = toPublicDevices(snapshot.devices);
+  const gate = commandComposerGate(context.mode, devices.length, context.signedIn);
 
   return (
     <main className="space-y-8">
@@ -48,10 +50,21 @@ export default async function TasksPage() {
       <SectionHeading
         eyebrow="Command intent"
         title="Create governed work, not blind automation."
-        description="The form below writes command intent into the hosted control plane. Your paired connector claims it and executes through the same local runtime service used by the CLI."
+        description="The form below writes command intent into the hosted control plane. It only becomes active after a local Skylattice agent is paired; that connector claims the command and executes through the same local runtime service used by the CLI."
+        action={
+          gate.disabled ? (
+            <ButtonLink href={gate.actionHref || "/connect"} variant="secondary">
+              {gate.actionLabel || "Pair a local agent"}
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/commands" variant="secondary">
+              Open command center
+            </ButtonLink>
+          )
+        }
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <TaskCommandComposer devices={devices} previewMode={previewMode || blocked} />
+        <TaskCommandComposer devices={devices} previewMode={previewMode || blocked} gate={gate} />
         <CommandHistoryPanel
           title="Latest task command results"
           description="Recent task commands stay visible here so the workspace is useful after queueing work, not only before it."

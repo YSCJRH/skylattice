@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tabs from "@radix-ui/react-tabs";
 import { AlertCircle, CheckCircle2, Link2, LoaderCircle, Radar, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 
 import { CandyButton, StatusChip, StickerCard } from "@/components/ui";
+import type { CommandComposerGate } from "@/lib/control-plane/mode";
 import type { ApprovalRecord, PublicPairedDevice, PublicPairingChallenge } from "@/lib/control-plane/types";
 import { APP_BASE_URL } from "@/lib/env";
 
@@ -66,6 +68,23 @@ function PreviewReadOnlyNote({ detail }: { detail: string }) {
   );
 }
 
+function CommandGateNotice({ gate }: { gate: CommandComposerGate }) {
+  return (
+    <div className="rounded-[20px] border-2 border-[var(--border)] bg-[color:rgba(251,191,36,0.22)] px-4 py-3 text-sm leading-7 text-[var(--foreground)]">
+      <p className="font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">{gate.eyebrow}</p>
+      <p className="mt-2">{gate.detail}</p>
+      {gate.actionHref && gate.actionLabel ? (
+        <Link
+          href={gate.actionHref}
+          className="mt-3 inline-flex rounded-full border-2 border-[var(--border)] bg-white px-4 py-2 text-xs font-bold text-[var(--foreground)] shadow-[var(--shadow-hard)]"
+        >
+          {gate.actionLabel}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
 function useSubmissionState() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +115,13 @@ function useSubmissionState() {
   };
 }
 
-export function PairingWizard({ previewMode = false }: { previewMode?: boolean }) {
+export function PairingWizard({
+  previewMode = false,
+  signInRequired = false,
+}: {
+  previewMode?: boolean;
+  signInRequired?: boolean;
+}) {
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [deviceLabel, setDeviceLabel] = useState("Primary workstation");
@@ -114,6 +139,17 @@ export function PairingWizard({ previewMode = false }: { previewMode?: boolean }
         </p>
         {previewMode ? (
           <PreviewReadOnlyNote detail="Pairing is disabled in preview mode. Sign in with GitHub before creating a live pairing code for a real local agent." />
+        ) : signInRequired ? (
+          <div className="rounded-[20px] border-2 border-[var(--border)] bg-[color:rgba(251,191,36,0.22)] px-4 py-3 text-sm leading-7 text-[var(--foreground)]">
+            <p className="font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Sign-in required</p>
+            <p className="mt-2">GitHub sign-in is required before this browser can create a pairing code for a real local agent.</p>
+            <Link
+              href="/signin"
+              className="mt-3 inline-flex rounded-full border-2 border-[var(--border)] bg-white px-4 py-2 text-xs font-bold text-[var(--foreground)] shadow-[var(--shadow-hard)]"
+            >
+              Sign in with GitHub
+            </Link>
+          </div>
         ) : null}
         <CommandResultBanner error={state.error} />
         <div className="flex flex-wrap gap-3">
@@ -126,7 +162,7 @@ export function PairingWizard({ previewMode = false }: { previewMode?: boolean }
                 return payload;
               })
             }
-            disabled={state.pending || previewMode}
+            disabled={state.pending || previewMode || signInRequired}
           >
             {state.pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" strokeWidth={2.5} />}
             Generate pairing code
@@ -230,12 +266,21 @@ export function PairingStatePanel({
   );
 }
 
-export function TaskCommandComposer({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
+export function TaskCommandComposer({
+  devices,
+  previewMode = false,
+  gate,
+}: {
+  devices: PublicPairedDevice[];
+  previewMode?: boolean;
+  gate?: CommandComposerGate;
+}) {
   const [goal, setGoal] = useState("Refresh the README and prepare a draft PR.");
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [allowRepoWrite, setAllowRepoWrite] = useState(true);
   const [allowExternalWrite, setAllowExternalWrite] = useState(false);
   const state = useSubmissionState();
+  const gateDisabled = gate?.disabled ?? previewMode;
 
   return (
     <StickerCard tone="secondary" icon={<ShieldCheck className="h-5 w-5" strokeWidth={2.5} />}>
@@ -246,7 +291,9 @@ export function TaskCommandComposer({ devices, previewMode = false }: { devices:
           value={goal}
           onChange={(event) => setGoal(event.target.value)}
         />
-        {previewMode ? (
+        {gate ? (
+          <CommandGateNotice gate={gate} />
+        ) : previewMode ? (
           <PreviewReadOnlyNote detail="Task queueing is disabled in preview mode. Use this page to inspect the workflow shape first, then sign in and pair a device to send live commands." />
         ) : null}
         <div className="grid gap-4 md:grid-cols-2">
@@ -291,7 +338,7 @@ export function TaskCommandComposer({ devices, previewMode = false }: { devices:
               }),
             )
           }
-          disabled={state.pending || previewMode}
+          disabled={state.pending || gateDisabled}
         >
           {state.pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" strokeWidth={2.5} />}
           Queue task command
@@ -302,13 +349,22 @@ export function TaskCommandComposer({ devices, previewMode = false }: { devices:
   );
 }
 
-export function RadarCommandPanel({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
+export function RadarCommandPanel({
+  devices,
+  previewMode = false,
+  gate,
+}: {
+  devices: PublicPairedDevice[];
+  previewMode?: boolean;
+  gate?: CommandComposerGate;
+}) {
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [scheduleId, setScheduleId] = useState("weekly-github");
   const [candidateId, setCandidateId] = useState("cand-seed");
   const [promotionId, setPromotionId] = useState("promotion-seed");
   const state = useSubmissionState();
   const common = useMemo(() => ({ deviceId: deviceId || undefined }), [deviceId]);
+  const gateDisabled = gate?.disabled ?? previewMode;
 
   return (
     <StickerCard tone="tertiary" icon={<Radar className="h-5 w-5" strokeWidth={2.5} />}>
@@ -329,7 +385,9 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
             ))}
           </select>
         </label>
-        {previewMode ? (
+        {gate ? (
+          <CommandGateNotice gate={gate} />
+        ) : previewMode ? (
           <PreviewReadOnlyNote detail="Radar commands are disabled in preview mode. The seeded records below show what scans, schedule validation, replay, and rollback look like once a live device is paired." />
         ) : null}
         <Tabs.Root defaultValue="scan">
@@ -347,7 +405,7 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
           <div className="mt-4 rounded-[24px] border-2 border-[var(--border)] bg-white p-4">
             <Tabs.Content value="scan" className="space-y-3">
               <p className="text-sm text-[var(--muted-foreground)]">Queue a manual weekly-style scan against the paired local runtime.</p>
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.scan", payload: { window: "manual", limit: 20 }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.scan", payload: { window: "manual", limit: 20 }, ...common }))}>
                 Queue radar scan
               </CandyButton>
             </Tabs.Content>
@@ -356,7 +414,7 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
                 Schedule ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={scheduleId} onChange={(event) => setScheduleId(event.target.value)} />
               </label>
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.run", payload: { scheduleId }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.run", payload: { scheduleId }, ...common }))}>
                 Queue schedule run
               </CandyButton>
             </Tabs.Content>
@@ -365,7 +423,7 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
                 Schedule ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={scheduleId} onChange={(event) => setScheduleId(event.target.value)} />
               </label>
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.validate", payload: { scheduleId }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.schedule.validate", payload: { scheduleId }, ...common }))}>
                 Validate latest scheduled run
               </CandyButton>
             </Tabs.Content>
@@ -374,7 +432,7 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
                 Candidate ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={candidateId} onChange={(event) => setCandidateId(event.target.value)} />
               </label>
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.candidate.replay", payload: { candidateId }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.candidate.replay", payload: { candidateId }, ...common }))}>
                 Replay candidate
               </CandyButton>
             </Tabs.Content>
@@ -383,7 +441,7 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
                 Promotion ID
                 <input className="focus-pop mt-2 block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={promotionId} onChange={(event) => setPromotionId(event.target.value)} />
               </label>
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.promotion.rollback", payload: { promotionId }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "radar.promotion.rollback", payload: { promotionId }, ...common }))}>
                 Queue rollback
               </CandyButton>
             </Tabs.Content>
@@ -396,7 +454,15 @@ export function RadarCommandPanel({ devices, previewMode = false }: { devices: P
   );
 }
 
-export function MemoryCommandPanel({ devices, previewMode = false }: { devices: PublicPairedDevice[]; previewMode?: boolean }) {
+export function MemoryCommandPanel({
+  devices,
+  previewMode = false,
+  gate,
+}: {
+  devices: PublicPairedDevice[];
+  previewMode?: boolean;
+  gate?: CommandComposerGate;
+}) {
   const [deviceId, setDeviceId] = useState<string>(devices[0]?.deviceId || "");
   const [query, setQuery] = useState("governance");
   const [recordId, setRecordId] = useState("record-seed");
@@ -405,6 +471,7 @@ export function MemoryCommandPanel({ devices, previewMode = false }: { devices: 
   const [reason, setReason] = useState("Match the hosted control-plane default tone.");
   const state = useSubmissionState();
   const common = useMemo(() => ({ deviceId: deviceId || undefined }), [deviceId]);
+  const gateDisabled = gate?.disabled ?? previewMode;
 
   return (
     <StickerCard tone="accent" icon={<Sparkles className="h-5 w-5" strokeWidth={2.5} />}>
@@ -425,7 +492,9 @@ export function MemoryCommandPanel({ devices, previewMode = false }: { devices: 
             ))}
           </select>
         </label>
-        {previewMode ? (
+        {gate ? (
+          <CommandGateNotice gate={gate} />
+        ) : previewMode ? (
           <PreviewReadOnlyNote detail="Memory commands are disabled in preview mode. The seeded results show the shape of search, proposal, and review work before you connect a live local runtime." />
         ) : null}
         <Tabs.Root defaultValue="search">
@@ -443,7 +512,7 @@ export function MemoryCommandPanel({ devices, previewMode = false }: { devices: 
           <div className="mt-4 rounded-[24px] border-2 border-[var(--border)] bg-white p-4">
             <Tabs.Content value="search" className="space-y-3">
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={query} onChange={(event) => setQuery(event.target.value)} />
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.search", payload: { query, limit: 5 }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.search", payload: { query, limit: 5 }, ...common }))}>
                 Queue memory search
               </CandyButton>
             </Tabs.Content>
@@ -451,19 +520,19 @@ export function MemoryCommandPanel({ devices, previewMode = false }: { devices: 
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={profileKey} onChange={(event) => setProfileKey(event.target.value)} />
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={profileValue} onChange={(event) => setProfileValue(event.target.value)} />
               <textarea className="focus-pop block min-h-24 w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={reason} onChange={(event) => setReason(event.target.value)} />
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.profile.propose", payload: { key: profileKey, value: profileValue, reason }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.profile.propose", payload: { key: profileKey, value: profileValue, reason }, ...common }))}>
                 Queue profile proposal
               </CandyButton>
             </Tabs.Content>
             <Tabs.Content value="confirm" className="space-y-3">
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={recordId} onChange={(event) => setRecordId(event.target.value)} />
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.confirm", payload: { recordId }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.confirm", payload: { recordId }, ...common }))}>
                 Confirm proposal
               </CandyButton>
             </Tabs.Content>
             <Tabs.Content value="reject" className="space-y-3">
               <input className="focus-pop block w-full rounded-[18px] border-2 border-[var(--border-soft)] bg-white px-4 py-3 text-base" value={recordId} onChange={(event) => setRecordId(event.target.value)} />
-              <CandyButton disabled={previewMode} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.reject", payload: { recordId }, ...common }))}>
+              <CandyButton disabled={state.pending || gateDisabled} onClick={() => state.run(() => submitJson("/api/control-plane/commands", { kind: "memory.review.reject", payload: { recordId }, ...common }))}>
                 Reject proposal
               </CandyButton>
             </Tabs.Content>

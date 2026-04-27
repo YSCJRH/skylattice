@@ -1,6 +1,7 @@
 import { MemoryCommandPanel } from "@/components/control-plane-panels";
 import { CommandHistoryPanel } from "@/components/command-history";
 import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, WorkspaceHero } from "@/components/ui";
+import { commandComposerGate } from "@/lib/control-plane/mode";
 import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
 import { toPublicDevices } from "@/lib/control-plane/public";
 
@@ -9,6 +10,7 @@ export default async function MemoryPage() {
   const { snapshot, previewMode, blocked, readiness } = context;
   const memoryCommands = snapshot.commands.filter((command) => command.kind.startsWith("memory."));
   const devices = toPublicDevices(snapshot.devices);
+  const gate = commandComposerGate(context.mode, devices.length, context.signedIn);
 
   return (
     <main className="space-y-8">
@@ -48,10 +50,21 @@ export default async function MemoryPage() {
       <SectionHeading
         eyebrow="Memory control"
         title="Review-driven memory actions remain review-driven."
-        description="The app can request memory actions, but it does not dissolve the local review boundary that already governs profile, semantic, and procedural changes."
+        description="The app can request memory actions after pairing, but it does not dissolve the local review boundary that already governs profile, semantic, and procedural changes."
+        action={
+          gate.disabled ? (
+            <ButtonLink href={gate.actionHref || "/connect"} variant="secondary">
+              {gate.actionLabel || "Pair a local agent"}
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/commands?scope=memory" variant="secondary">
+              Open memory commands
+            </ButtonLink>
+          )
+        }
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <MemoryCommandPanel devices={devices} previewMode={previewMode || blocked} />
+        <MemoryCommandPanel devices={devices} previewMode={previewMode || blocked} gate={gate} />
         <CommandHistoryPanel
           title="Latest memory results"
           description="Searches, proposals, confirms, and rejects stay visible here so the browser feels like a real workspace instead of a one-shot form."

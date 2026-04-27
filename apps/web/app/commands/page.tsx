@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { controlPlaneModeLabel, controlPlaneModeSummary } from "@/lib/control-plane/mode";
 import { getControlPlaneCommandsForPage, getControlPlanePageContext } from "@/lib/control-plane/page-context";
 import type { CommandRecord } from "@/lib/control-plane/types";
 
@@ -71,8 +72,11 @@ export default async function CommandsPage({
   searchParams: Promise<{ scope?: string; status?: string }>;
 }) {
   const context = await getControlPlanePageContext();
-  const { previewMode, blocked, readiness } = context;
+  const { previewMode, blocked, readiness, mode } = context;
   const commands = await getControlPlaneCommandsForPage(context);
+  const hasDevices = context.snapshot.devices.length > 0;
+  const canQueueCommands = hasDevices && context.signedIn && !previewMode && !blocked;
+  const signInRequired = hasDevices && !context.signedIn && !previewMode && !blocked;
   const params = await searchParams;
   const scope = (["all", "task", "radar", "memory"].includes(params.scope || "") ? params.scope : "all") as ScopeFilter;
   const status = (["all", "queued", "claimed", "succeeded", "failed"].includes(params.status || "") ? params.status : "all") as StatusFilter;
@@ -103,10 +107,11 @@ export default async function CommandsPage({
         />
       ) : null}
       <WorkspaceHero
-        title="Command ledger"
-        description="A dedicated drill-down surface for every control-plane command record, regardless of whether it came from tasks, radar, memory, or onboarding."
+        title="Command center"
+        description="The central operating ledger for every task, radar, and memory intent. Workspaces compose commands; this page shows routing, status, payloads, results, and failure pressure."
         chips={
           <>
+            <StatusChip tone={mode === "live-ready" ? "quaternary" : mode === "blocked" ? "secondary" : "accent"}>{controlPlaneModeLabel(mode)}</StatusChip>
             <StatusChip tone="accent">{filtered.length} visible command(s)</StatusChip>
             <StatusChip tone="secondary">payloads</StatusChip>
             <StatusChip tone="tertiary">results</StatusChip>
@@ -115,8 +120,13 @@ export default async function CommandsPage({
       />
       <SectionHeading
         eyebrow="Control plane"
-        title="Browse command records as a first-class surface."
-        description="Use scope and status filters to narrow the control-plane ledger down to the exact task, radar, or memory slice you want to inspect."
+        title="Commands are the product center of gravity."
+        description={`${controlPlaneModeSummary(mode)} Use scope and status filters to narrow the ledger down to the exact task, radar, or memory slice you want to inspect.`}
+        action={
+          <ButtonLink href={canQueueCommands ? "/tasks" : mode === "blocked" ? "/settings" : mode === "preview" || signInRequired ? "/signin" : "/connect"} variant="secondary">
+            {canQueueCommands ? "Queue task intent" : mode === "blocked" ? "Review blockers" : mode === "preview" || signInRequired ? "Sign in" : "Pair a local agent"}
+          </ButtonLink>
+        }
       />
       <StickerCard tone="white">
         <div className="space-y-5">

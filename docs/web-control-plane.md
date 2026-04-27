@@ -26,6 +26,7 @@ The app is a hosted control plane for:
 
 - GitHub sign-in
 - device pairing
+- control-cockpit mode, readiness, and next-action visibility
 - device revocation
 - onboarding and blocked-state UX
 - task, radar, and memory command intent
@@ -68,10 +69,24 @@ The hosted app adds:
 - a sign-in flow
 - an optional read-only preview mode for first-look evaluation before auth and pairing
 - a production-style Hosted Alpha path for real sign-in, pairing, and command lifecycle
-- a dashboard
+- a dashboard shaped as a control cockpit for mode, readiness, next action, command flow, and approval pressure
 - task, radar, and memory workspaces
 - a connect / pairing flow
 - settings for identity, pairing state, and runtime readiness
+
+## Control Cockpit Shape
+
+The web app is organized around the command lifecycle rather than a chat surface:
+
+1. `Preview` shows seeded read-only command, device, pairing, and approval records.
+2. `Connect` pairs a local Skylattice agent through a short-lived code.
+3. `Tasks`, `Radar`, and `Memory` compose command intent only after pairing.
+4. `Commands` is the central ledger for status, payload, result, error, routing, and next action.
+5. The paired local agent still executes the work and enforces local governance.
+
+Pairing and command creation also require GitHub sign-in. The app can send unpaired users to `/connect`, but creating a pairing code or live command stays disabled until the browser session is authenticated.
+
+This keeps browser ergonomics useful without turning the hosted app into an execution substrate.
 
 ## First-Look Preview
 

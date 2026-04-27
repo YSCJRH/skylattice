@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, CircleDot, Sparkles } from "lucide-react";
 
 import { cx } from "@/lib/utils";
+import type { ControlPlaneMode } from "@/lib/control-plane/mode";
 
 type ButtonVariant = "primary" | "secondary";
 
@@ -228,7 +229,7 @@ export function AppStatusBanner({
   chips,
   action,
 }: {
-  mode: "preview" | "blocked" | "live" | "development";
+  mode: ControlPlaneMode;
   title: string;
   description: string;
   blockers?: string[];
@@ -241,14 +242,18 @@ export function AppStatusBanner({
       ? "tertiary"
       : mode === "development"
         ? "white"
-        : "quaternary";
+        : mode === "live-unpaired"
+          ? "tertiary"
+          : "quaternary";
   const eyebrow = mode === "blocked"
     ? "Hosted Alpha blocked"
     : mode === "preview"
       ? "Preview mode"
       : mode === "development"
         ? "Local development"
-        : "Local-first control";
+        : mode === "live-unpaired"
+          ? "Live, pairing required"
+          : "Local-first control";
   const textClass = mode === "blocked" ? "text-white" : "text-[var(--foreground)]";
   const subtleTextClass = mode === "blocked" ? "text-white/80" : "text-[var(--muted-foreground)]";
 

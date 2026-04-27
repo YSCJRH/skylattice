@@ -24,6 +24,8 @@ jsonld: |
 
 If you want to see the product-shaped web surface before wiring GitHub OAuth, pairing a local agent, or configuring a hosted deployment, start here.
 
+The preview now frames the app as a local-agent control cockpit: the dashboard makes mode and readiness visible, `/commands` is the central ledger, and task/radar/memory workspaces show how browser intent flows toward a paired local executor.
+
 ## The One-Command Entry
 
 From the repository root:
@@ -51,11 +53,11 @@ The preview is designed to answer one question fast: does the web product surfac
 
 Open these routes first:
 
-- `/dashboard`: paired-device status, latest commands, approval pressure, and memory activity
+- `/dashboard`: current mode, next action, paired-device status, latest commands, approval pressure, and local readiness
+- `/commands`: central command ledger, lifecycle, routing, payload, result, error, and next-action drill-down
 - `/tasks`: governed task run shape plus representative result history
 - `/radar`: scan, schedule validation, replay, and rollback surfaces
 - `/memory`: search, profile proposals, and review-driven memory actions
-- `/commands`: command ledger and single-command drill-down
 - `/connect`: pairing flow, code visibility, and claimed-device status
 - `/devices` and `/approvals`: long-lived management surfaces
 
@@ -81,7 +83,8 @@ When you move from preview to live control, the architecture stays the same but 
 1. sign in with GitHub
 2. create a short-lived pairing code
 3. claim it locally with `skylattice web pair`
-4. let the local connector claim commands and report readiness
+4. let the local connector report readiness and claim commands
+5. inspect command results, failures, approval pressure, and recovery hints from `/commands`
 
 The browser still does not become runtime truth. The paired local Skylattice agent remains the executor.
 

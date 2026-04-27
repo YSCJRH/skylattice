@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AppStatusBanner, AppWordmark, ButtonLink, PageFrame, StatusChip } from "@/components/ui";
 import { getAppSession, getSessionUserId, isGuestUserId } from "@/lib/auth";
+import { resolveControlPlaneMode } from "@/lib/control-plane/mode";
 import { toPublicDevices } from "@/lib/control-plane/public";
 import { getControlPlaneStore } from "@/lib/control-plane/store";
 import { DOCS_URL, GITHUB_REPOSITORY_URL, hostedAlphaReadiness, isDemoPreviewEnabled } from "@/lib/env";
@@ -27,6 +28,7 @@ const navigation = [
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getAppSession();
   const userId = await getSessionUserId();
+  const signedIn = !isGuestUserId(userId);
   const demoPreview = isDemoPreviewEnabled() && isGuestUserId(userId);
   const store = getControlPlaneStore();
   const persistence = store.describePersistence();
@@ -34,6 +36,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const blocked = persistence.backend === "blocked";
   const snapshot = blocked ? null : await store.getDashboardSnapshot(userId);
   const devices = snapshot ? toPublicDevices(snapshot.devices) : [];
+  const mode = resolveControlPlaneMode({
+    previewMode: demoPreview,
+    blocked,
+    hostedAlpha: readiness.hostedAlpha,
+    deviceCount: devices.length,
+  });
+  const pairedActionHref = devices.length ? (signedIn ? "/commands" : "/signin") : "/connect";
+  const pairedActionLabel = devices.length ? (signedIn ? "Open command center" : "Sign in with GitHub") : "Pair a local agent";
 
   return (
     <html lang="en">
@@ -59,10 +69,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 ))}
               </nav>
               <div className="flex flex-wrap items-center gap-2">
-                {demoPreview ? <StatusChip tone="tertiary">preview</StatusChip> : null}
-                {blocked ? <StatusChip tone="secondary">hosted alpha blocked</StatusChip> : null}
-                {!demoPreview && !blocked && readiness.hostedAlpha ? <StatusChip tone="quaternary">local agent required</StatusChip> : null}
-                {!demoPreview && !blocked && !readiness.hostedAlpha ? <StatusChip tone="accent">local development</StatusChip> : null}
+                {mode === "preview" ? <StatusChip tone="tertiary">preview</StatusChip> : null}
+                {mode === "blocked" ? <StatusChip tone="secondary">hosted alpha blocked</StatusChip> : null}
+                {mode === "live-unpaired" ? <StatusChip tone="secondary">pair local agent</StatusChip> : null}
+                {mode === "live-ready" ? <StatusChip tone="quaternary">paired control</StatusChip> : null}
+                {mode === "development" ? <StatusChip tone="accent">local development</StatusChip> : null}
                 <Link href={DOCS_URL} className="hidden rounded-full border-2 border-[var(--border)] px-4 py-2 text-sm font-bold hover:bg-[var(--tertiary)] lg:inline-flex">
                   Docs
                 </Link>
@@ -83,7 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </header>
           {demoPreview ? (
             <AppStatusBanner
-              mode="preview"
+              mode={mode}
               title="Preview is showing representative sample data."
               description="You are inspecting the product shape with seeded commands, devices, pairings, and approvals. No paired local agent means no real execution from this browser session."
               chips={
@@ -101,7 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ) : null}
           {blocked ? (
             <AppStatusBanner
-              mode="blocked"
+              mode={mode}
               title="Hosted Alpha is blocked by deployment configuration."
               description="This deployment is being treated like a real Hosted Alpha surface, so it refuses to fall back to local development persistence. Finish the public app URL, GitHub OAuth, and Postgres-backed env before expecting live browser control."
               blockers={readiness.blockers}
@@ -120,28 +131,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ) : null}
           {!demoPreview && !blocked && !readiness.hostedAlpha ? (
             <AppStatusBanner
-              mode="development"
+              mode={mode}
               title="This is the local development control plane."
               description="You are using the same web product surface locally, but this session is not a real public Hosted Alpha deployment yet. Use preview for a read-only first look, or configure Hosted Alpha envs before treating this app like the public browser surface."
               chips={
                 <>
                   <StatusChip tone="accent">{persistence.backend} backend</StatusChip>
+                  <StatusChip tone={devices.length ? "quaternary" : "tertiary"}>
+                    {devices.length ? `${devices.length} paired device(s)` : "pairing still recommended"}
+                  </StatusChip>
                   <StatusChip tone="tertiary">not a public Hosted Alpha URL</StatusChip>
                 </>
               }
               action={
-                <ButtonLink href="/settings" variant="secondary">
-                  Review deployment contract
+                <ButtonLink href={pairedActionHref} variant="secondary">
+                  {pairedActionLabel}
                 </ButtonLink>
               }
             />
           ) : null}
           {!demoPreview && !blocked && readiness.hostedAlpha ? (
             <AppStatusBanner
-              mode="live"
-              title={devices.length ? "Hosted Alpha can route intent to paired local agents." : "Hosted Alpha is ready, but no local agent is paired yet."}
+              mode={mode}
+              title={devices.length ? (signedIn ? "Hosted Alpha can route intent to paired local agents." : "Hosted Alpha has paired local agents, but sign-in is required.") : "Hosted Alpha is ready, but no local agent is paired yet."}
               description={devices.length
-                ? "This browser can queue task, radar, and memory intent, but the paired local connector still owns real execution, memory truth, and governance enforcement."
+                ? signedIn
+                  ? "This browser can queue task, radar, and memory intent, but the paired local connector still owns real execution, memory truth, and governance enforcement."
+                  : "A paired local connector exists, but command creation still requires GitHub sign-in before the local runtime can claim work."
                 : "GitHub sign-in and hosted persistence are ready, but real work still needs a paired local agent. Until then, the browser has nowhere truthful to send execution."}
               chips={
                 <>
@@ -150,8 +166,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </>
               }
               action={
-                <ButtonLink href={devices.length ? "/dashboard" : "/connect"} variant="secondary">
-                  {devices.length ? "Open control plane" : "Pair a local agent"}
+                <ButtonLink href={pairedActionHref} variant="secondary">
+                  {pairedActionLabel}
                 </ButtonLink>
               }
             />

@@ -3,13 +3,37 @@ import Link from "next/link";
 
 import { ApprovalManager, DeviceReadinessPanel } from "@/components/control-plane-panels";
 import { ButtonLink, HostedAlphaNotice, PreviewNotice, SectionHeading, StatusChip, StickerCard, WorkspaceHero } from "@/components/ui";
+import { controlPlaneModeLabel, controlPlaneModeSummary } from "@/lib/control-plane/mode";
 import { getControlPlanePageContext } from "@/lib/control-plane/page-context";
 import { toPublicDevices } from "@/lib/control-plane/public";
 
 export default async function DashboardPage() {
   const context = await getControlPlanePageContext();
-  const { snapshot, previewMode, blocked, readiness } = context;
+  const { snapshot, previewMode, blocked, readiness, mode, signedIn } = context;
   const devices = toPublicDevices(snapshot.devices);
+  const modeLabel = controlPlaneModeLabel(mode);
+  const signInRequired = devices.length > 0 && !signedIn && !previewMode && !blocked;
+  const readyForCommands = devices.length > 0 && signedIn && !previewMode && !blocked;
+  const nextHref = previewMode ? "/signin" : blocked ? "/settings" : signInRequired ? "/signin" : readyForCommands ? "/commands" : "/connect";
+  const nextLabel = previewMode
+    ? "Sign in for Hosted Alpha"
+    : blocked
+      ? "Review deployment blockers"
+      : signInRequired
+        ? "Sign in with GitHub"
+        : readyForCommands
+        ? "Open command center"
+        : "Pair a local agent";
+  const nextTitle = readyForCommands
+    ? "Queue intent from the command center."
+    : signInRequired
+      ? "Sign in before queueing commands."
+    : "Pair a local agent before queueing commands.";
+  const nextDescription = readyForCommands
+    ? "This browser can now write task, radar, and memory intent into the hosted ledger. The paired local connector still owns execution."
+    : signInRequired
+      ? "A local agent is paired, but command creation still requires an authenticated browser session before the local connector can claim work."
+    : "Without a paired local agent, the hosted control plane has nowhere truthful to send execution.";
 
   return (
     <main className="space-y-8">
@@ -34,10 +58,11 @@ export default async function DashboardPage() {
         />
       ) : null}
       <WorkspaceHero
-        title="Hosted control plane overview"
-        description="This dashboard shows what the app can currently see: paired devices, recent command records, pending approvals, and whether your control-plane store is alive."
+        title="Hosted Alpha control cockpit"
+        description="A quick-read operating surface for mode, pairing, command flow, approvals, and local runtime readiness. The browser queues intent; the paired local agent executes."
         chips={
           <>
+            <StatusChip tone={mode === "blocked" ? "secondary" : mode === "live-ready" ? "quaternary" : "accent"}>{modeLabel}</StatusChip>
             <StatusChip tone="accent">{snapshot.backend} store</StatusChip>
             <StatusChip tone={devices.length ? "quaternary" : "secondary"}>
               {devices.length ? `${devices.length} paired device(s)` : "No paired devices yet"}
@@ -49,24 +74,32 @@ export default async function DashboardPage() {
       <section className="grid gap-6 lg:grid-cols-3">
         <StickerCard tone="white" icon={<Cpu className="h-5 w-5" strokeWidth={2.5} />}>
           <div className="pt-7">
-            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Paired devices</p>
-            <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{devices.length}</p>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">The browser issues intent. Your paired local connector is the executor.</p>
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Current mode</p>
+            <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{modeLabel}</p>
+            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{controlPlaneModeSummary(mode)}</p>
             <div className="mt-4">
               <Link
-                href="/devices"
+                href={nextHref}
                 className="inline-flex rounded-full border-2 border-[var(--border)] bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white shadow-[var(--shadow-hard)]"
               >
-                Manage devices
+                {nextLabel}
               </Link>
             </div>
           </div>
         </StickerCard>
         <StickerCard tone="quaternary" icon={<Clock3 className="h-5 w-5" strokeWidth={2.5} />}>
           <div className="pt-7">
-            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Recent commands</p>
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Command center</p>
             <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{snapshot.commands.length}</p>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">Task, radar, and memory intents queue here before a device claims them.</p>
+            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">Task, radar, and memory intents all land in the command ledger before a local connector claims them.</p>
+            <div className="mt-4">
+              <Link
+                href="/commands"
+                className="inline-flex rounded-full border-2 border-[var(--border)] bg-white px-4 py-2 text-xs font-bold text-[var(--foreground)] shadow-[var(--shadow-hard)]"
+              >
+                Open command center
+              </Link>
+            </div>
           </div>
         </StickerCard>
         <StickerCard tone="secondary" icon={<CheckCircle2 className="h-5 w-5" strokeWidth={2.5} />}>
@@ -86,9 +119,9 @@ export default async function DashboardPage() {
         </StickerCard>
         <StickerCard tone="tertiary" icon={<Clock3 className="h-5 w-5" strokeWidth={2.5} />}>
           <div className="pt-7">
-            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Memory activity</p>
-            <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{snapshot.memoryReviewCount}</p>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">Recent memory commands give the browser a quick read on review pressure and local knowledge work.</p>
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Local readiness</p>
+            <p className="mt-3 font-[family-name:var(--font-outfit)] text-4xl font-extrabold">{devices.filter((device) => device.online).length}/{devices.length}</p>
+            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">Connector heartbeats tell the browser what the local runtime is ready to do without exposing private local state.</p>
           </div>
         </StickerCard>
       </section>
@@ -97,15 +130,15 @@ export default async function DashboardPage() {
           <div className="space-y-4 pt-7">
             <SectionHeading
               eyebrow="Next move"
-              title="Pair a device before queueing commands."
-              description="Without a paired local agent, the hosted control plane has nowhere truthful to send execution."
-              action={<ButtonLink href="/connect">Open pairing</ButtonLink>}
+              title={nextTitle}
+              description={nextDescription}
+              action={<ButtonLink href={nextHref}>{nextLabel}</ButtonLink>}
             />
           </div>
         </StickerCard>
         <StickerCard tone="accent" className="px-8 py-8">
           <div className="space-y-4">
-            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-white/80">Latest command log</p>
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-white/80">Command center feed</p>
             <div className="space-y-3">
               {snapshot.commands.length ? (
                 snapshot.commands.map((command) => (
