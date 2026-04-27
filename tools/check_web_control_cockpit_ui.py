@@ -66,6 +66,48 @@ PAIRED_GUEST_STATE: dict[str, list[Any]] = {
     "approvals": [],
 }
 
+COMMAND_DETAIL_STATE: dict[str, list[Any]] = {
+    "devices": PAIRED_GUEST_STATE["devices"],
+    "pairings": [],
+    "commands": [
+        {
+            "commandId": "cmd-succeeded-proof",
+            "userId": "guest@skylattice.local",
+            "deviceId": "device-local-proof",
+            "kind": "radar.schedule.validate",
+            "status": "succeeded",
+            "createdAt": "2026-04-27T08:00:00.000Z",
+            "updatedAt": "2026-04-27T08:02:00.000Z",
+            "claimedAt": "2026-04-27T08:01:00.000Z",
+            "payload": {"scheduleId": "weekly-github", "window": "weekly"},
+            "result": {"valid": True, "output_path": ".local/radar/validations/proof.md"},
+            "error": None,
+        },
+        {
+            "commandId": "cmd-failed-proof",
+            "userId": "guest@skylattice.local",
+            "deviceId": "device-local-proof",
+            "kind": "task.run",
+            "status": "failed",
+            "createdAt": "2026-04-27T09:00:00.000Z",
+            "updatedAt": "2026-04-27T09:03:00.000Z",
+            "claimedAt": "2026-04-27T09:01:00.000Z",
+            "payload": {"goal": "Prepare a recovery proof"},
+            "result": None,
+            "error": "Missing OPENAI_API_KEY; resolve local auth before retrying.",
+        },
+    ],
+    "approvals": [
+        {
+            "approvalId": "approval-failed-proof",
+            "userId": "guest@skylattice.local",
+            "summary": "Review failed task command cmd-failed-proof",
+            "requiredFlags": ["repo-write", "external-write"],
+            "status": "pending",
+        }
+    ],
+}
+
 
 @dataclass(frozen=True)
 class UiCase:
@@ -315,6 +357,40 @@ def build_cases() -> list[UiCase]:
                 "Local proof connector",
                 "Queue task command",
                 "disabled",
+            ),
+            must_not_contain=("local-proof-token",),
+        ),
+        UiCase(
+            name="succeeded-command-detail",
+            path="/commands/cmd-succeeded-proof",
+            state=COMMAND_DETAIL_STATE,
+            port_hint=PORT_BASE + 40,
+            must_contain=(
+                "Command cmd-succeeded-proof",
+                "Lifecycle",
+                "Claimed by local connector",
+                "Result recorded",
+                "Command completed.",
+                "Payload",
+                "Result",
+                "device-local-proof",
+                ".local/radar/validations/proof.md",
+            ),
+            must_not_contain=("local-proof-token",),
+        ),
+        UiCase(
+            name="failed-command-detail",
+            path="/commands/cmd-failed-proof",
+            state=COMMAND_DETAIL_STATE,
+            port_hint=PORT_BASE + 50,
+            must_contain=(
+                "Command cmd-failed-proof",
+                "failed",
+                "Failed with local pressure",
+                "Next safe action",
+                "Review the failure before retrying.",
+                "Open approvals",
+                "Missing OPENAI_API_KEY; resolve local auth before retrying.",
             ),
             must_not_contain=("local-proof-token",),
         ),

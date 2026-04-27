@@ -49,7 +49,7 @@ Public surfaces:
 - same-repo `Next.js` web app foundation under `apps/web/` with Playful Geometric tokens, GitHub login scaffolding, pairing flows, and browser command queueing
 - Hosted Alpha deployment contract under `apps/web/.env.example` plus `docs/ops/hosted-alpha-runbook.md`, with production-style blocked mode instead of silent local-file fallback
 - local Hosted Alpha first-run proof harness via `npm run web:first-run:local`, covering preview proof data, blocked Hosted Alpha readiness, unpaired connector behavior, and auth preflight without impersonating a live deployment
-- local control cockpit UI contract check via `npm run web:cockpit:check`, covering preview, Hosted Alpha blocked, local unpaired, and paired-but-unauthenticated browser states through server-rendered pages
+- local control cockpit UI contract check via `npm run web:cockpit:check`, covering preview, Hosted Alpha blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states through server-rendered pages
 - tracked radar scheduling via `configs/radar/schedule.yaml` plus `skylattice radar schedule ...`
 - scheduled radar runs now record `trigger_mode` and `schedule_id` for later inspection
 - `skylattice radar schedule validate` now exports a local weekly-cycle validation report under `.local/radar/validations/`

@@ -101,6 +101,9 @@ def test_postgres_identity_and_bootstrap_contract_are_tracked() -> None:
     assert "Local Hosted Alpha readiness check unexpectedly passed." in first_run_script
     assert "local server-rendered UI contract" in cockpit_script
     assert "liveHostedAlpha" in cockpit_script
+    assert "cmd-succeeded-proof" in cockpit_script
+    assert "cmd-failed-proof" in cockpit_script
+    assert "local-proof-token" in cockpit_script
 
 
 def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
@@ -138,11 +141,14 @@ def test_docs_distinguish_preview_hosted_alpha_and_local_agent() -> None:
     assert "npm run web:cockpit:check" in first_run_task_brief
     assert "npm run web:cockpit:check" in first_run_note
     assert "local UI contract check only" in first_run_note
+    assert "succeeded and failed command detail pages" in first_run_note
     assert "npm run web:first-run:local" in readme
     assert "npm run web:first-run:local" in web_readme
     assert "npm run web:first-run:local" in quickstart
     assert "npm run web:cockpit:check" in readme
     assert "npm run web:cockpit:check" in web_readme
+    assert "succeeded/failed command-detail" in readme
+    assert "succeeded/failed command-detail" in web_readme
     assert "local Hosted Alpha first-run proof loop" in readme
     assert "without pretending local development is a live deployment" in web_readme
     assert "control cockpit" in app_preview

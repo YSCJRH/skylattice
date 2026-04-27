@@ -89,7 +89,7 @@ npm run web:cockpit:check
 - `web:hosted-alpha:check` prints the current Hosted Alpha readiness payload and exits non-zero when blockers remain
 - `web:hosted-alpha:bootstrap` applies the tracked SQL bootstrap in `apps/web/sql/hosted-alpha-bootstrap.sql` to `DATABASE_URL`
 - `web:first-run:local` verifies the local blocked proof loop without pretending localhost is a live Hosted Alpha deployment
-- `web:cockpit:check` verifies the local server-rendered UI contract for preview, blocked, local unpaired, and paired-but-unauthenticated states. It does not exercise live Hosted Alpha sign-in or Postgres-backed pairing.
+- `web:cockpit:check` verifies the local server-rendered UI contract for preview, blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail states. It does not exercise live Hosted Alpha sign-in or Postgres-backed pairing.
 
 ## Important Production Guardrail
 

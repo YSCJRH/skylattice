@@ -105,6 +105,6 @@
 - This is the recommended post-cockpit wedge because it aligns Phase 5 operational proof with ADR 0018's hosted-control-plane boundary.
 - The first blocked local proof-loop note is `docs/ops/hosted-alpha-validations/2026-04-27-first-run-proof-loop.md`.
 - The local harness command is `npm run web:first-run:local`; it verifies preview proof data, local Hosted Alpha blocked readiness, unpaired connector failure, and auth-preflight reporting without pretending to be a live deployment.
-- The local UI contract command is `npm run web:cockpit:check`; it starts local Next.js dev servers and verifies preview, Hosted Alpha blocked, local unpaired, and paired-but-unauthenticated server-rendered pages without exercising live Hosted Alpha sign-in.
+- The local UI contract command is `npm run web:cockpit:check`; it starts local Next.js dev servers and verifies preview, Hosted Alpha blocked, local unpaired, paired-but-unauthenticated, and succeeded/failed command-detail server-rendered pages without exercising live Hosted Alpha sign-in.
 - The work should stay narrow. If the first-run proof reveals a need for schema evolution, auth-provider expansion, or new command kinds, create a separate brief before implementation.
 - The highest-cost mistake is making the hosted app appear more authoritative than the local runtime. Favor disabled states, explicit blockers, and local recovery guidance over optimistic UI.

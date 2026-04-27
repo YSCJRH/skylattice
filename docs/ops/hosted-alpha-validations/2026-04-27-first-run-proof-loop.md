@@ -57,6 +57,7 @@ This confirms the read-only first-look surface is still available before live au
 - Hosted Alpha blocked dashboard and env blocker visibility
 - local unpaired `/commands` CTA to pair a local agent
 - paired-but-unauthenticated `/tasks` sign-in gate, while confirming the seeded connector token is not rendered
+- succeeded and failed command detail pages for lifecycle, routing, payload/result/error, next safe action, and connector-token redaction
 
 This is a local UI contract check only; it does not replace the live Hosted Alpha sign-in, Postgres-backed pairing, heartbeat, queue, claim, result, or approval checks.
 
@@ -118,7 +119,7 @@ Verified in this run:
 - preview proof data is valid
 - local runtime doctor status is healthy through `web status`
 - Hosted Alpha readiness fails clearly instead of falling back to local-file live semantics
-- local server-rendered cockpit pages expose preview, blocked, local unpaired, and paired-but-unauthenticated boundaries
+- local server-rendered cockpit pages expose preview, blocked, local unpaired, paired-but-unauthenticated, and command-detail lifecycle/recovery boundaries
 - unpaired connector heartbeat fails with an actionable pairing instruction
 - auth preflight distinguishes `gh` login from explicit Skylattice runtime credentials
 
